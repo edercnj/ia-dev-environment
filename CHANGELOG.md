@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-04-22
+
+### Breaking
+
+- **EPIC-0048 (Java-Only Scope):** the `ia-dev-env` generator is
+  restricted to Java only starting with v4.0.0. Support for `python`,
+  `go`, `kotlin`, `typescript`, `rust`, and `csharp` has been removed.
+  Users who need non-Java profiles must pin to the v3.x line (latest
+  v3.11.0-SNAPSHOT). Branch `legacy/v3` is preserved as read-only
+  reference. Formal decision: [ADR-0048-A](adr/ADR-0048-java-only-scope.md).
+  - `LanguageFrameworkMapping.LANGUAGES` restriction remains partial in
+    v4.0.0 (delegated to a follow-up PR); the `UnsupportedLanguageException`
+    class is in place.
+- **Non-Java stack profiles removed** (story-0048-0007+0008): 8 golden
+  directories (3256 files) + 8 `setup-config.*.yaml` files deleted:
+  `go-gin`, `kotlin-ktor`, `python-click-cli`, `python-fastapi`,
+  `python-fastapi-timescale`, `rust-axum`, `typescript-commander-cli`,
+  `typescript-nestjs`. `SmokeProfiles.SMOKE_PROFILES` trimmed from 17 to 9
+  Java profiles. `ConfigProfiles.STACK_KEYS` trimmed from 18 to 10.
+- **`csharp-dotnet` + `aspnet` leftover removed** (story-0048-0004) from
+  `StackMapping`: entries in `LANGUAGE_COMMANDS`, `FRAMEWORK_PORTS`,
+  `FRAMEWORK_HEALTH_PATHS`, `FRAMEWORK_LANGUAGE_RULES`,
+  `DOCKER_BASE_IMAGES`, `HOOK_TEMPLATE_MAP`, `SETTINGS_LANG_MAP`.
+
+### Added
+
+- **Bug B fix — `CLAUDE.md` now generated at root of every Java project**
+  (story-0048-0011). New single-responsibility `ClaudeMdAssembler`
+  consumes the Pebble template `shared/templates/CLAUDE.md` (8
+  placeholders: PROJECT_NAME, LANGUAGE, FRAMEWORK, ARCHITECTURE,
+  DATABASES, INTERFACE_TYPES, BUILD_COMMAND, TEST_COMMAND). Contract:
+  [ADR-0048-B](adr/ADR-0048-B-claude-md-contract.md). Empirical
+  verification: `plans/epic-0048/reports/repro-bug-b.sh` now exits 0
+  on develop (was exit 1).
+- **`OutputDirectoryIntegrityTest`** (story-0048-0009): permanent
+  regression gate asserting zero empty directories in generator output
+  (RULE-048-04). Parameterized over all 9 Java profiles. Bug A was not
+  reproducible on develop at the start of EPIC-0048; the test prevents
+  regressions going forward.
+- **`UnsupportedLanguageException`** (story-0048-0003): dedicated
+  exception class producing the canonical RULE-048-06 message:
+  `Language 'X' is not supported. Only 'java' is available (see
+  CHANGELOG v4.0.0 / EPIC-0048).`
+- **Investigation artifacts in `plans/epic-0048/reports/`** (story
+  0048-0001): `investigation-report.md`, `removal-inventory.md`,
+  `repro-bug-a.sh`, `repro-bug-b.sh`.
+- **ADR-0048-A** (Java-only scope decision) and **ADR-0048-B** (CLAUDE.md
+  assembler contract) in `adr/`.
+- **Template `shared/templates/CLAUDE.md`** (story-0048-0010) with 8
+  Pebble placeholders and `ClaudeMdTemplateSyntaxTest` covering parse,
+  render, and conditional-block semantics.
+
+### Changed
+
+- **Orthogonal dimensions preserved** (RULE-048-02): databases
+  (PostgreSQL, MySQL, ClickHouse, Elasticsearch, Neo4j, TimescaleDB),
+  messaging (Kafka, RabbitMQ, SQS), architecture patterns (hexagonal,
+  CQRS, event-driven, clean, layered, DDD), interface types (REST, gRPC,
+  GraphQL, WebSocket, CLI, event-consumer/producer, scheduled), and
+  compliance frameworks (PCI, HIPAA, LGPD, SOX) — all unchanged.
+
+### Removed
+
+- 8 non-Java stack profiles (goldens + YAMLs).
+- 7 `StackMapping` entries (csharp-dotnet command, aspnet framework).
+- `python-fastapi-timescale` from `STACK_KEYS`.
+- Per-stack non-Java tests in `ConfigProfilesTest`, `FatJarContentTest`,
+  `YamlStackProfileRepositoryTest`, `GenerateCommandE2ETest`,
+  `DistributionTest` — total ~41 tests for removed functionality.
+
+### Deferred
+
+Scope items from EPIC-0048 not shipped in v4.0.0 (tracked for future):
+
+- `LanguageFrameworkMapping.LANGUAGES = List.of("java")` hard restriction
+  (requires InteractivePrompter/arch test updates).
+- Non-Java agent templates, hook subdirs, settings JSONs,
+  stack-patterns, conditional rules (files remain in classpath but
+  are not referenced by any Java profile — safe to ship, delete in
+  v4.0.1 or later).
+
+### Migration guide
+
+- **Staying on v3.x:** pin `v3.11.0-SNAPSHOT` or the last tagged v3.x
+  release; the `legacy/v3` branch is frozen.
+- **Upgrading to v4.0.0:** if you only generate Java projects, the
+  upgrade is near-transparent. Your generated output gains a new
+  root `CLAUDE.md` file (1596 bytes for `java-spring`, comparable for
+  other profiles). If you prefer to retain hand-edited content, use
+  the temporary v4.0.0-only flag `--no-claude-md` (removed in v5.0.0).
+- **Users of non-Java profiles:** pin v3.x. Epic premise confirmed:
+  100% of observed usage was Java; no active consumer of non-Java
+  profiles was identified.
+
+### Related
+
+- Epic: [plans/epic-0048/epic-0048.md](plans/epic-0048/epic-0048.md)
+- Execution report: [plans/epic-0048/epic-execution-report.md](plans/epic-0048/epic-execution-report.md)
+
 ## [3.10.0] - 2026-04-21
 
 ### Changed
@@ -532,87 +631,6 @@ This epic introduces no database migrations and no persistent state changes — 
 ### Added
 - **Skill Naming Standardization Epic (EPIC-0032):** Epic, 8 stories, and implementation map for renaming 25 skills to follow consistent `x-{category}-{action}` convention.
 - **Skill Delegation Fix Epic (EPIC-0033):** Epic, 4 stories, and implementation map addressing broken Skill tool chain, zero TaskCreate visibility, planning subagent black boxes, and x-dev-story-implement/x-dev-story-implement naming inconsistency.
-
-## [Unreleased]
-
-### Added
-- **Platform filter (EPIC-0025)**: Add `--platform` flag to `generate` command for targeted AI platform generation (claude-code, copilot, codex, all). Supports YAML config via `platform:` section. Default: all (backward-compatible).
-- **Artifact Persistence & Standardization (EPIC-0024):** 12 new plan and review templates providing standardized output formats for all planning and review artifacts. Templates: Implementation Plan, Test Plan, Architecture Plan, Task Breakdown, Security Assessment, Compliance Assessment, Specialist Review, Tech Lead Review, Consolidated Review Dashboard, Review Remediation, Epic Execution Plan, and Phase Completion Report.
-- **PlanTemplatesAssembler (EPIC-0024):** New assembler that copies 12 templates verbatim to both `.claude/templates/` and `.github/templates/` with mandatory section validation (RULE-004 dual-target, RULE-010 validation).
-- **Pre-checks in 8 skills (EPIC-0024):** Idempotency pre-checks added to x-dev-story-implement, x-test-plan, x-dev-architecture-plan, x-lib-task-decomposer, x-review, x-review-pr, x-dev-epic-implement, and x-dev-implement. Skills verify artifact staleness before regenerating (RULE-002).
-- **Consolidated Review Dashboard (EPIC-0024):** Cumulative dashboard created by x-review and updated by x-review-pr with parseable scores (XX/YY format) and review history (RULE-005, RULE-006).
-- **Remediation Tracking (EPIC-0024):** Review remediation template with findings tracker, deferred justifications, and re-review results for systematic issue resolution.
-- **Epic Execution Plan (EPIC-0024):** Execution plan template saved before epic execution begins, enabling human audit of strategy, phase timeline, and resource requirements.
-- **Phase Completion Reports (EPIC-0024):** Per-phase reports documenting stories completed, integrity gate results, coverage delta, and next phase readiness.
-
-### Changed
-- **x-story-implement (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification. (Renamed from `x-dev-story-implement` in EPIC-0036.)
-- **x-task-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-story-implement planning and x-task-implement execution. (Renamed from `x-dev-implement` in EPIC-0036.)
-- **x-review (EPIC-0024):** Generates consolidated review dashboard with parseable specialist scores. Dashboard is cumulative across review rounds.
-- **x-review-pr (EPIC-0024):** Updates consolidated review dashboard with Tech Lead review round, providing complete quality visibility in a single file.
-- Restructured project directories to adopt SDD (Spec-Driven Development) layout
-  - `docs/` replaced by `steering/`, `specs/`, `plans/`, `results/`, `contracts/`, `adr/`
-  - Java assembler output paths updated to match new structure
-  - Skill templates updated with new directory references
-
-### Added
-- **Output Directory Cleanup + Overwrite Protection (story-0005-0015):** Removed redundant legacy `docs/epic/` output from `EpicReportAssembler` — epic template now only emits to `.claude/templates/` and `.github/templates/`. Added `--force` flag to `generate` command with overwrite protection: when the output directory already contains generated artifacts (`.claude/`, `.github/`, `steering/`, `specs/`, `plans/`, `results/`, `contracts/`, `adr/`; and legacy `docs/` when present), the CLI exits with an error listing conflicting directories unless `--force` is provided. `--dry-run` bypasses the overwrite check. New `src/overwrite-detector.ts` module with `checkExistingArtifacts()` and `formatConflictMessage()`. Golden files updated for all 8 profiles (removed legacy `docs/epic/`). 20 new tests (8 unit + 7 CLI + 5 integration).
-- **E2E Tests + Generator Integration (story-0005-0014):** Capstone story for epic-0005. Orchestrator E2E test suite with 14 tests covering 6 scenarios: dry-run (no execution), happy path (5/5 SUCCESS), failure path (retry exhaustion + transitive block propagation), resume path (continue from checkpoint), partial execution (--phase filter), and parallel mode. Test infrastructure: configurable mock subagent dispatch, synthetic 5-story/3-phase implementation map, scenario runner composing all orchestrator modules (parser, checkpoint, retry, blocks, progress). Generator integration verified: `x-dev-epic-implement` skill already auto-discovered by SkillsAssembler and registered in GithubSkillsAssembler. Golden file tests already pass for all 8 profiles. CLAUDE.md updated with skill entry.
-- **Parallel Execution with Worktrees (story-0005-0010):** Added parallel worktree dispatch capability to the `x-dev-epic-implement` SKILL.md template. When `--parallel` flag is active, executable stories in the same phase are dispatched concurrently in a SINGLE message via `Agent` tool with `isolation: "worktree"`. After all subagents complete, worktree branches are merged sequentially into the epic branch (critical path first per RULE-007). Includes conflict resolution subagent for automatic merge conflict handling and worktree cleanup rules. New sections: 1.4a (Parallel Worktree Dispatch), 1.4b (Merge Strategy), 1.4c (Conflict Resolution Subagent), 1.4d (Worktree Cleanup). 14 new content tests, 5 new dual-copy consistency terms, golden files regenerated for all 8 profiles. Extension point placeholder for story-0005-0010 removed from Section 1.7.
-- **Progress Reporting + Execution Metrics (story-0005-0013):** New `src/progress/` module with real-time progress event emission and execution metrics tracking for the epic orchestrator. Features: 7 typed progress events (PHASE_START, STORY_START, STORY_COMPLETE, GATE_RESULT, RETRY, BLOCK, EPIC_COMPLETE) as a discriminated union, pure formatting functions for terminal output, pure metrics calculation (average duration, estimated remaining time), factory-based stateful reporter with injectable output sink, and checkpoint-persisted execution metrics. Extended `ExecutionMetrics` with 7 new optional fields (storiesFailed, storiesBlocked, elapsedMs, estimatedRemainingMs, averageStoryDurationMs, storyDurations, phaseDurations). All checkpoint changes are backward-compatible. 59 new tests (24 formatter, 13 calculator, 22 reporter), zero regressions on existing 3051 tests.
-- **Partial Execution (story-0005-0009):** New `src/domain/implementation-map/partial-execution.ts` module with 4 pure functions for epic partial execution: `parsePartialExecutionMode` (mutual exclusivity validation), `validatePhasePrerequisites` (phases 0..N-1 completeness check), `validateStoryPrerequisites` (dependency satisfaction check), `getStoriesForPhase` (phase story filter). New types: `PartialExecutionMode` discriminated union, `PrerequisiteResult`. New error class: `PartialExecutionError`. SKILL.md templates updated with Partial Execution section (both Claude and GitHub copies). 23 unit tests + 12 content assertions, 100% line coverage, 96.77% branch coverage.
-- **Resume Reclassification Engine (story-0005-0008):** New `src/checkpoint/resume.ts` module with pure functions for epic resume workflow. `reclassifyStories()` applies status transition rules (IN_PROGRESS→PENDING, FAILED with retries<MAX_RETRIES→PENDING, SUCCESS preserved). `reevaluateBlocked()` resolves BLOCKED stories when all dependencies reach SUCCESS. `prepareResume()` composes both operations. `MAX_RETRIES` constant (2) and `ReclassificationEntry` type added to checkpoint types. Resume Workflow section added to `x-dev-epic-implement` SKILL.md (both Claude and GitHub copies) documenting reclassification table, branch recovery, and BLOCKED reevaluation. 36 unit tests, 100% line/branch coverage.
-- **Failure Handling: Retry + Block Propagation (story-0005-0007):** New `src/domain/failure/` module with pure-function retry evaluation and transitive block propagation. `evaluateRetry()` enforces RULE-005 (max 2 retries per story) with error context passthrough to retry subagents. `propagateBlocks()` performs BFS on the dependency DAG to transitively mark all dependents as BLOCKED (RULE-006). Discriminated union return types (`RetryDecision`, `BlockPropagationResult`) — no exceptions, no I/O. 26 tests, 100% line and branch coverage.
-- **Consolidation Final — Review + Report + PR (story-0005-0011):** Replaced Phase 2 (Consolidation) and Phase 3 (Verification) placeholders in `x-dev-epic-implement` SKILL.md with full implementation content. Phase 2 dispatches tech lead review via `x-review-pr` subagent, generates `epic-execution-report.md` from template with all 18 placeholders resolved, creates PR via `gh pr create` with `[PARTIAL]` handling for incomplete epics. Phase 3 covers epic-level test suite validation, DoD checklist, final status determination (COMPLETE/PARTIAL/FAILED), and completion output. 28 new content tests, 7 new dual-copy consistency terms, golden files regenerated for all 8 profiles. Extension point placeholder for story-0005-0011 removed from Phase 1.
-- **Integrity Gate Between Phases (story-0005-0006):** Extended `IntegrityGateEntry` with `branchCoverage` (optional number) and `regressionSource` (optional string). Added integrity gate section to `x-dev-epic-implement` SKILL.md with gate subagent prompt, regression diagnosis, gate result registration, and RULE-004 enforcement. 25 new tests. Golden files updated for all 8 profiles.
-- **Dry-run mode (story-0005-0012):** Domain module `src/domain/dry-run/` implementing
-  execution plan simulation for the epic orchestrator. Pure functions `buildDryRunPlan()`
-  and `formatPlan()`/`formatStoryDetail()` compute and render the plan without side effects.
-  Supports flag combinations: `--resume` (checkpoint status merge), `--phase N` (filter),
-  `--parallel` (concurrency indicators), `--story XXXX-YYYY` (single story detail).
-  35 tests (28 planner + 7 formatter), 98.94% line / 98.55% branch coverage.
-- **Orchestrator Core Loop + Sequential Dispatcher (story-0005-0005):** Replaced Phase 1 placeholder in `x-dev-epic-implement` SKILL.md with full execution loop logic. Core loop iterates phases from the dependency DAG, dispatches subagents sequentially per story with critical path priority (RULE-007), validates SubagentResult contracts (RULE-008), updates checkpoint after each story (RULE-002), and maintains context isolation (RULE-001). Includes 7 extension point placeholders for downstream stories (integrity gate, retry, resume, partial execution, parallel worktrees, consolidation, progress reporting). 13 new content tests, dual-copy consistency verified, golden files regenerated for all 8 profiles.
-- **Implementation Map Parser (story-0005-0004):** New `src/domain/implementation-map/` module that parses `IMPLEMENTATION-MAP.md` files and builds a dependency DAG. Features: markdown table extraction, DAG construction with adjacency lists, symmetry validation with auto-correction, cycle detection (DFS three-color), phase computation, critical path identification (topological-sort longest path), and `getExecutableStories()` with critical path priority sorting. Pure-function design with zero external dependencies. 77 tests, 100% line coverage, 92.36% branch coverage.
-- **x-dev-epic-implement skill skeleton (story-0005-0003):** New core skill template `x-dev-epic-implement` with YAML frontmatter, input parsing (epic ID + 6 optional flags), 5 prerequisite checks with error messages, Phase 0 preparation flow, and Phase 1-3 placeholders for future stories. Registered in GitHub skills assembler. Golden files updated for all 8 profiles.
-- **Epic Execution Report Template (story-0005-0002):** New `_TEMPLATE-EPIC-EXECUTION-REPORT.md` with 8 sections and 18 runtime placeholders for epic orchestration. `EpicReportAssembler` copies the template verbatim to `docs/epic/`, `.claude/templates/`, and `.github/templates/`. Pipeline now has 23 assemblers.
-- **Execution State Schema** (`src/checkpoint/types.ts`) -- Typed interfaces for epic execution state: `ExecutionState`, `StoryEntry`, `IntegrityGateEntry`, `ExecutionMetrics`, `SubagentResult`, `StoryStatus` enum. Foundation for orchestrator resumability.
-- **Checkpoint Engine** (`src/checkpoint/engine.ts`) -- CRUD operations for `execution-state.json` with atomic write (tmp file + rename). Functions: `createCheckpoint`, `readCheckpoint`, `updateStoryStatus`, `updateIntegrityGate`, `updateMetrics`.
-- **Schema Validation** (`src/checkpoint/validation.ts`) -- Hand-written validation for checkpoint JSON: field presence, type checks, enum guards. `validateExecutionState` returns typed state or throws `CheckpointValidationError`.
-- **Checkpoint Error Classes** (`src/exceptions.ts`) -- `CheckpointValidationError` (field + detail) and `CheckpointIOError` (path + operation) for structured error handling.
-- **Execution State Template** (`resources/templates/_TEMPLATE-EXECUTION-STATE.json`) -- Reference JSON template for execution state with example values.
-- **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
-  Coverage upload on Node 22. Pack verification job.
-- **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
-- **Framework knowledge packs (8 new):** NestJS, Express, FastAPI, Django, Gin, Ktor, Axum, .NET knowledge packs with DI, data access, web/HTTP, configuration, testing, and anti-pattern sections. All frameworks now have dedicated knowledge packs matching the Quarkus/Spring Boot reference format.
-- **Infrastructure knowledge packs (7 new):** k8s-deployment (pod specs, resource sizing, probes), k8s-kustomize (base/overlays, patches), k8s-helm (chart structure, GitOps), dockerfile (multi-stage per language), container-registry (tagging, scanning, retention), iac-terraform (modules, state, CI/CD), iac-crossplane (XRD, Composition, Claims).
-- **Rules consolidation strategy:** All protocols consolidated into single `13-protocol-conventions.md`, all patterns into `14-architecture-patterns.md`, security into max 2 files (`15-security-principles.md` + `16-compliance-requirements.md`), framework rules into max 3 files (core, data, operations). Target: ≤30 rule files for any configuration.
-- **Context audit in setup.sh:** Automatic post-generation audit reports total rule file count and size, warns if limits exceeded (>30 files or >200KB).
-- **Knowledge pack selection logic:** All 10 frameworks, 7 infrastructure tools, and cloud providers now have conditional knowledge pack selection in setup.sh.
-- **Comprehensive Restructuring (v3 config):** Rewrite `setup-config.example.yaml` from flat v2 (`project.type`) to semantic v3 (`architecture.style`, `interfaces[]`, `data.message_broker`, `observability`, `testing`) with backward-compatible v2 migration.
-- **Cloud-Native Principles (`core/12`):** 12-Factor compliance checklist, Kubernetes health probes, graceful shutdown, configuration hierarchy, container best practices, service mesh awareness. Cross-references rules 08/09/10 without duplication.
-- **Patterns Directory (22 files):** Architectural (hexagonal-architecture, cqrs, event-sourcing, modular-monolith), Microservice (saga, outbox, api-gateway, service-discovery, bulkhead, strangler-fig, idempotency), Resilience (circuit-breaker, retry-with-backoff, timeout-patterns, dead-letter-queue), Data (repository-pattern, unit-of-work, cache-aside, event-store), Integration (anti-corruption-layer, backend-for-frontend, adapter-pattern).
-- **Protocols Directory (8 files):** REST (rest-conventions, openapi-conventions), gRPC (grpc-conventions, grpc-versioning), GraphQL (graphql-conventions), WebSocket (websocket-conventions), Event-Driven (event-conventions, broker-patterns).
-- **Setup.sh v3 support:** Pattern/protocol assembly based on architecture style and interface types, new interactive prompts (architecture style, DDD, event-driven, interfaces, message broker, testing), backward-compatible v2 config migration with warnings.
-- **Cross-references:** core/05 links to hexagonal-architecture pattern, core/06 links to all 6 protocol directories, core/09 links to 5 resilience pattern files.
-- **Security layer expansion (10 files):** Application security (OWASP Top 10), cryptography (encryption/hashing/key management), pentest readiness, and 6 compliance frameworks (PCI-DSS, PCI-SSF, LGPD, GDPR, HIPAA, SOX). Base security rules always included; compliance frameworks conditionally selected via `security.compliance[]`.
-- **Cloud provider knowledge packs (4 files):** AWS, Azure, GCP, OCI service mapping references. Not rules — reference documents mapping boilerplate concepts to provider-specific services. Selected via `cloud.provider`.
-- **Infrastructure patterns expansion (12 files):** Kubernetes deployment/kustomize/helm patterns, Dockerfile multi-stage builds per language, container registry patterns, Terraform and Crossplane IaC references, API gateway patterns (Kong, Istio, AWS APIGW, Traefik).
-- **API Gateway pattern:** Generic API gateway pattern document plus 4 implementation-specific knowledge packs.
-- **Domain knowledge templates (10 files):** Open Banking (PIX/BACEN), Healthcare FHIR, Telecom TMF, Insurance ACORD, IoT Telemetry — each with domain-rules.md and domain-template.md.
-- **YAML configuration expansion:** New sections for `security` (compliance, encryption, pentest), `cloud` (provider), `infrastructure` (templating, IaC, registry, API gateway, service mesh), and `domain` (template selection). Backward compatible with existing format.
-- **setup.sh updates:** New assembly phases for security rules, cloud knowledge packs, infrastructure knowledge packs. Domain template selection from templates/domains/. Two new conditional skills (security-compliance-review, review-gateway). Auto-enforcement: PCI-DSS/HIPAA compliance forces encryption at rest.
-- **Database References (22 files):** SQL (PostgreSQL, Oracle, MySQL/MariaDB), NoSQL (MongoDB, Cassandra/ScyllaDB), Cache (Redis, Dragonfly, Memcached). Each with types-and-conventions, migration-patterns, query-optimization. Shared common principles per category.
-- **Cache support in config:** New `stack.cache.type` field supporting `redis`, `dragonfly`, `memcached`, or `none`.
-- **Oracle and Cassandra database types:** `stack.database.type` now supports `oracle` and `cassandra` in addition to existing options.
-- **Mongock migration tool:** `stack.database.migration` now supports `mongock` for MongoDB projects.
-- **Settings fragments:** `database-oracle.json`, `database-mongodb.json`, `database-cassandra.json`, `cache-redis.json`, `cache-dragonfly.json`, `cache-memcached.json`.
-- **Layer templates:** MongoDB Document, MongoDB Repository, Cassandra Entity, and Cache Adapter templates added to the `layer-templates` knowledge pack.
-- **Database Engineer agent:** Expanded from 20-point to 30-point checklist covering SQL, NoSQL, and Cache-specific validations. Now activates when `database != "none"` OR `cache != "none"`.
-- **Database patterns knowledge pack:** Restructured as a hub referencing `references/` directory. References are auto-selected by `setup.sh` based on database and cache type.
-- **Version matrix:** Consolidated cross-reference of all databases, caches, and framework integrations.
-
-### Fixed
-- **macOS awk compatibility:** `parse_yaml_nested()` rewritten from BSD-awk-incompatible syntax to pure bash `while read` loop. Fixes nested YAML parsing on macOS.
 
 ## [0.1.0] - 2026-02-18
 

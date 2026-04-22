@@ -126,24 +126,7 @@ class GenerateCommandE2ETest {
                     .contains("Total");
         }
 
-        @Test
-        void typescriptNestjs_whenCalled_generatesClaudeDir() {
-            Path outputDir =
-                    tempDir.resolve("ts-gen");
-
-            var cmd = buildCommandLine();
-            var sw = new StringWriter();
-            cmd.setOut(new PrintWriter(sw));
-
-            int exitCode = cmd.execute(
-                    "generate", "-s", "typescript-nestjs",
-                    "-o", outputDir.toString(),
-                    "-f");
-
-            assertThat(exitCode).isZero();
-            assertThat(outputDir.resolve(".claude"))
-                    .isDirectory();
-        }
+        // typescript-nestjs E2E test removed in EPIC-0048 story-0048-0007.
     }
 
     @Nested
@@ -315,28 +298,7 @@ class GenerateCommandE2ETest {
             assertThat(durationMs).isLessThan(2000);
         }
 
-        @Test
-        void typescriptNestjs_fullGeneration_under2Seconds() {
-            Path outputDir =
-                    tempDir.resolve("perf-test-ts");
-
-            var cmd = buildCommandLine();
-            var sw = new StringWriter();
-            cmd.setOut(new PrintWriter(sw));
-
-            long start = System.nanoTime();
-
-            int exitCode = cmd.execute(
-                    "generate", "-s", "typescript-nestjs",
-                    "-o", outputDir.toString(),
-                    "-f");
-
-            long durationMs =
-                    (System.nanoTime() - start) / 1_000_000;
-
-            assertThat(exitCode).isZero();
-            assertThat(durationMs).isLessThan(2000);
-        }
+        // typescript-nestjs performance test removed in EPIC-0048 story-0048-0007.
     }
 
     private CommandLine buildCommandLine() {

@@ -8,6 +8,9 @@ import java.util.Map;
  *
  * <p>Used by {@link InteractivePrompter} to filter frameworks and build tools
  * based on the selected language, and to resolve default versions.</p>
+ *
+ * <p><b>EPIC-0048 / v4.0.0:</b> the generator is restricted to Java only
+ * (see ADR-0048-A). All derived maps include only Java entries.</p>
  */
 public final class LanguageFrameworkMapping {
 
@@ -15,15 +18,14 @@ public final class LanguageFrameworkMapping {
         // utility class
     }
 
-    /** Ordered list of supported languages. */
-    public static final List<String> LANGUAGES = List.of(
-            "java", "python", "go", "kotlin", "typescript", "rust");
+    /** Ordered list of supported languages. Java-only since v4.0.0. */
+    public static final List<String> LANGUAGES = List.of("java");
 
     /** Ordered list of architecture styles. */
     public static final List<String> ARCHITECTURE_STYLES = List.of(
             "microservice", "monolith", "library");
 
-    /** Architecture pattern styles for java/kotlin. */
+    /** Architecture pattern styles for Java. */
     public static final List<String> ARCH_PATTERN_STYLES =
             List.of("layered", "hexagonal", "cqrs",
                     "event-driven", "clean");
@@ -35,7 +37,7 @@ public final class LanguageFrameworkMapping {
 
     /** Languages supporting architecture pattern selection. */
     public static final List<String> ARCH_PATTERN_LANGUAGES =
-            List.of("java", "kotlin");
+            List.of("java");
 
     /** Ordered list of interface types for multi-select. */
     public static final List<String> INTERFACE_TYPES = List.of(
@@ -43,41 +45,20 @@ public final class LanguageFrameworkMapping {
 
     /** Language to compatible frameworks mapping. */
     public static final Map<String, List<String>> FRAMEWORKS = Map.of(
-            "java", List.of("spring-boot", "quarkus"),
-            "python", List.of("fastapi", "click-cli"),
-            "go", List.of("gin"),
-            "kotlin", List.of("ktor"),
-            "typescript", List.of("nestjs"),
-            "rust", List.of("axum"));
+            "java", List.of("spring-boot", "quarkus"));
 
     /** Language to compatible build tools mapping. */
     public static final Map<String, List<String>> BUILD_TOOLS = Map.of(
-            "java", List.of("maven", "gradle"),
-            "python", List.of("pip"),
-            "go", List.of("go"),
-            "kotlin", List.of("gradle"),
-            "typescript", List.of("npm"),
-            "rust", List.of("cargo"));
+            "java", List.of("maven", "gradle"));
 
     /** Default language versions. */
     public static final Map<String, String> DEFAULT_VERSIONS = Map.of(
-            "java", "21",
-            "python", "3.12",
-            "go", "1.22",
-            "kotlin", "2.0",
-            "typescript", "5",
-            "rust", "1.78");
+            "java", "21");
 
     /** Default framework versions. */
-    public static final Map<String, String> FRAMEWORK_VERSIONS = Map.ofEntries(
-            Map.entry("spring-boot", "3.4"),
-            Map.entry("quarkus", "3.17"),
-            Map.entry("fastapi", "0.115"),
-            Map.entry("click-cli", "8.1"),
-            Map.entry("gin", "1.10"),
-            Map.entry("ktor", "3.0"),
-            Map.entry("nestjs", "10"),
-            Map.entry("axum", "0.7"));
+    public static final Map<String, String> FRAMEWORK_VERSIONS = Map.of(
+            "spring-boot", "3.4",
+            "quarkus", "3.17");
 
     /**
      * Returns the frameworks compatible with the given language.

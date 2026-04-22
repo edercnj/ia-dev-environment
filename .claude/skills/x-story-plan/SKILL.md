@@ -796,6 +796,92 @@ If Section 8 already exists with sub-tasks, preserve existing content and add Se
 
 ---
 
+## Phase 6 -- Aggregate File Footprint (Orchestrator -- Inline)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-6-Aggregate-Footprint`
+
+> **Placement:** This phase runs **between ANALYZE TASKS (Phase 4 sub-steps that write per-task plan files) and WRITE PLAN (the closing artifact consolidation into the planning report in Phase 5.x / post-DoR assembly).** Functionally it runs after every `task-plan-TASK-NNN-story-XXXX-YYYY.md` file exists on disk (Phase 4.2) and before the `planning-report-story-XXXX-YYYY.md` is emitted.
+
+### 6.1 Objective
+
+Consolidate the per-task `## File Footprint` blocks (emitted by `x-task-plan` Phase 4.5 — see story-0041-0002) into a single `## Story File Footprint` block at the end of the planning report. Downstream consumers (`/x-parallel-eval --scope=story`) use this aggregated block to compare pairs of stories WITHOUT having to parse N task plans.
+
+### 6.2 Aggregation Semantics
+
+The aggregation is **union-set per sub-section** with deterministic ordering (RULE-008 — Output Deterministic):
+
+| Sub-section | Aggregation | Ordering |
+| :--- | :--- | :--- |
+| `write:` | `write(task1) ⋃ write(task2) ⋃ ... ⋃ write(taskN)` | alphabetical (TreeSet) |
+| `read:` | `read(task1) ⋃ read(task2) ⋃ ... ⋃ read(taskN)` | alphabetical (TreeSet) |
+| `regen:` | `regen(task1) ⋃ regen(task2) ⋃ ... ⋃ regen(taskN)` | alphabetical (TreeSet) |
+
+- Duplicated paths across tasks are **deduplicated** (a path present in both TASK-001 and TASK-002 appears once in the aggregated set).
+- Paths MUST NOT be re-sorted by sub-section membership; the ordering contract is purely alphabetical WITHIN each sub-section.
+
+### 6.3 Backward Compatibility (RULE-006)
+
+A task plan that predates the structured footprint block (legacy) yields `FileFootprint.EMPTY` when parsed (`FileFootprintParser.parse()` logs `footprint ausente` and returns empty — see story-0041-0002). When this happens during aggregation:
+
+1. The aggregator **SKIPS** the legacy task's empty contribution (the union with the empty set is a no-op by identity).
+2. The aggregator records a `warnings` entry of the form `"TASK-XXXX-YYYY-NNN sem footprint (legacy)"`.
+3. The header of the `## Story File Footprint` block is rewritten to expose the warning count, e.g. `> Aggregated from 3 task footprints. 1 warning: TASK-0041-0003-003 sem footprint (legacy).`
+4. Aggregation PROCEEDS for the remaining tasks — the presence of a legacy task does NOT abort the story plan.
+
+### 6.4 Degenerate Cases
+
+| Case | Behaviour | Header |
+| :--- | :--- | :--- |
+| Story has 0 generated task plans (plan runs early / v1 legacy story) | Emit the section with empty sub-sections | `> Aggregated from 0 task footprints. 1 warning: no task plans found.` |
+| All tasks have valid footprints | Emit the aggregated block | `> Aggregated from N task footprints. 0 warnings.` |
+| Some tasks are legacy | Emit aggregated block WITHOUT legacy contributions | `> Aggregated from N task footprints. K warnings: TASK-... sem footprint (legacy).` (one warning per legacy task) |
+
+### 6.5 Implementation
+
+Delegate the union operation to `dev.iadev.parallelism.StoryFootprintAggregator#aggregate(List<TaskFootprintSource>)` which returns a `StoryFootprintAggregator.Result { FileFootprint footprint; List<String> warnings; int taskCount; }` value object. The orchestrator then renders the markdown block from `Result` using the canonical format below.
+
+### 6.6 Output Format
+
+The section is appended to `plans/epic-XXXX/plans/planning-report-story-XXXX-YYYY.md` as the final top-level block (after `## DoR Status`, after `## Consolidated Risk Matrix`, etc.):
+
+```markdown
+## Story File Footprint
+
+> Aggregated from {N} task footprints. {K} warning(s){warningsDetail}.
+
+### write:
+- <path1>
+- <path2>
+
+### read:
+- <path3>
+
+### regen:
+- <path4>
+```
+
+`{warningsDetail}` is:
+
+- empty string when `K == 0`
+- `": <first-warning-message>"` when `K == 1`
+- `": <first-warning-message>, <second>, …"` when `K > 1` (enumerated warnings, comma-separated)
+
+Empty sub-sections render as a header with no bullets underneath (e.g., `### regen:` followed by a blank line). Never omit a sub-section header — the three sub-sections are always present for schema stability.
+
+### 6.7 Determinism (RULE-008)
+
+The rendered block MUST be byte-identical across re-runs given the same input task plans. This is guaranteed by:
+
+1. Alphabetical ordering within each sub-section (TreeSet).
+2. Fixed sub-section order: `write:` → `read:` → `regen:` (never reordered).
+3. Warnings enumerated in task-ID lexicographic order (not discovery order).
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-6-Aggregate-Footprint ok`
+
+---
+
 ## Phase 5 -- DoR Validation (Orchestrator -- Inline)
 
 <!-- TELEMETRY: phase.start -->
@@ -960,6 +1046,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 | testing | `skills/testing/references/testing-conventions.md` | {{LANGUAGE}}-specific test patterns |
 | security | `skills/security/SKILL.md` + references | OWASP, input validation, secrets |
 | compliance | `skills/compliance/SKILL.md` | Regulatory frameworks (conditional) |
+| parallelism-heuristics | `skills/knowledge-packs/parallelism-heuristics/SKILL.md` | File Footprint schema + union-set aggregation rules consumed by Phase 6 |
 
 ## Integration Notes
 
@@ -1069,3 +1156,45 @@ agent file), a v2 run produces:
 - `task-TASK-XXXX-YYYY-NNN.md` × N  (one per task)
 - `plan-task-TASK-XXXX-YYYY-NNN.md` × N  (one per task)
 - `task-implementation-map-STORY-XXXX-YYYY.md` × 1
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19 backward compatibility).
+
+After writing every plan artefact produced by this skill (Implementation Plan, Task Breakdown, DoR report), propagate the source-artifact lifecycle status from `Pendente` to `Planejada` in the SAME commit as the plan artefact. See RULE-046-02 (Planning updates status) and RULE-046-06 (clean-workdir invariant).
+
+**Steps (appended at the end of the planning phase, BEFORE the final commit):**
+
+1. Resolve planning schema version:
+   ```bash
+   SCHEMA=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/execution-state.json 2>/dev/null || echo "V1")
+   ```
+   If the execution-state.json is v1 (or absent), skip the remainder of this section.
+
+2. For the source story file `plans/epic-XXXX/story-XXXX-YYYY.md`, read current status:
+   ```bash
+   CURRENT=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/story-XXXX-YYYY.md)
+   ```
+
+3. If `CURRENT == "Pendente"`, transition to `Planejada`:
+   ```bash
+   java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       write plans/epic-XXXX/story-XXXX-YYYY.md Planejada
+   ```
+   Exit codes: `0` OK, `20` STATUS_SYNC_FAILED (abort skill), `40` STATUS_TRANSITION_INVALID (abort skill). If `CURRENT == "Planejada"`, skip write (idempotent re-run).
+
+4. Stage the source artifact alongside the plan artefacts:
+   ```bash
+   git add plans/epic-XXXX/story-XXXX-YYYY.md plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md
+   ```
+
+5. Invoke `x-git-commit` via the Skill tool (Rule 13 Pattern 1 INLINE-SKILL) with both files already staged:
+
+       Skill(skill: "x-git-commit", args: "docs(story-XXXX-YYYY): add plan + update status to Planejada")
+
+**Fail-loud:** any non-zero exit from `StatusFieldParserCli` aborts the skill with the same exit code (RULE-046-08). Do NOT commit the plan without the status update.

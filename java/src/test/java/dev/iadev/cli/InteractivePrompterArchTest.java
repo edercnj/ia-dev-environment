@@ -35,35 +35,8 @@ class InteractivePrompterArchTest {
                     .isFalse();
         }
 
-        @Test
-        @DisplayName("go wizard skips to compliance")
-        void prompt_goLanguage_skipsArchPattern() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("go-service")
-                    .addReadLine(
-                            "A go service for gateway")
-                    .addSelect("microservice")
-                    .addSelect("go")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addMultiSelect(
-                            List.of("pci-dss"))
-                    .addConfirm(true);
-            var prompter =
-                    new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(
-                    config.architecture().style())
-                    .isEqualTo("microservice");
-            assertThat(config
-                    .architecture()
-                    .validateWithArchUnit())
-                    .isFalse();
-            assertThat(
-                    config.security().frameworks())
-                    .containsExactly("pci-dss");
-        }
+        // prompt_goLanguage_skipsArchPattern removed in EPIC-0048 full
+        // cleanup — go no longer selectable.
     }
 
     @Nested
@@ -79,11 +52,11 @@ class InteractivePrompterArchTest {
         }
 
         @Test
-        @DisplayName("kotlin presents arch style")
-        void promptArchPattern_kotlin_presentsOptions() {
+        @DisplayName("kotlin no longer presents arch style (EPIC-0048)")
+        void promptArchPattern_kotlin_nowExcluded() {
             assertThat(InteractivePrompter
                     .isArchPatternLanguage("kotlin"))
-                    .isTrue();
+                    .isFalse();
         }
 
         @Test
@@ -114,7 +87,6 @@ class InteractivePrompterArchTest {
                     .addReadLine(
                             "A java service for testing")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -149,7 +121,6 @@ class InteractivePrompterArchTest {
                             "A hexagonal service for "
                                     + "testing")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("spring-boot")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -180,7 +151,6 @@ class InteractivePrompterArchTest {
                             "A clean arch service "
                                     + "for testing")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -211,7 +181,6 @@ class InteractivePrompterArchTest {
                             "A hexagonal service no "
                                     + "archunit")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))

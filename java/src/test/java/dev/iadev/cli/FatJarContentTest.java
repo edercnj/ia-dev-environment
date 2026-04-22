@@ -51,59 +51,9 @@ class FatJarContentTest {
                         + "setup-config.java-spring.yaml");
     }
 
-    @Test
-    void configTemplates_whenCalled_goGinExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config.go-gin.yaml");
-    }
-
-    @Test
-    void configTemplates_whenCalled_kotlinKtorExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config.kotlin-ktor.yaml");
-    }
-
-    @Test
-    void configTemplates_whenCalled_pythonFastapiExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config.python-fastapi"
-                        + ".yaml");
-    }
-
-    @Test
-    void configTemplates_whenCalled_pythonClickCliExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config.python-click-cli"
-                        + ".yaml");
-    }
-
-    @Test
-    void configTemplates_whenCalled_rustAxumExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config.rust-axum.yaml");
-    }
-
-    @Test
-    void configTemplates_whenCalled_typescriptNestjsExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config"
-                        + ".typescript-nestjs.yaml");
-    }
-
-    @Test
-    void configTemplates_whenCalled_typescriptCommanderExists() {
-        assertResourceExists(
-                "shared/config-templates/"
-                        + "setup-config"
-                        + ".typescript-commander-cli"
-                        + ".yaml");
-    }
+    // Non-Java config template tests removed in EPIC-0048 story-0048-0007:
+    // go-gin, kotlin-ktor, python-fastapi, python-click-cli, rust-axum,
+    // typescript-nestjs, typescript-commander-cli YAMLs were deleted.
 
     @Test
     void templates_whenCalled_projectIdentityExists() {

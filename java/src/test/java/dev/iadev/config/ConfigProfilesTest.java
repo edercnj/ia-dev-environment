@@ -25,15 +25,7 @@ class ConfigProfilesTest {
             "java-spring-event-driven",
             "java-spring-fintech-pci",
             "java-spring-hexagonal",
-            "java-spring-neo4j",
-            "python-fastapi",
-            "python-fastapi-timescale",
-            "python-click-cli",
-            "go-gin",
-            "kotlin-ktor",
-            "typescript-nestjs",
-            "typescript-commander-cli",
-            "rust-axum"
+            "java-spring-neo4j"
     );
 
     @Nested
@@ -41,12 +33,12 @@ class ConfigProfilesTest {
     class AvailableStacks {
 
         @Test
-        @DisplayName("returns all 18 stack keys")
-        void getAvailableStacks_whenCalled_returns18Keys() {
+        @DisplayName("returns all 10 stack keys (Java-only since EPIC-0048)")
+        void getAvailableStacks_whenCalled_returns10Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
-            assertThat(stacks).hasSize(18);
+            assertThat(stacks).hasSize(10);
             assertThat(stacks).containsAll(ALL_STACKS);
         }
     }
@@ -64,13 +56,7 @@ class ConfigProfilesTest {
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",
                 "java-spring-hexagonal",
-                "java-spring-neo4j",
-                "python-fastapi",
-                "python-fastapi-timescale",
-                "python-click-cli",
-                "go-gin", "kotlin-ktor",
-                "typescript-nestjs",
-                "typescript-commander-cli", "rust-axum"})
+                "java-spring-neo4j"})
         @DisplayName("returns true for valid stack keys")
         void isValidStack_validKey_returnsTrue(String key) {
             assertThat(ConfigProfiles.isValidStack(key)).isTrue();
@@ -130,109 +116,8 @@ class ConfigProfilesTest {
         }
     }
 
-    @Nested
-    @DisplayName("getStack() — python-fastapi")
-    class PythonFastapiStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for python-fastapi")
-        void getStack_pythonFastapi_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack("python-fastapi");
-
-            assertThat(config.language().name())
-                    .isEqualTo("python");
-            assertThat(config.framework().name())
-                    .isEqualTo("fastapi");
-        }
-    }
-
-    @Nested
-    @DisplayName("getStack() — python-click-cli")
-    class PythonClickCliStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for python-click-cli")
-        void getStack_pythonClickCli_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack("python-click-cli");
-
-            assertThat(config.language().name())
-                    .isEqualTo("python");
-            assertThat(config.framework().name())
-                    .isEqualTo("click");
-            assertThat(config.architecture().style())
-                    .isEqualTo("library");
-        }
-    }
-
-    @Nested
-    @DisplayName("getStack() — go-gin")
-    class GoGinStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for go-gin")
-        void getStack_goGin_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack("go-gin");
-
-            assertThat(config.language().name())
-                    .isEqualTo("go");
-            assertThat(config.framework().name())
-                    .isEqualTo("gin");
-        }
-    }
-
-    @Nested
-    @DisplayName("getStack() — kotlin-ktor")
-    class KotlinKtorStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for kotlin-ktor")
-        void getStack_kotlinKtor_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack("kotlin-ktor");
-
-            assertThat(config.language().name())
-                    .isEqualTo("kotlin");
-            assertThat(config.framework().name())
-                    .isEqualTo("ktor");
-        }
-    }
-
-    @Nested
-    @DisplayName("getStack() — typescript-nestjs")
-    class TypescriptNestjsStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for typescript-nestjs")
-        void getStack_typescriptNestjs_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack("typescript-nestjs");
-
-            assertThat(config.language().name())
-                    .isEqualTo("typescript");
-            assertThat(config.framework().name())
-                    .isEqualTo("nestjs");
-        }
-    }
-
-    @Nested
-    @DisplayName("getStack() — rust-axum")
-    class RustAxumStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for rust-axum")
-        void getStack_rustAxum_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack("rust-axum");
-
-            assertThat(config.language().name())
-                    .isEqualTo("rust");
-            assertThat(config.framework().name())
-                    .isEqualTo("axum");
-        }
-    }
+    // Per-stack tests for python/go/kotlin/typescript/rust removed
+    // in EPIC-0048 story-0048-0007 (non-Java stacks deleted).
 
     @Nested
     @DisplayName("getStack() — java-spring-fintech-pci")
@@ -398,28 +283,7 @@ class ConfigProfilesTest {
         }
     }
 
-    @Nested
-    @DisplayName("getStack() — python-fastapi-timescale")
-    class PythonFastapiTimescaleStack {
-
-        @Test
-        @DisplayName("returns ProjectConfig for "
-                + "python-fastapi-timescale")
-        void getStack_timescale_returnsConfig() {
-            ProjectConfig config =
-                    ConfigProfiles.getStack(
-                            "python-fastapi-timescale");
-
-            assertThat(config.language().name())
-                    .isEqualTo("python");
-            assertThat(config.language().version())
-                    .isEqualTo("3.12");
-            assertThat(config.framework().name())
-                    .isEqualTo("fastapi");
-            assertThat(config.architecture().style())
-                    .isEqualTo("microservice");
-        }
-    }
+    // python-fastapi-timescale test removed in EPIC-0048 story-0048-0007.
 
     @Nested
     @DisplayName("getStack() — java-spring-elasticsearch")
@@ -479,13 +343,7 @@ class ConfigProfilesTest {
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",
                 "java-spring-hexagonal",
-                "java-spring-neo4j",
-                "python-fastapi",
-                "python-fastapi-timescale",
-                "python-click-cli",
-                "go-gin", "kotlin-ktor",
-                "typescript-nestjs",
-                "typescript-commander-cli", "rust-axum"})
+                "java-spring-neo4j"})
         @DisplayName("each stack has non-null required fields")
         void getStack_eachStack_hasRequiredFields(String key) {
             ProjectConfig config =
@@ -514,13 +372,7 @@ class ConfigProfilesTest {
                 "java-spring-elasticsearch",
                 "java-spring-event-driven",
                 "java-spring-hexagonal",
-                "java-spring-neo4j",
-                "python-fastapi",
-                "python-fastapi-timescale",
-                "python-click-cli",
-                "go-gin", "kotlin-ktor",
-                "typescript-nestjs",
-                "typescript-commander-cli", "rust-axum"})
+                "java-spring-neo4j"})
         @DisplayName("each stack defaults compliance to 'none'")
         void getStack_eachStack_complianceDefaultsNone(
                 String key) {

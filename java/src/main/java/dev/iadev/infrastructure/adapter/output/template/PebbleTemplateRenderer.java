@@ -25,7 +25,6 @@ import java.util.Map;
  * construction and template evaluation is thread-safe.</p>
  *
  * @see TemplateRenderer
- * @see PythonBoolExtension
  */
 public final class PebbleTemplateRenderer
         implements TemplateRenderer {
@@ -42,7 +41,6 @@ public final class PebbleTemplateRenderer
                 .autoEscaping(false)
                 .strictVariables(false)
                 .newLineTrimming(false)
-                .extension(new PythonBoolExtension())
                 .build();
     }
 

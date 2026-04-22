@@ -69,55 +69,12 @@ class TemplateEngineTest {
         }
     }
 
-    @Nested
-    @DisplayName("PythonBoolFilter integration (RULE-002)")
-    class PythonBoolIntegration {
-
-        @Test
-        @DisplayName("true renders as 'True'")
-        void renderString_boolTrue_rendersAsPythonTrue() {
-            String result = engine.renderString(
-                    "DDD: {{ ddd | python_bool }}",
-                    Map.of("ddd", true));
-
-            assertThat(result).isEqualTo("DDD: True");
-        }
-
-        @Test
-        @DisplayName("false renders as 'False'")
-        void renderString_boolFalse_rendersAsPythonFalse() {
-            String result = engine.renderString(
-                    "Events: {{ events | python_bool }}",
-                    Map.of("events", false));
-
-            assertThat(result).isEqualTo("Events: False");
-        }
-
-        @Test
-        @DisplayName("combined booleans render correctly")
-        void renderString_combinedBooleans_rendersBoth() {
-            String template =
-                    "DDD: {{ ddd | python_bool }}, "
-                            + "Events: {{ events | python_bool }}";
-            String result = engine.renderString(template,
-                    Map.of("ddd", true, "events", false));
-
-            assertThat(result)
-                    .isEqualTo("DDD: True, Events: False");
-            assertThat(result).doesNotContain("true");
-            assertThat(result).doesNotContain("false");
-        }
-
-        @Test
-        @DisplayName("string passthrough in python_bool filter")
-        void renderString_stringInBoolFilter_passesThrough() {
-            String result = engine.renderString(
-                    "Val: {{ val | python_bool }}",
-                    Map.of("val", "hello"));
-
-            assertThat(result).isEqualTo("Val: hello");
-        }
-    }
+    // PythonBoolFilter integration class removed in EPIC-0048 full cleanup:
+    // the Pebble `| python_bool` filter was dead code (no surviving template
+    // referenced it). The ContextBuilder.toPythonBool(boolean) helper remains
+    // as it is still used by ContextBuilder / ContextArchitectureBuilder to
+    // format booleans as Python-style "True"/"False" strings in the template
+    // context — that helper has dedicated tests in ContextBuilderTest.
 
     @Nested
     @DisplayName("replacePlaceholders()")

@@ -4,13 +4,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("LanguageFrameworkMapping")
+@DisplayName("LanguageFrameworkMapping (Java-only since v4.0.0 / EPIC-0048)")
 class LanguageFrameworkMappingTest {
 
     @Nested
@@ -24,43 +24,14 @@ class LanguageFrameworkMappingTest {
                     .containsExactly("spring-boot", "quarkus");
         }
 
-        @Test
-        @DisplayName("frameworksFor_python_returnsFastapiAndClickCli")
-        void frameworksFor_python_returnsFastapiAndClickCli() {
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "python", "go", "kotlin", "typescript", "rust", "csharp"})
+        @DisplayName("frameworksFor_nonJava_returnsEmptyList")
+        void frameworksFor_nonJava_returnsEmptyList(String lang) {
             assertThat(
-                    LanguageFrameworkMapping.frameworksFor("python"))
-                    .containsExactly("fastapi", "click-cli");
-        }
-
-        @Test
-        @DisplayName("frameworksFor_go_returnsGin")
-        void frameworksFor_go_returnsGin() {
-            assertThat(LanguageFrameworkMapping.frameworksFor("go"))
-                    .containsExactly("gin");
-        }
-
-        @Test
-        @DisplayName("frameworksFor_kotlin_returnsKtor")
-        void frameworksFor_kotlin_returnsKtor() {
-            assertThat(
-                    LanguageFrameworkMapping.frameworksFor("kotlin"))
-                    .containsExactly("ktor");
-        }
-
-        @Test
-        @DisplayName("frameworksFor_typescript_returnsNestjs")
-        void frameworksFor_typescript_returnsNestjs() {
-            assertThat(LanguageFrameworkMapping
-                    .frameworksFor("typescript"))
-                    .containsExactly("nestjs");
-        }
-
-        @Test
-        @DisplayName("frameworksFor_rust_returnsAxum")
-        void frameworksFor_rust_returnsAxum() {
-            assertThat(
-                    LanguageFrameworkMapping.frameworksFor("rust"))
-                    .containsExactly("axum");
+                    LanguageFrameworkMapping.frameworksFor(lang))
+                    .isEmpty();
         }
 
         @Test
@@ -84,12 +55,13 @@ class LanguageFrameworkMappingTest {
                     .containsExactly("maven", "gradle");
         }
 
-        @Test
-        @DisplayName("buildToolsFor_python_returnsPip")
-        void buildToolsFor_python_returnsPip() {
+        @ParameterizedTest
+        @ValueSource(strings = {"python", "go", "kotlin", "typescript", "rust"})
+        @DisplayName("buildToolsFor_nonJava_returnsEmptyList")
+        void buildToolsFor_nonJava_returnsEmptyList(String lang) {
             assertThat(
-                    LanguageFrameworkMapping.buildToolsFor("python"))
-                    .containsExactly("pip");
+                    LanguageFrameworkMapping.buildToolsFor(lang))
+                    .isEmpty();
         }
 
         @Test
@@ -105,21 +77,21 @@ class LanguageFrameworkMappingTest {
     @DisplayName("defaultVersionFor")
     class DefaultVersionFor {
 
-        @ParameterizedTest
-        @CsvSource({
-                "java,21",
-                "python,3.12",
-                "go,1.22",
-                "kotlin,2.0",
-                "typescript,5",
-                "rust,1.78"
-        })
-        @DisplayName("defaultVersionFor_knownLanguage_returnsVersion")
-        void defaultVersionFor_knownLanguage_returnsVersion(
-                String lang, String version) {
+        @Test
+        @DisplayName("defaultVersionFor_java_returns21")
+        void defaultVersionFor_java_returns21() {
             assertThat(
-                    LanguageFrameworkMapping.defaultVersionFor(lang))
-                    .isEqualTo(version);
+                    LanguageFrameworkMapping.defaultVersionFor("java"))
+                    .isEqualTo("21");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"python", "go", "kotlin", "typescript", "rust"})
+        @DisplayName("defaultVersionFor_nonJava_returnsEmptyString")
+        void defaultVersionFor_nonJava_returnsEmptyString(String lang) {
+            assertThat(LanguageFrameworkMapping
+                    .defaultVersionFor(lang))
+                    .isEmpty();
         }
 
         @Test
@@ -135,23 +107,31 @@ class LanguageFrameworkMappingTest {
     @DisplayName("frameworkVersionFor")
     class FrameworkVersionFor {
 
+        @Test
+        @DisplayName("frameworkVersionFor_springBoot_returns3.4")
+        void frameworkVersionFor_springBoot() {
+            assertThat(LanguageFrameworkMapping
+                    .frameworkVersionFor("spring-boot"))
+                    .isEqualTo("3.4");
+        }
+
+        @Test
+        @DisplayName("frameworkVersionFor_quarkus_returns3.17")
+        void frameworkVersionFor_quarkus() {
+            assertThat(LanguageFrameworkMapping
+                    .frameworkVersionFor("quarkus"))
+                    .isEqualTo("3.17");
+        }
+
         @ParameterizedTest
-        @CsvSource({
-                "spring-boot,3.4",
-                "quarkus,3.17",
-                "fastapi,0.115",
-                "click-cli,8.1",
-                "gin,1.10",
-                "ktor,3.0",
-                "nestjs,10",
-                "axum,0.7"
-        })
-        @DisplayName("frameworkVersionFor_known_returnsVersion")
-        void frameworkVersionFor_known_returnsVersion(
-                String fw, String version) {
+        @ValueSource(strings = {
+                "fastapi", "click-cli", "gin", "ktor", "nestjs", "axum"})
+        @DisplayName("frameworkVersionFor_removedFramework_returnsEmpty")
+        void frameworkVersionFor_removedFramework_returnsEmpty(
+                String fw) {
             assertThat(LanguageFrameworkMapping
                     .frameworkVersionFor(fw))
-                    .isEqualTo(version);
+                    .isEmpty();
         }
 
         @Test
@@ -164,14 +144,14 @@ class LanguageFrameworkMappingTest {
     }
 
     @Nested
-    @DisplayName("Static constants")
+    @DisplayName("Static constants (Java-only)")
     class StaticConstants {
 
         @Test
-        @DisplayName("languages_containsSixEntries")
-        void languages_whenCalled_containsSixEntries() {
+        @DisplayName("languages_containsOnlyJava")
+        void languages_whenCalled_containsOnlyJava() {
             assertThat(LanguageFrameworkMapping.LANGUAGES)
-                    .hasSize(6);
+                    .containsExactly("java");
         }
 
         @Test
@@ -181,6 +161,14 @@ class LanguageFrameworkMappingTest {
                     .hasSize(3)
                     .containsExactly(
                             "microservice", "monolith", "library");
+        }
+
+        @Test
+        @DisplayName("archPatternLanguages_containsOnlyJava")
+        void archPatternLanguages_containsOnlyJava() {
+            assertThat(
+                    LanguageFrameworkMapping.ARCH_PATTERN_LANGUAGES)
+                    .containsExactly("java");
         }
 
         @Test

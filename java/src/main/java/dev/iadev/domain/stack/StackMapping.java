@@ -6,6 +6,9 @@ import java.util.Map;
 /**
  * Static mapping constants for stack resolution.
  * Pure domain utility — no external dependencies.
+ *
+ * <p>EPIC-0048 (v4.0.0): all non-Java language / framework
+ * entries removed per ADR-0048-A (Java-only scope).</p>
  */
 public final class StackMapping {
 
@@ -13,117 +16,45 @@ public final class StackMapping {
         // utility class
     }
 
-    /** Language + build tool to command mapping (8 entries). */
+    /** Language + build tool to command mapping (Java-only). */
     public static final Map<String, LanguageCommandSet> LANGUAGE_COMMANDS =
-            Map.ofEntries(
-                    Map.entry("java-maven", new LanguageCommandSet(
+            Map.of(
+                    "java-maven", new LanguageCommandSet(
                             "./mvnw compile -q",
                             "./mvnw package -DskipTests",
                             "./mvnw verify",
                             "./mvnw verify jacoco:report",
-                            ".java", "pom.xml", "maven")),
-                    Map.entry("java-gradle", new LanguageCommandSet(
+                            ".java", "pom.xml", "maven"),
+                    "java-gradle", new LanguageCommandSet(
                             "./gradlew compileJava -q",
                             "./gradlew build -x test",
                             "./gradlew test",
                             "./gradlew test jacocoTestReport",
-                            ".java", "build.gradle", "gradle")),
-                    Map.entry("kotlin-gradle", new LanguageCommandSet(
-                            "./gradlew compileKotlin -q",
-                            "./gradlew build -x test",
-                            "./gradlew test",
-                            "./gradlew test jacocoTestReport",
-                            ".kt", "build.gradle.kts", "gradle")),
-                    Map.entry("typescript-npm", new LanguageCommandSet(
-                            "npx --no-install tsc --noEmit",
-                            "npm run build",
-                            "npm test",
-                            "npm test -- --coverage",
-                            ".ts", "package.json", "npm")),
-                    Map.entry("python-pip", new LanguageCommandSet(
-                            "python3 -m py_compile",
-                            "pip install -e .",
-                            "pytest",
-                            "pytest --cov",
-                            ".py", "pyproject.toml", "pip")),
-                    Map.entry("go-go", new LanguageCommandSet(
-                            "go build ./...",
-                            "go build ./...",
-                            "go test ./...",
-                            "go test -coverprofile=coverage.out ./...",
-                            ".go", "go.mod", "go")),
-                    Map.entry("rust-cargo", new LanguageCommandSet(
-                            "cargo check",
-                            "cargo build",
-                            "cargo test",
-                            "cargo tarpaulin",
-                            ".rs", "Cargo.toml", "cargo")),
-                    Map.entry("csharp-dotnet", new LanguageCommandSet(
-                            "dotnet build --no-restore --verbosity quiet",
-                            "dotnet build",
-                            "dotnet test",
-                            "dotnet test --collect:\"XPlat Code Coverage\"",
-                            ".cs", "*.csproj", "dotnet"))
-            );
+                            ".java", "build.gradle", "gradle"));
 
-    /** Framework to default port (11 entries). */
+    /** Framework to default port (Java-only). */
     public static final Map<String, Integer> FRAMEWORK_PORTS =
-            Map.ofEntries(
-                    Map.entry("quarkus", 8080),
-                    Map.entry("spring-boot", 8080),
-                    Map.entry("nestjs", 3000),
-                    Map.entry("express", 3000),
-                    Map.entry("fastapi", 8000),
-                    Map.entry("django", 8000),
-                    Map.entry("gin", 8080),
-                    Map.entry("ktor", 8080),
-                    Map.entry("axum", 3000),
-                    Map.entry("actix-web", 8080),
-                    Map.entry("aspnet", 5000)
-            );
+            Map.of(
+                    "quarkus", 8080,
+                    "spring-boot", 8080);
 
     /** Default port when framework is not found. */
     public static final int DEFAULT_PORT_FALLBACK = 8080;
 
-    /** Framework to health check path (11 entries). */
+    /** Framework to health check path (Java-only). */
     public static final Map<String, String> FRAMEWORK_HEALTH_PATHS =
-            Map.ofEntries(
-                    Map.entry("quarkus", "/q/health"),
-                    Map.entry("spring-boot", "/actuator/health"),
-                    Map.entry("nestjs", "/health"),
-                    Map.entry("express", "/health"),
-                    Map.entry("fastapi", "/health"),
-                    Map.entry("django", "/health"),
-                    Map.entry("gin", "/health"),
-                    Map.entry("ktor", "/health"),
-                    Map.entry("axum", "/health"),
-                    Map.entry("actix-web", "/health"),
-                    Map.entry("aspnet", "/health")
-            );
+            Map.of(
+                    "quarkus", "/q/health",
+                    "spring-boot", "/actuator/health");
 
     /** Default health path when framework is not found. */
     public static final String DEFAULT_HEALTH_PATH = "/health";
 
-    /** Framework to valid languages (16 entries). */
+    /** Framework to valid languages (Java-only). */
     public static final Map<String, List<String>> FRAMEWORK_LANGUAGE_RULES =
-            Map.ofEntries(
-                    Map.entry("quarkus", List.of("java", "kotlin")),
-                    Map.entry("spring-boot", List.of("java", "kotlin")),
-                    Map.entry("nestjs", List.of("typescript")),
-                    Map.entry("express", List.of("typescript")),
-                    Map.entry("fastify", List.of("typescript")),
-                    Map.entry("commander", List.of("typescript")),
-                    Map.entry("fastapi", List.of("python")),
-                    Map.entry("django", List.of("python")),
-                    Map.entry("flask", List.of("python")),
-                    Map.entry("stdlib", List.of("go")),
-                    Map.entry("gin", List.of("go")),
-                    Map.entry("fiber", List.of("go")),
-                    Map.entry("ktor", List.of("kotlin")),
-                    Map.entry("axum", List.of("rust")),
-                    Map.entry("actix-web", List.of("rust")),
-                    Map.entry("aspnet", List.of("csharp"))
-            );
+            Map.of(
+                    "quarkus", List.of("java"),
+                    "spring-boot", List.of("java"));
 
     /** Frameworks that support native/GraalVM builds. */
     public static final List<String> NATIVE_SUPPORTED_FRAMEWORKS =
@@ -166,43 +97,22 @@ public final class StackMapping {
                     "event-producer", "kafka"
             );
 
-    /** Docker base image templates with {version} placeholder. */
+    /** Docker base image templates (Java-only). */
     public static final Map<String, String> DOCKER_BASE_IMAGES = Map.of(
-            "java", "eclipse-temurin:{version}-jre-alpine",
-            "kotlin", "eclipse-temurin:{version}-jre-alpine",
-            "typescript", "node:{version}-alpine",
-            "python", "python:{version}-slim",
-            "go", "golang:{version}-alpine",
-            "rust", "rust:{version}-slim",
-            "csharp", "mcr.microsoft.com/dotnet/aspnet:{version}"
-    );
+            "java", "eclipse-temurin:{version}-jre-alpine");
 
     /** Default Docker image when language is not found. */
     public static final String DEFAULT_DOCKER_IMAGE = "alpine:latest";
 
-    /** Hook template directory key (8 entries). */
+    /** Hook template directory key (Java-only). */
     public static final Map<String, String> HOOK_TEMPLATE_MAP = Map.of(
             "java-maven", "java-maven",
-            "java-gradle", "java-gradle",
-            "kotlin-gradle", "kotlin",
-            "typescript-npm", "typescript",
-            "python-pip", "",
-            "go-go", "go",
-            "rust-cargo", "rust",
-            "csharp-dotnet", "csharp"
-    );
+            "java-gradle", "java-gradle");
 
-    /** Settings language JSON key (8 entries). */
+    /** Settings language JSON key (Java-only). */
     public static final Map<String, String> SETTINGS_LANG_MAP = Map.of(
             "java-maven", "java-maven",
-            "java-gradle", "java-gradle",
-            "kotlin-gradle", "java-gradle",
-            "typescript-npm", "typescript-npm",
-            "python-pip", "python-pip",
-            "go-go", "go",
-            "rust-cargo", "rust-cargo",
-            "csharp-dotnet", "csharp-dotnet"
-    );
+            "java-gradle", "java-gradle");
 
     /** Returns hook template key, or empty string. */
     public static String getHookTemplateKey(

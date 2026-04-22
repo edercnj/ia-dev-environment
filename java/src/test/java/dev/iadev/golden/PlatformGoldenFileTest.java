@@ -30,8 +30,8 @@ import static org.assertj.core.api.Assertions.fail;
  * Golden file tests for platform-filtered pipeline
  * output.
  *
- * <p>Validates that the pipeline output for
- * java-spring and go-gin profiles with
+ * <p>Validates that the pipeline output for the
+ * java-spring profile with
  * {@code --platform claude-code} matches the golden
  * files stored in
  * {@code /golden/{profile}/platform-claude-code/}.</p>
@@ -55,7 +55,7 @@ class PlatformGoldenFileTest {
     Path tempDir;
 
     static Stream<String> profiles() {
-        return Stream.of("java-spring", "go-gin");
+        return Stream.of("java-spring");
     }
 
     /**

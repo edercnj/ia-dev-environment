@@ -4,12 +4,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("StackMapping")
+@DisplayName("StackMapping (Java-only since EPIC-0048 / v4.0.0)")
 class StackMappingTest {
 
     @Nested
@@ -17,17 +16,13 @@ class StackMappingTest {
     class LanguageCommandsTests {
 
         @Test
-        @DisplayName("contains exactly 8 entries")
-        void languageCommands_size_eight() {
-            assertThat(StackMapping.LANGUAGE_COMMANDS).hasSize(8);
+        @DisplayName("contains exactly 2 Java entries")
+        void languageCommands_size_two() {
+            assertThat(StackMapping.LANGUAGE_COMMANDS).hasSize(2);
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {
-                "java-maven", "java-gradle", "kotlin-gradle",
-                "typescript-npm", "python-pip", "go-go",
-                "rust-cargo", "csharp-dotnet"
-        })
+        @ValueSource(strings = {"java-maven", "java-gradle"})
         @DisplayName("contains key: {0}")
         void languageCommands_containsKey(String key) {
             assertThat(StackMapping.LANGUAGE_COMMANDS).containsKey(key);
@@ -49,76 +44,6 @@ class StackMappingTest {
         }
 
         @Test
-        @DisplayName("typescript-npm has correct commands")
-        void languageCommands_typescriptNpm_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("typescript-npm");
-            assertThat(cmds.compileCmd())
-                    .isEqualTo("npx --no-install tsc --noEmit");
-            assertThat(cmds.buildCmd()).isEqualTo("npm run build");
-            assertThat(cmds.testCmd()).isEqualTo("npm test");
-            assertThat(cmds.coverageCmd())
-                    .isEqualTo("npm test -- --coverage");
-            assertThat(cmds.fileExtension()).isEqualTo(".ts");
-            assertThat(cmds.buildFile()).isEqualTo("package.json");
-            assertThat(cmds.packageManager()).isEqualTo("npm");
-        }
-
-        @Test
-        @DisplayName("go-go has correct commands")
-        void languageCommands_goGo_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("go-go");
-            assertThat(cmds.compileCmd()).isEqualTo("go build ./...");
-            assertThat(cmds.buildCmd()).isEqualTo("go build ./...");
-            assertThat(cmds.testCmd()).isEqualTo("go test ./...");
-            assertThat(cmds.coverageCmd()).contains("coverprofile");
-            assertThat(cmds.fileExtension()).isEqualTo(".go");
-            assertThat(cmds.buildFile()).isEqualTo("go.mod");
-            assertThat(cmds.packageManager()).isEqualTo("go");
-        }
-
-        @Test
-        @DisplayName("rust-cargo has correct commands")
-        void languageCommands_rustCargo_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("rust-cargo");
-            assertThat(cmds.compileCmd()).isEqualTo("cargo check");
-            assertThat(cmds.buildCmd()).isEqualTo("cargo build");
-            assertThat(cmds.testCmd()).isEqualTo("cargo test");
-            assertThat(cmds.coverageCmd()).isEqualTo("cargo tarpaulin");
-            assertThat(cmds.fileExtension()).isEqualTo(".rs");
-            assertThat(cmds.buildFile()).isEqualTo("Cargo.toml");
-            assertThat(cmds.packageManager()).isEqualTo("cargo");
-        }
-
-        @Test
-        @DisplayName("kotlin-gradle has correct commands")
-        void languageCommands_kotlinGradle_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("kotlin-gradle");
-            assertThat(cmds.compileCmd())
-                    .isEqualTo("./gradlew compileKotlin -q");
-            assertThat(cmds.buildCmd())
-                    .isEqualTo("./gradlew build -x test");
-            assertThat(cmds.testCmd()).isEqualTo("./gradlew test");
-            assertThat(cmds.coverageCmd()).contains("jacocoTestReport");
-            assertThat(cmds.fileExtension()).isEqualTo(".kt");
-            assertThat(cmds.buildFile()).isEqualTo("build.gradle.kts");
-            assertThat(cmds.packageManager()).isEqualTo("gradle");
-        }
-
-        @Test
-        @DisplayName("python-pip has correct commands")
-        void languageCommands_pythonPip_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("python-pip");
-            assertThat(cmds.compileCmd())
-                    .isEqualTo("python3 -m py_compile");
-            assertThat(cmds.buildCmd()).isEqualTo("pip install -e .");
-            assertThat(cmds.testCmd()).isEqualTo("pytest");
-            assertThat(cmds.coverageCmd()).isEqualTo("pytest --cov");
-            assertThat(cmds.fileExtension()).isEqualTo(".py");
-            assertThat(cmds.buildFile()).isEqualTo("pyproject.toml");
-            assertThat(cmds.packageManager()).isEqualTo("pip");
-        }
-
-        @Test
         @DisplayName("java-gradle has correct commands")
         void languageCommands_javaGradle_correctCommands() {
             var cmds = StackMapping.LANGUAGE_COMMANDS.get("java-gradle");
@@ -129,17 +54,14 @@ class StackMappingTest {
             assertThat(cmds.packageManager()).isEqualTo("gradle");
         }
 
-        @Test
-        @DisplayName("csharp-dotnet has correct commands")
-        void languageCommands_csharpDotnet_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("csharp-dotnet");
-            assertThat(cmds.compileCmd()).contains("dotnet build");
-            assertThat(cmds.buildCmd()).isEqualTo("dotnet build");
-            assertThat(cmds.testCmd()).isEqualTo("dotnet test");
-            assertThat(cmds.coverageCmd()).contains("XPlat Code Coverage");
-            assertThat(cmds.fileExtension()).isEqualTo(".cs");
-            assertThat(cmds.buildFile()).isEqualTo("*.csproj");
-            assertThat(cmds.packageManager()).isEqualTo("dotnet");
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "kotlin-gradle", "typescript-npm", "python-pip",
+                "go-go", "rust-cargo", "csharp-dotnet"})
+        @DisplayName("non-Java key {0} is absent")
+        void languageCommands_nonJavaKey_absent(String key) {
+            assertThat(StackMapping.LANGUAGE_COMMANDS)
+                    .doesNotContainKey(key);
         }
     }
 
@@ -148,29 +70,33 @@ class StackMappingTest {
     class FrameworkPortsTests {
 
         @Test
-        @DisplayName("contains exactly 11 entries")
-        void frameworkPorts_size_eleven() {
-            assertThat(StackMapping.FRAMEWORK_PORTS).hasSize(11);
+        @DisplayName("contains exactly 2 Java entries")
+        void frameworkPorts_size_two() {
+            assertThat(StackMapping.FRAMEWORK_PORTS).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("quarkus port is 8080")
+        void frameworkPorts_quarkus() {
+            assertThat(StackMapping.FRAMEWORK_PORTS.get("quarkus"))
+                    .isEqualTo(8080);
+        }
+
+        @Test
+        @DisplayName("spring-boot port is 8080")
+        void frameworkPorts_springBoot() {
+            assertThat(StackMapping.FRAMEWORK_PORTS.get("spring-boot"))
+                    .isEqualTo(8080);
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "quarkus, 8080",
-                "spring-boot, 8080",
-                "nestjs, 3000",
-                "express, 3000",
-                "fastapi, 8000",
-                "django, 8000",
-                "gin, 8080",
-                "ktor, 8080",
-                "axum, 3000",
-                "actix-web, 8080",
-                "aspnet, 5000"
-        })
-        @DisplayName("port for {0} is {1}")
-        void frameworkPorts_correctPort(String fw, int port) {
-            assertThat(StackMapping.FRAMEWORK_PORTS.get(fw))
-                    .isEqualTo(port);
+        @ValueSource(strings = {
+                "nestjs", "express", "fastapi", "django",
+                "gin", "ktor", "axum", "actix-web", "aspnet"})
+        @DisplayName("non-Java framework {0} is absent")
+        void frameworkPorts_nonJava_absent(String fw) {
+            assertThat(StackMapping.FRAMEWORK_PORTS)
+                    .doesNotContainKey(fw);
         }
     }
 
@@ -179,9 +105,9 @@ class StackMappingTest {
     class FrameworkHealthPathsTests {
 
         @Test
-        @DisplayName("contains exactly 11 entries")
-        void frameworkHealthPaths_size_eleven() {
-            assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS).hasSize(11);
+        @DisplayName("contains exactly 2 Java entries")
+        void frameworkHealthPaths_size_two() {
+            assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS).hasSize(2);
         }
 
         @Test
@@ -197,17 +123,6 @@ class StackMappingTest {
             assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS.get("spring-boot"))
                     .isEqualTo("/actuator/health");
         }
-
-        @ParameterizedTest
-        @ValueSource(strings = {
-                "nestjs", "express", "fastapi", "django",
-                "gin", "ktor", "axum", "actix-web", "aspnet"
-        })
-        @DisplayName("{0} has /health")
-        void frameworkHealthPaths_defaultHealth(String fw) {
-            assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS.get(fw))
-                    .isEqualTo("/health");
-        }
     }
 
     @Nested
@@ -215,51 +130,35 @@ class StackMappingTest {
     class FrameworkLanguageRulesTests {
 
         @Test
-        @DisplayName("contains 16 entries")
-        void frameworkLanguageRules_size_sixteen() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES).hasSize(16);
+        @DisplayName("contains 2 Java entries")
+        void frameworkLanguageRules_size_two() {
+            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES).hasSize(2);
         }
 
         @Test
-        @DisplayName("quarkus accepts java and kotlin")
+        @DisplayName("quarkus accepts java")
         void frameworkLanguageRules_whenCalled_quarkus() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("quarkus"))
-                    .containsExactly("java", "kotlin");
+                    .containsExactly("java");
         }
 
         @Test
-        @DisplayName("nestjs requires typescript")
-        void frameworkLanguageRules_whenCalled_nestjs() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("nestjs"))
-                    .containsExactly("typescript");
+        @DisplayName("spring-boot accepts java")
+        void frameworkLanguageRules_whenCalled_springBoot() {
+            assertThat(
+                    StackMapping.FRAMEWORK_LANGUAGE_RULES.get("spring-boot"))
+                    .containsExactly("java");
         }
 
-        @Test
-        @DisplayName("fastapi requires python")
-        void frameworkLanguageRules_whenCalled_fastapi() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("fastapi"))
-                    .containsExactly("python");
-        }
-
-        @Test
-        @DisplayName("gin requires go")
-        void frameworkLanguageRules_whenCalled_gin() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("gin"))
-                    .containsExactly("go");
-        }
-
-        @Test
-        @DisplayName("axum requires rust")
-        void frameworkLanguageRules_whenCalled_axum() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("axum"))
-                    .containsExactly("rust");
-        }
-
-        @Test
-        @DisplayName("aspnet requires csharp")
-        void frameworkLanguageRules_whenCalled_aspnet() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("aspnet"))
-                    .containsExactly("csharp");
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "nestjs", "fastapi", "gin", "ktor", "axum",
+                "aspnet", "django", "express", "fastify",
+                "commander", "flask", "stdlib", "fiber", "actix-web"})
+        @DisplayName("non-Java framework {0} is absent")
+        void frameworkLanguageRules_nonJava_absent(String fw) {
+            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES)
+                    .doesNotContainKey(fw);
         }
     }
 
@@ -289,12 +188,6 @@ class StackMappingTest {
         void validArchitectureStyles_whenCalled_ten() {
             assertThat(StackMapping.VALID_ARCHITECTURE_STYLES)
                     .hasSize(10);
-            assertThat(StackMapping.VALID_ARCHITECTURE_STYLES)
-                    .contains("microservice",
-                            "modular-monolith", "monolith",
-                            "library", "serverless", "ddd",
-                            "hexagonal", "cqrs",
-                            "event-driven", "clean");
         }
 
         @Test
@@ -318,15 +211,29 @@ class StackMappingTest {
         }
 
         @Test
-        @DisplayName("DOCKER_BASE_IMAGES has 7 entries")
-        void dockerBaseImages_whenCalled_seven() {
-            assertThat(StackMapping.DOCKER_BASE_IMAGES).hasSize(7);
+        @DisplayName("DOCKER_BASE_IMAGES has 1 Java entry")
+        void dockerBaseImages_whenCalled_one() {
+            assertThat(StackMapping.DOCKER_BASE_IMAGES).hasSize(1);
+            assertThat(StackMapping.DOCKER_BASE_IMAGES)
+                    .containsKey("java");
         }
 
         @Test
         @DisplayName("INTERFACE_SPEC_PROTOCOL_MAP has 7 entries")
         void interfaceSpecProtocolMap_whenCalled_seven() {
             assertThat(StackMapping.INTERFACE_SPEC_PROTOCOL_MAP).hasSize(7);
+        }
+
+        @Test
+        @DisplayName("HOOK_TEMPLATE_MAP has 2 Java entries")
+        void hookTemplateMap_whenCalled_two() {
+            assertThat(StackMapping.HOOK_TEMPLATE_MAP).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("SETTINGS_LANG_MAP has 2 Java entries")
+        void settingsLangMap_whenCalled_two() {
+            assertThat(StackMapping.SETTINGS_LANG_MAP).hasSize(2);
         }
     }
 

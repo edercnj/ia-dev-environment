@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke test validating that all 22 assemblers execute
+ * Smoke test validating that all 23 assemblers execute
  * and contribute output for every registered profile.
  *
  * <p>Detects assembler regressions:</p>
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AssemblerRegressionSmokeTest")
 class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
-    static final int EXPECTED_ASSEMBLER_COUNT = 22;
+    static final int EXPECTED_ASSEMBLER_COUNT = 23;
 
     static final List<String> EXPECTED_ORDER = List.of(
             "ConstitutionAssembler",
@@ -76,7 +76,8 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             "CicdAssembler",
             "EpicReportAssembler",
             "PlanTemplatesAssembler",
-            "ReadmeAssembler");
+            "ReadmeAssembler",
+            "ClaudeMdAssembler");
 
     /**
      * Profiles that include a grpc interface, activating
@@ -85,9 +86,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
     static final Set<String> GRPC_PROFILES = Set.of(
             "java-spring",
             "java-spring-fintech-pci",
-            "java-quarkus",
-            "go-gin",
-            "rust-axum");
+            "java-quarkus");
 
     /**
      * Output areas that every profile must produce files in.
@@ -119,7 +118,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
     class AssemblerRegistration {
 
         @Test
-        @DisplayName("factory returns exactly 22 "
+        @DisplayName("factory returns exactly 23 "
                 + "assemblers")
         void buildAssemblers_returnsExactCount() {
             List<AssemblerDescriptor> descriptors =

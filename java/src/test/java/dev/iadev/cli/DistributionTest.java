@@ -118,14 +118,8 @@ class DistributionTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "go-gin",
                 "java-quarkus",
-                "java-spring",
-                "kotlin-ktor",
-                "python-click-cli",
-                "python-fastapi",
-                "rust-axum",
-                "typescript-nestjs"
+                "java-spring"
         })
         void profile_generatesSuccessfully(
                 String profile) {
@@ -142,14 +136,8 @@ class DistributionTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "go-gin",
                 "java-quarkus",
-                "java-spring",
-                "kotlin-ktor",
-                "python-click-cli",
-                "python-fastapi",
-                "rust-axum",
-                "typescript-nestjs"
+                "java-spring"
         })
         void profile_generatesClaudeDir(
                 String profile) {
@@ -164,14 +152,8 @@ class DistributionTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "go-gin",
                 "java-quarkus",
-                "java-spring",
-                "kotlin-ktor",
-                "python-click-cli",
-                "python-fastapi",
-                "rust-axum",
-                "typescript-nestjs"
+                "java-spring"
         })
         void profile_generatesGithubDir(
                 String profile) {
