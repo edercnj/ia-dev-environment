@@ -200,3 +200,38 @@ graph LR
 
     T002 -.->|cross-story| T003
 ```
+
+---
+
+## 8.5 Restrições de Paralelismo
+
+<!--
+  Seção gerada pelo Step 8.5 de x-epic-map (EPIC-0041 / story-0041-0005).
+  A análise invoca /x-parallel-eval --scope=epic e popula a matriz de colisão.
+
+  Fail-open (RULE-005 / RULE-006): se /x-parallel-eval não estiver disponível
+  ou retornar exit code >= 1, o Step 8.5 substitui o corpo desta seção por:
+
+      > análise pulada — /x-parallel-eval não disponível (RULE-006 fail-open)
+
+  e o map continua sendo salvo normalmente — o Step 8.5 NUNCA bloqueia
+  a geração do map.
+
+  Determinismo (RULE-008): o conteúdo é byte-identical entre re-execuções
+  EXCETO pelo comentário de timestamp na primeira linha. Ordenar pares por
+  Fase ASC -> Story-A lex -> Story-B lex.
+-->
+
+> Análise gerada por /x-parallel-eval em <timestamp omitido para determinismo>.
+
+**Conflitos detectados:** <H> hard, <R> regen, <S> soft
+
+### 8.5.1 Pares Serializados Dentro da Fase
+
+| Fase | A | B | Categoria | Motivo |
+| :--- | :--- | :--- | :--- | :--- |
+| <Phase N> | <story-XXXX-YYYY> | <story-XXXX-ZZZZ> | <hard|regen|soft> | <arquivo compartilhado ou colisão de regen> |
+
+### 8.5.2 Recomendação de Reagrupamento
+
+<Para cada fase com conflitos, descrever a nova ordem após a serialização forçada. Se "Conflitos detectados: 0", omitir subsections 8.5.1 e 8.5.2.>
