@@ -72,24 +72,30 @@
     "story-0048-0005": {
       "id": "story-0048-0005",
       "phase": 3,
-      "status": "DEFERRED",
+      "status": "SUCCESS",
       "findingsCount": 0,
-      "summary": "Delete templates targets/claude/{agents,hooks,settings} non-Java \u2014 DEFERRED: out of v4.0.0 scope (preserved in CHANGELOG \u00a7Deferred)",
+      "summary": "Delete templates targets/claude/{agents,hooks,settings} non-Java",
       "retries": 0,
       "blockedBy": [
         "story-0048-0003"
-      ]
+      ],
+      "prNumber": 558,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/558",
+      "prMergeStatus": "MERGED"
     },
     "story-0048-0006": {
       "id": "story-0048-0006",
       "phase": 3,
-      "status": "DEFERRED",
+      "status": "SUCCESS",
       "findingsCount": 0,
-      "summary": "Delete skills, rules, anti-patterns non-Java \u2014 DEFERRED: out of v4.0.0 scope (preserved in CHANGELOG \u00a7Deferred)",
+      "summary": "Delete skills, rules, anti-patterns non-Java",
       "retries": 0,
       "blockedBy": [
         "story-0048-0003"
-      ]
+      ],
+      "prNumber": 558,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/558",
+      "prMergeStatus": "MERGED"
     },
     "story-0048-0007": {
       "id": "story-0048-0007",
@@ -192,11 +198,11 @@
     }
   },
   "metrics": {
-    "storiesCompleted": 10,
+    "storiesCompleted": 12,
     "storiesFailed": 0,
-    "storiesDeferred": 3,
+    "storiesDeferred": 1,
     "storiesTotal": 13,
-    "prsMerged": 11,
+    "prsMerged": 13,
     "testsBaseline": 4175,
     "testsFinal": 4132,
     "mvnTestWallClockSec": 102.73,
@@ -207,5 +213,5 @@
   "parallelismDowngrades": [],
   "mainShaBeforePhase": {},
   "finishedAt": "2026-04-22T12:20:00Z",
-  "finalStatus": "COMPLETE_SCOPE_REDUCED"
+  "finalStatus": "COMPLETE_SCOPE_REDUCED_V2"
 }
