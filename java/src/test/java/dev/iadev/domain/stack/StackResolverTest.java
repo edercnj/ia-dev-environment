@@ -166,23 +166,9 @@ class StackResolverTest {
             assertThat(result.dockerBaseImage()).contains("rust");
         }
 
-        @Test
-        @DisplayName("csharp-aspnet returns port 5000")
-        void resolve_csharpAspnet_port5000() {
-            var config = TestConfigBuilder.builder()
-                    .language("csharp", "8")
-                    .framework("aspnet", "8")
-                    .buildTool("dotnet")
-                    .build();
-
-            var result = StackResolver.resolve(config);
-
-            assertThat(result.defaultPort()).isEqualTo(5000);
-            assertThat(result.fileExtension()).isEqualTo(".cs");
-            assertThat(result.buildFile()).isEqualTo("*.csproj");
-            assertThat(result.packageManager()).isEqualTo("dotnet");
-            assertThat(result.dockerBaseImage()).contains("dotnet");
-        }
+        // csharp-aspnet resolution test removed in EPIC-0048 story-0004:
+        // csharp-dotnet + aspnet entries removed from StackMapping as
+        // historical leftover with no profile/golden counterpart.
     }
 
     @Nested
