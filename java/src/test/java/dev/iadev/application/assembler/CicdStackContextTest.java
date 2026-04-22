@@ -122,40 +122,8 @@ class CicdStackContextTest {
         }
     }
 
-    @Nested
-    @DisplayName("buildStackContext — typescript-npm")
-    class BuildStackContextTypescriptNpm {
-
-        @Test
-        @DisplayName("resolves lint_cmd")
-        void buildStackContext_resolvesLintCmd() {
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .language("typescript", "5.0")
-                    .buildTool("npm")
-                    .framework("nestjs", "10.0")
-                    .build();
-            assertThat(CicdAssembler
-                    .buildStackContext(config)
-                    .get("lint_cmd"))
-                    .isEqualTo("npm run lint");
-        }
-
-        @Test
-        @DisplayName("resolves test_cmd")
-        void buildStackContext_resolvesTestCmd() {
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .language("typescript", "5.0")
-                    .buildTool("npm")
-                    .framework("nestjs", "10.0")
-                    .build();
-            assertThat(CicdAssembler
-                    .buildStackContext(config)
-                    .get("test_cmd"))
-                    .isEqualTo("npm test");
-        }
-    }
+    // typescript-npm BuildStackContext class removed in EPIC-0048
+    // full cleanup — typescript no longer supported.
 
     @Nested
     @DisplayName("buildStackContext — unknown stack")

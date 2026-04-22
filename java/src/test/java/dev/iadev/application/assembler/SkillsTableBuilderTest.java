@@ -237,24 +237,8 @@ class SkillsTableBuilderTest {
     @DisplayName("buildReadmeHooksSection")
     class BuildReadmeHooksSection {
 
-        @Test
-        @DisplayName("kotlin returns hooks section")
-        void build_kotlin_returnsHooksSection() {
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .language("kotlin", "2.0")
-                    .framework("ktor", "")
-                    .buildTool("gradle")
-                    .build();
-
-            String section =
-                    builder.buildReadmeHooksSection(config);
-
-            assertThat(section)
-                    .contains("### Post-Compile Check")
-                    .contains("PostToolUse")
-                    .contains("`.kt`");
-        }
+        // build_kotlin_returnsHooksSection removed in EPIC-0048 full
+        // cleanup — kotlin no longer supported.
 
         @Test
         @DisplayName("python returns fallback")

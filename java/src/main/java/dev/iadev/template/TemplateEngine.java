@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
  * {@link TemplateEngineFactory}.</p>
  *
  * @see TemplateEngineFactory
- * @see PythonBoolFilter
  */
 public final class TemplateEngine {
 

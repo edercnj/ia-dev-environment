@@ -256,25 +256,8 @@ class ReadmeTablesTest {
     @DisplayName("buildReadmeHooksSection")
     class BuildReadmeHooksSection {
 
-        @Test
-        @DisplayName("returns hooks section for kotlin")
-        void create_forKotlin_returnsSection() {
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .language("kotlin", "2.0")
-                    .framework("ktor", "")
-                    .buildTool("gradle")
-                    .build();
-
-            String section = ReadmeTables
-                    .buildReadmeHooksSection(config);
-
-            assertThat(section)
-                    .contains("### Post-Compile Check")
-                    .contains("PostToolUse")
-                    .contains("`.kt`")
-                    .contains("./gradlew compileKotlin -q");
-        }
+        // create_forKotlin_returnsSection removed in EPIC-0048
+        // full cleanup — kotlin no longer supported.
 
         @Test
         @DisplayName("returns fallback for python")

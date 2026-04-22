@@ -91,35 +91,6 @@ class StackValidatorLangFrameworkTest {
         }
 
         @Test
-        @DisplayName("quarkus with kotlin passes")
-        void validateLF_quarkusKotlin_noError() {
-            var config = TestConfigBuilder.builder()
-                    .language("kotlin", "2.1")
-                    .framework("quarkus", "3.17")
-                    .buildTool("gradle")
-                    .build();
-
-            var errors = StackValidator
-                    .validateLanguageFramework(config);
-
-            assertThat(errors).isEmpty();
-        }
-
-        @Test
-        @DisplayName("nestjs with java fails")
-        void validateLF_nestjsJava_error() {
-            var config = TestConfigBuilder.builder()
-                    .language("java", "21")
-                    .framework("nestjs", "10")
-                    .build();
-
-            var errors = StackValidator
-                    .validateLanguageFramework(config);
-
-            assertThat(errors).isNotEmpty();
-        }
-
-        @Test
         @DisplayName("unknown framework passes")
         void validateLF_unknownFramework_noError() {
             var config = TestConfigBuilder.builder()
@@ -132,33 +103,9 @@ class StackValidatorLangFrameworkTest {
             assertThat(errors).isEmpty();
         }
 
-        @Test
-        @DisplayName("fastapi with python passes")
-        void validateLF_fastapiPython_noError() {
-            var config = TestConfigBuilder.builder()
-                    .language("python", "3.12")
-                    .framework("fastapi", "0.115")
-                    .buildTool("pip")
-                    .build();
-
-            var errors = StackValidator
-                    .validateLanguageFramework(config);
-
-            assertThat(errors).isEmpty();
-        }
-
-        @Test
-        @DisplayName("gin with java fails")
-        void validateLF_ginJava_error() {
-            var config = TestConfigBuilder.builder()
-                    .language("java", "21")
-                    .framework("gin", "1.10")
-                    .build();
-
-            var errors = StackValidator
-                    .validateLanguageFramework(config);
-
-            assertThat(errors).isNotEmpty();
-        }
+        // Non-Java framework-language test cases removed in
+        // EPIC-0048 full cleanup (quarkus-kotlin, nestjs-java,
+        // fastapi-python, gin-java) — those frameworks/languages
+        // are no longer in FRAMEWORK_LANGUAGE_RULES.
     }
 }

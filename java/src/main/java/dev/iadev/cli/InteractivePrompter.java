@@ -178,9 +178,14 @@ public class InteractivePrompter {
     }
 
     private String promptLanguage() {
+        List<String> languages =
+                LanguageFrameworkMapping.LANGUAGES;
+        if (languages.size() == 1) {
+            return languages.get(0);
+        }
         return terminal.selectFromList(
                 "Language:",
-                LanguageFrameworkMapping.LANGUAGES,
+                languages,
                 0);
     }
 

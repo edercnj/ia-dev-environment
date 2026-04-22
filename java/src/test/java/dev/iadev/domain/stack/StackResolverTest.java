@@ -75,100 +75,10 @@ class StackResolverTest {
                     .isEqualTo("/actuator/health");
         }
 
-        @Test
-        @DisplayName("typescript-nestjs returns port 3000")
-        void resolve_typescriptNestjs_port3000() {
-            var config = TestConfigBuilder.builder()
-                    .language("typescript", "5")
-                    .framework("nestjs", "10")
-                    .buildTool("npm")
-                    .build();
-
-            var result = StackResolver.resolve(config);
-
-            assertThat(result.defaultPort()).isEqualTo(3000);
-            assertThat(result.compileCmd()).contains("tsc");
-            assertThat(result.fileExtension()).isEqualTo(".ts");
-            assertThat(result.buildFile()).isEqualTo("package.json");
-            assertThat(result.packageManager()).isEqualTo("npm");
-        }
-
-        @Test
-        @DisplayName("python-fastapi returns port 8000")
-        void resolve_pythonFastapi_port8000() {
-            var config = TestConfigBuilder.builder()
-                    .language("python", "3.12")
-                    .framework("fastapi", "0.115")
-                    .buildTool("pip")
-                    .build();
-
-            var result = StackResolver.resolve(config);
-
-            assertThat(result.defaultPort()).isEqualTo(8000);
-            assertThat(result.fileExtension()).isEqualTo(".py");
-            assertThat(result.buildFile()).isEqualTo("pyproject.toml");
-            assertThat(result.packageManager()).isEqualTo("pip");
-            assertThat(result.dockerBaseImage()).contains("python");
-            assertThat(result.dockerBaseImage()).contains("3.12");
-        }
-
-        @Test
-        @DisplayName("go-gin returns port 8080")
-        void resolve_goGin_port8080() {
-            var config = TestConfigBuilder.builder()
-                    .language("go", "1.23")
-                    .framework("gin", "1.10")
-                    .buildTool("go")
-                    .build();
-
-            var result = StackResolver.resolve(config);
-
-            assertThat(result.defaultPort()).isEqualTo(8080);
-            assertThat(result.fileExtension()).isEqualTo(".go");
-            assertThat(result.buildFile()).isEqualTo("go.mod");
-            assertThat(result.packageManager()).isEqualTo("go");
-            assertThat(result.dockerBaseImage()).contains("golang");
-        }
-
-        @Test
-        @DisplayName("kotlin-ktor returns port 8080")
-        void resolve_kotlinKtor_port8080() {
-            var config = TestConfigBuilder.builder()
-                    .language("kotlin", "2.1")
-                    .framework("ktor", "3.0")
-                    .buildTool("gradle")
-                    .build();
-
-            var result = StackResolver.resolve(config);
-
-            assertThat(result.defaultPort()).isEqualTo(8080);
-            assertThat(result.fileExtension()).isEqualTo(".kt");
-            assertThat(result.buildFile()).isEqualTo("build.gradle.kts");
-            assertThat(result.packageManager()).isEqualTo("gradle");
-            assertThat(result.dockerBaseImage()).contains("eclipse-temurin");
-        }
-
-        @Test
-        @DisplayName("rust-axum returns port 3000")
-        void resolve_rustAxum_port3000() {
-            var config = TestConfigBuilder.builder()
-                    .language("rust", "1.83")
-                    .framework("axum", "0.7")
-                    .buildTool("cargo")
-                    .build();
-
-            var result = StackResolver.resolve(config);
-
-            assertThat(result.defaultPort()).isEqualTo(3000);
-            assertThat(result.fileExtension()).isEqualTo(".rs");
-            assertThat(result.buildFile()).isEqualTo("Cargo.toml");
-            assertThat(result.packageManager()).isEqualTo("cargo");
-            assertThat(result.dockerBaseImage()).contains("rust");
-        }
-
-        // csharp-aspnet resolution test removed in EPIC-0048 story-0004:
-        // csharp-dotnet + aspnet entries removed from StackMapping as
-        // historical leftover with no profile/golden counterpart.
+        // Non-Java resolve tests (typescript-nestjs, python-fastapi,
+        // go-gin, kotlin-ktor, rust-axum, csharp-aspnet) removed in
+        // EPIC-0048 full cleanup — the frameworks/languages are no
+        // longer supported.
     }
 
     @Nested

@@ -55,7 +55,6 @@ final class TemplateEngineFactory {
                 .autoEscaping(false)
                 .strictVariables(false)
                 .newLineTrimming(false)
-                .extension(new PythonBoolExtension())
                 .build();
     }
 
@@ -71,7 +70,6 @@ final class TemplateEngineFactory {
                 .autoEscaping(false)
                 .strictVariables(false)
                 .newLineTrimming(false)
-                .extension(new PythonBoolExtension())
                 .build();
     }
 }

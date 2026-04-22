@@ -71,7 +71,6 @@ class InteractivePrompterValidationTest {
                             "A microservice for user "
                                     + "management")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -104,7 +103,6 @@ class InteractivePrompterValidationTest {
                             "A microservice for user "
                                     + "management")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(
@@ -145,10 +143,12 @@ class InteractivePrompterValidationTest {
                             "A simple application "
                                     + "for testing")
                     .addSelect("library")
-                    .addSelect("go")
+                    .addSelect("quarkus")
+                    .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
                     .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
@@ -245,7 +245,7 @@ class InteractivePrompterValidationTest {
         }
 
         @Test
-        @DisplayName("language version resolved")
+        @DisplayName("language version resolved (java only since EPIC-0048)")
         void buildConfig_languageVersionResolved() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
@@ -256,14 +256,14 @@ class InteractivePrompterValidationTest {
                                     "Application for "
                                             + "version resolution",
                                     "microservice",
-                                    "python",
-                                    "fastapi", "pip",
+                                    "java",
+                                    "quarkus", "maven",
                                     List.of("rest"),
                                     "", ""));
             assertThat(config.language().version())
-                    .isEqualTo("3.12");
+                    .isEqualTo("21");
             assertThat(config.framework().version())
-                    .isEqualTo("0.115");
+                    .isEqualTo("3.17");
         }
     }
 
@@ -281,7 +281,6 @@ class InteractivePrompterValidationTest {
                             "A valid purpose that is "
                                     + "long enough")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -316,7 +315,6 @@ class InteractivePrompterValidationTest {
                             "A microservice for user "
                                     + "management")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(
@@ -347,7 +345,6 @@ class InteractivePrompterValidationTest {
                             "A microservice for user "
                                     + "management")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(

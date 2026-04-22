@@ -31,7 +31,6 @@ class InteractivePrompterComplianceTest {
                             "A service for compliance "
                                     + "testing")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -59,7 +58,6 @@ class InteractivePrompterComplianceTest {
                             "A service for compliance "
                                     + "testing")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -85,10 +83,12 @@ class InteractivePrompterComplianceTest {
                             "A service for full "
                                     + "compliance")
                     .addSelect("microservice")
-                    .addSelect("go")
+                    .addSelect("quarkus")
+                    .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
                     .addMultiSelect(List.of(
                             "pci-dss", "lgpd",
                             "sox", "hipaa"))
@@ -151,7 +151,6 @@ class InteractivePrompterComplianceTest {
                             "A service for summary "
                                     + "testing")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))
@@ -177,33 +176,7 @@ class InteractivePrompterComplianceTest {
                             "Compliance:    pci-dss, lgpd");
         }
 
-        @Test
-        @DisplayName("summary hides arch pattern for go")
-        void prompt_goLanguage_noArchPatternInSummary() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("go-svc")
-                    .addReadLine(
-                            "A go service for summary "
-                                    + "testing")
-                    .addSelect("microservice")
-                    .addSelect("go")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter =
-                    new InteractivePrompter(mock);
-            prompter.prompt();
-            String summary = mock
-                    .getDisplayedMessages()
-                    .getFirst();
-            assertThat(summary)
-                    .doesNotContain("Arch Pattern:");
-            assertThat(summary)
-                    .doesNotContain("ArchUnit:");
-            assertThat(summary)
-                    .contains("Compliance:    none");
-        }
+        // prompt_goLanguage_noArchPatternInSummary removed in
+        // EPIC-0048 full cleanup — go no longer selectable.
     }
 }
