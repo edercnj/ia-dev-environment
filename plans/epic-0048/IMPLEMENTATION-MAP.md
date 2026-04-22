@@ -8,19 +8,19 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0048-0001 | Investigação: inventário canônico + repro Bug A + repro Bug B | — | — | story-0048-0002 | Pendente |
-| story-0048-0002 | ADR-0048-A (Java-only scope) + ADR-0048-B (CLAUDE.md contract) | — | story-0048-0001 | story-0048-0003, story-0048-0010 | Pendente |
-| story-0048-0003 | Restringir LanguageFrameworkMapping + CliLanguageValidator + UnsupportedLanguageException | — | story-0048-0002 | story-0048-0004, story-0048-0005, story-0048-0006, story-0048-0007 | Pendente |
-| story-0048-0004 | Limpar StackMapping + StackResolver + StackValidator (incl. csharp-dotnet leftover) | — | story-0048-0003 | — | Pendente |
-| story-0048-0005 | Remover templates targets/claude/{agents,hooks,settings} não-Java | — | story-0048-0003 | story-0048-0007 | Pendente |
-| story-0048-0006 | Remover skills, rules, anti-patterns, security-anti-patterns não-Java | — | story-0048-0003 | story-0048-0007 | Pendente |
-| story-0048-0007 | Remover 8 goldens + 8 YAMLs setup-config (atomicamente) | — | story-0048-0003, story-0048-0005, story-0048-0006 | story-0048-0008 | Pendente |
-| story-0048-0008 | Atualizar testes parametrizados: SmokeProfiles 17→9, GoldenFileTest, ConfigProfiles, expected-artifacts.json | — | story-0048-0007 | story-0048-0009 | Pendente |
-| story-0048-0009 | Bug A — OutputDirectoryIntegrityTest (RED) → pruneEmptyDirs (GREEN) → regen 9 goldens | — | story-0048-0008 | story-0048-0012 | Pendente |
-| story-0048-0010 | Template Pebble shared/templates/CLAUDE.md + ClaudeMdTemplateSyntaxTest | — | story-0048-0002 | story-0048-0011 | Pendente |
-| story-0048-0011 | Bug B — ClaudeMdAssembler novo + registrar em AssemblerFactory + 9 goldens atualizados | — | story-0048-0010, story-0048-0008 | story-0048-0012 | Pendente |
-| story-0048-0012 | Higienização + Epic0048EndToEndTest + remover @Disabled órfãos + testes negativos | — | story-0048-0009, story-0048-0011 | story-0048-0013 | Pendente |
-| story-0048-0013 | Audit grep + README + CHANGELOG v4.0.0 + release notes + cleanup worktrees | — | story-0048-0012 | — | Pendente |
+| story-0048-0001 | Investigação: inventário canônico + repro Bug A + repro Bug B | — | — | story-0048-0002 | Concluída |
+| story-0048-0002 | ADR-0048-A (Java-only scope) + ADR-0048-B (CLAUDE.md contract) | — | story-0048-0001 | story-0048-0003, story-0048-0010 | Concluída |
+| story-0048-0003 | Restringir LanguageFrameworkMapping + CliLanguageValidator + UnsupportedLanguageException | — | story-0048-0002 | story-0048-0004, story-0048-0005, story-0048-0006, story-0048-0007 | Concluída |
+| story-0048-0004 | Limpar StackMapping + StackResolver + StackValidator (incl. csharp-dotnet leftover) | — | story-0048-0003 | — | Concluída |
+| story-0048-0005 | Remover templates targets/claude/{agents,hooks,settings} não-Java | — | story-0048-0003 | story-0048-0007 | Deferida |
+| story-0048-0006 | Remover skills, rules, anti-patterns, security-anti-patterns não-Java | — | story-0048-0003 | story-0048-0007 | Deferida |
+| story-0048-0007 | Remover 8 goldens + 8 YAMLs setup-config (atomicamente) | — | story-0048-0003, story-0048-0005, story-0048-0006 | story-0048-0008 | Concluída |
+| story-0048-0008 | Atualizar testes parametrizados: SmokeProfiles 17→9, GoldenFileTest, ConfigProfiles, expected-artifacts.json | — | story-0048-0007 | story-0048-0009 | Concluída |
+| story-0048-0009 | Bug A — OutputDirectoryIntegrityTest (RED) → pruneEmptyDirs (GREEN) → regen 9 goldens | — | story-0048-0008 | story-0048-0012 | Concluída |
+| story-0048-0010 | Template Pebble shared/templates/CLAUDE.md + ClaudeMdTemplateSyntaxTest | — | story-0048-0002 | story-0048-0011 | Concluída |
+| story-0048-0011 | Bug B — ClaudeMdAssembler novo + registrar em AssemblerFactory + 9 goldens atualizados | — | story-0048-0010, story-0048-0008 | story-0048-0012 | Concluída |
+| story-0048-0012 | Higienização + Epic0048EndToEndTest + remover @Disabled órfãos + testes negativos | — | story-0048-0009, story-0048-0011 | story-0048-0013 | Deferida |
+| story-0048-0013 | Audit grep + README + CHANGELOG v4.0.0 + release notes + cleanup worktrees | — | story-0048-0012 | — | Concluída |
 
 > **Nota 1 — Correção de simetria:** `story-0048-0004` declarou `Blocks: story-0048-0007` no arquivo de origem, mas `story-0048-0007` não lista `story-0048-0004` em `Blocked By`. Semanticamente, `0004` (limpa `StackMapping`/`StackResolver`/`StackValidator` — código Java) e `0007` (deleta 8 goldens + 8 YAMLs — recursos) são **independentes**: nenhuma das duas precisa da outra concluída para começar. Mapa normaliza: `0004` é **leaf** no ramo paralelo após `0003` (não bloqueia ninguém); `0007` depende apenas de `0003, 0005, 0006`. Essa assimetria deve ser corrigida no `story-0048-0004.md` (trocar `Blocks: story-0048-0007` por `Blocks: —`) antes do merge da investigação.
 >
