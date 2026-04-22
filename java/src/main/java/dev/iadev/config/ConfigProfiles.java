@@ -31,15 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>java-spring-fintech-pci</li>
  *   <li>java-spring-hexagonal</li>
  *   <li>java-spring-neo4j</li>
- *   <li>python-fastapi</li>
- *   <li>python-fastapi-timescale</li>
- *   <li>python-click-cli</li>
- *   <li>go-gin</li>
- *   <li>kotlin-ktor</li>
- *   <li>typescript-nestjs</li>
- *   <li>typescript-commander-cli</li>
- *   <li>rust-axum</li>
  * </ul>
+ *
+ * <p>EPIC-0048 / v4.0.0: non-Java profiles (python, go,
+ * kotlin, typescript, rust) were removed per ADR-0048-A.</p>
  *
  * <p>Example usage:
  * <pre>{@code
@@ -62,15 +57,7 @@ public final class ConfigProfiles {
             "java-spring-event-driven",
             "java-spring-fintech-pci",
             "java-spring-hexagonal",
-            "java-spring-neo4j",
-            "python-fastapi",
-            "python-fastapi-timescale",
-            "python-click-cli",
-            "go-gin",
-            "kotlin-ktor",
-            "typescript-nestjs",
-            "typescript-commander-cli",
-            "rust-axum"
+            "java-spring-neo4j"
     );
 
     private static final String TEMPLATE_PATH_PREFIX =
