@@ -17,16 +17,16 @@ class StackMappingTest {
     class LanguageCommandsTests {
 
         @Test
-        @DisplayName("contains exactly 8 entries")
-        void languageCommands_size_eight() {
-            assertThat(StackMapping.LANGUAGE_COMMANDS).hasSize(8);
+        @DisplayName("contains exactly 7 entries (csharp-dotnet removed — EPIC-0048)")
+        void languageCommands_size_seven() {
+            assertThat(StackMapping.LANGUAGE_COMMANDS).hasSize(7);
         }
 
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-maven", "java-gradle", "kotlin-gradle",
                 "typescript-npm", "python-pip", "go-go",
-                "rust-cargo", "csharp-dotnet"
+                "rust-cargo"
         })
         @DisplayName("contains key: {0}")
         void languageCommands_containsKey(String key) {
@@ -130,16 +130,10 @@ class StackMappingTest {
         }
 
         @Test
-        @DisplayName("csharp-dotnet has correct commands")
-        void languageCommands_csharpDotnet_correctCommands() {
-            var cmds = StackMapping.LANGUAGE_COMMANDS.get("csharp-dotnet");
-            assertThat(cmds.compileCmd()).contains("dotnet build");
-            assertThat(cmds.buildCmd()).isEqualTo("dotnet build");
-            assertThat(cmds.testCmd()).isEqualTo("dotnet test");
-            assertThat(cmds.coverageCmd()).contains("XPlat Code Coverage");
-            assertThat(cmds.fileExtension()).isEqualTo(".cs");
-            assertThat(cmds.buildFile()).isEqualTo("*.csproj");
-            assertThat(cmds.packageManager()).isEqualTo("dotnet");
+        @DisplayName("csharp-dotnet is absent (removed in EPIC-0048 story-0004)")
+        void languageCommands_csharpDotnet_absent() {
+            assertThat(StackMapping.LANGUAGE_COMMANDS)
+                    .doesNotContainKey("csharp-dotnet");
         }
     }
 
@@ -148,9 +142,9 @@ class StackMappingTest {
     class FrameworkPortsTests {
 
         @Test
-        @DisplayName("contains exactly 11 entries")
-        void frameworkPorts_size_eleven() {
-            assertThat(StackMapping.FRAMEWORK_PORTS).hasSize(11);
+        @DisplayName("contains exactly 10 entries (aspnet removed — EPIC-0048)")
+        void frameworkPorts_size_ten() {
+            assertThat(StackMapping.FRAMEWORK_PORTS).hasSize(10);
         }
 
         @ParameterizedTest
@@ -164,8 +158,7 @@ class StackMappingTest {
                 "gin, 8080",
                 "ktor, 8080",
                 "axum, 3000",
-                "actix-web, 8080",
-                "aspnet, 5000"
+                "actix-web, 8080"
         })
         @DisplayName("port for {0} is {1}")
         void frameworkPorts_correctPort(String fw, int port) {
@@ -179,9 +172,9 @@ class StackMappingTest {
     class FrameworkHealthPathsTests {
 
         @Test
-        @DisplayName("contains exactly 11 entries")
-        void frameworkHealthPaths_size_eleven() {
-            assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS).hasSize(11);
+        @DisplayName("contains exactly 10 entries (aspnet removed — EPIC-0048)")
+        void frameworkHealthPaths_size_ten() {
+            assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS).hasSize(10);
         }
 
         @Test
@@ -201,7 +194,7 @@ class StackMappingTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "nestjs", "express", "fastapi", "django",
-                "gin", "ktor", "axum", "actix-web", "aspnet"
+                "gin", "ktor", "axum", "actix-web"
         })
         @DisplayName("{0} has /health")
         void frameworkHealthPaths_defaultHealth(String fw) {
@@ -215,9 +208,9 @@ class StackMappingTest {
     class FrameworkLanguageRulesTests {
 
         @Test
-        @DisplayName("contains 16 entries")
-        void frameworkLanguageRules_size_sixteen() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES).hasSize(16);
+        @DisplayName("contains 15 entries (aspnet removed — EPIC-0048)")
+        void frameworkLanguageRules_size_fifteen() {
+            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES).hasSize(15);
         }
 
         @Test
@@ -256,10 +249,10 @@ class StackMappingTest {
         }
 
         @Test
-        @DisplayName("aspnet requires csharp")
-        void frameworkLanguageRules_whenCalled_aspnet() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("aspnet"))
-                    .containsExactly("csharp");
+        @DisplayName("aspnet is absent (removed in EPIC-0048 story-0004)")
+        void frameworkLanguageRules_whenCalled_aspnetAbsent() {
+            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES)
+                    .doesNotContainKey("aspnet");
         }
     }
 
@@ -318,9 +311,9 @@ class StackMappingTest {
         }
 
         @Test
-        @DisplayName("DOCKER_BASE_IMAGES has 7 entries")
-        void dockerBaseImages_whenCalled_seven() {
-            assertThat(StackMapping.DOCKER_BASE_IMAGES).hasSize(7);
+        @DisplayName("DOCKER_BASE_IMAGES has 6 entries (csharp removed — EPIC-0048)")
+        void dockerBaseImages_whenCalled_six() {
+            assertThat(StackMapping.DOCKER_BASE_IMAGES).hasSize(6);
         }
 
         @Test

@@ -57,13 +57,7 @@ public final class StackMapping {
                             "cargo build",
                             "cargo test",
                             "cargo tarpaulin",
-                            ".rs", "Cargo.toml", "cargo")),
-                    Map.entry("csharp-dotnet", new LanguageCommandSet(
-                            "dotnet build --no-restore --verbosity quiet",
-                            "dotnet build",
-                            "dotnet test",
-                            "dotnet test --collect:\"XPlat Code Coverage\"",
-                            ".cs", "*.csproj", "dotnet"))
+                            ".rs", "Cargo.toml", "cargo"))
             );
 
     /** Framework to default port (11 entries). */
@@ -78,8 +72,7 @@ public final class StackMapping {
                     Map.entry("gin", 8080),
                     Map.entry("ktor", 8080),
                     Map.entry("axum", 3000),
-                    Map.entry("actix-web", 8080),
-                    Map.entry("aspnet", 5000)
+                    Map.entry("actix-web", 8080)
             );
 
     /** Default port when framework is not found. */
@@ -97,8 +90,7 @@ public final class StackMapping {
                     Map.entry("gin", "/health"),
                     Map.entry("ktor", "/health"),
                     Map.entry("axum", "/health"),
-                    Map.entry("actix-web", "/health"),
-                    Map.entry("aspnet", "/health")
+                    Map.entry("actix-web", "/health")
             );
 
     /** Default health path when framework is not found. */
@@ -121,8 +113,7 @@ public final class StackMapping {
                     Map.entry("fiber", List.of("go")),
                     Map.entry("ktor", List.of("kotlin")),
                     Map.entry("axum", List.of("rust")),
-                    Map.entry("actix-web", List.of("rust")),
-                    Map.entry("aspnet", List.of("csharp"))
+                    Map.entry("actix-web", List.of("rust"))
             );
 
     /** Frameworks that support native/GraalVM builds. */
@@ -173,8 +164,7 @@ public final class StackMapping {
             "typescript", "node:{version}-alpine",
             "python", "python:{version}-slim",
             "go", "golang:{version}-alpine",
-            "rust", "rust:{version}-slim",
-            "csharp", "mcr.microsoft.com/dotnet/aspnet:{version}"
+            "rust", "rust:{version}-slim"
     );
 
     /** Default Docker image when language is not found. */
@@ -188,8 +178,7 @@ public final class StackMapping {
             "typescript-npm", "typescript",
             "python-pip", "",
             "go-go", "go",
-            "rust-cargo", "rust",
-            "csharp-dotnet", "csharp"
+            "rust-cargo", "rust"
     );
 
     /** Settings language JSON key (8 entries). */
@@ -200,8 +189,7 @@ public final class StackMapping {
             "typescript-npm", "typescript-npm",
             "python-pip", "python-pip",
             "go-go", "go",
-            "rust-cargo", "rust-cargo",
-            "csharp-dotnet", "csharp-dotnet"
+            "rust-cargo", "rust-cargo"
     );
 
     /** Returns hook template key, or empty string. */
