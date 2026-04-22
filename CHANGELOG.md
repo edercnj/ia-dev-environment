@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-04-22
+
+### Breaking
+
+- **EPIC-0048 (Java-Only Scope):** the `ia-dev-env` generator is
+  restricted to Java only starting with v4.0.0. Support for `python`,
+  `go`, `kotlin`, `typescript`, `rust`, and `csharp` has been removed.
+  Users who need non-Java profiles must pin to the v3.x line (latest
+  v3.11.0-SNAPSHOT). Branch `legacy/v3` is preserved as read-only
+  reference. Formal decision: [ADR-0048-A](adr/ADR-0048-java-only-scope.md).
+  - `LanguageFrameworkMapping.LANGUAGES` restriction remains partial in
+    v4.0.0 (delegated to a follow-up PR); the `UnsupportedLanguageException`
+    class is in place.
+- **Non-Java stack profiles removed** (story-0048-0007+0008): 8 golden
+  directories (3256 files) + 8 `setup-config.*.yaml` files deleted:
+  `go-gin`, `kotlin-ktor`, `python-click-cli`, `python-fastapi`,
+  `python-fastapi-timescale`, `rust-axum`, `typescript-commander-cli`,
+  `typescript-nestjs`. `SmokeProfiles.SMOKE_PROFILES` trimmed from 17 to 9
+  Java profiles. `ConfigProfiles.STACK_KEYS` trimmed from 18 to 10.
+- **`csharp-dotnet` + `aspnet` leftover removed** (story-0048-0004) from
+  `StackMapping`: entries in `LANGUAGE_COMMANDS`, `FRAMEWORK_PORTS`,
+  `FRAMEWORK_HEALTH_PATHS`, `FRAMEWORK_LANGUAGE_RULES`,
+  `DOCKER_BASE_IMAGES`, `HOOK_TEMPLATE_MAP`, `SETTINGS_LANG_MAP`.
+
+### Added
+
+- **Bug B fix — `CLAUDE.md` now generated at root of every Java project**
+  (story-0048-0011). New single-responsibility `ClaudeMdAssembler`
+  consumes the Pebble template `shared/templates/CLAUDE.md` (8
+  placeholders: PROJECT_NAME, LANGUAGE, FRAMEWORK, ARCHITECTURE,
+  DATABASES, INTERFACE_TYPES, BUILD_COMMAND, TEST_COMMAND). Contract:
+  [ADR-0048-B](adr/ADR-0048-B-claude-md-contract.md). Empirical
+  verification: `plans/epic-0048/reports/repro-bug-b.sh` now exits 0
+  on develop (was exit 1).
+- **`OutputDirectoryIntegrityTest`** (story-0048-0009): permanent
+  regression gate asserting zero empty directories in generator output
+  (RULE-048-04). Parameterized over all 9 Java profiles. Bug A was not
+  reproducible on develop at the start of EPIC-0048; the test prevents
+  regressions going forward.
+- **`UnsupportedLanguageException`** (story-0048-0003): dedicated
+  exception class producing the canonical RULE-048-06 message:
+  `Language 'X' is not supported. Only 'java' is available (see
+  CHANGELOG v4.0.0 / EPIC-0048).`
+- **Investigation artifacts in `plans/epic-0048/reports/`** (story
+  0048-0001): `investigation-report.md`, `removal-inventory.md`,
+  `repro-bug-a.sh`, `repro-bug-b.sh`.
+- **ADR-0048-A** (Java-only scope decision) and **ADR-0048-B** (CLAUDE.md
+  assembler contract) in `adr/`.
+- **Template `shared/templates/CLAUDE.md`** (story-0048-0010) with 8
+  Pebble placeholders and `ClaudeMdTemplateSyntaxTest` covering parse,
+  render, and conditional-block semantics.
+
+### Changed
+
+- **Orthogonal dimensions preserved** (RULE-048-02): databases
+  (PostgreSQL, MySQL, ClickHouse, Elasticsearch, Neo4j, TimescaleDB),
+  messaging (Kafka, RabbitMQ, SQS), architecture patterns (hexagonal,
+  CQRS, event-driven, clean, layered, DDD), interface types (REST, gRPC,
+  GraphQL, WebSocket, CLI, event-consumer/producer, scheduled), and
+  compliance frameworks (PCI, HIPAA, LGPD, SOX) — all unchanged.
+
+### Removed
+
+- 8 non-Java stack profiles (goldens + YAMLs).
+- 7 `StackMapping` entries (csharp-dotnet command, aspnet framework).
+- `python-fastapi-timescale` from `STACK_KEYS`.
+- Per-stack non-Java tests in `ConfigProfilesTest`, `FatJarContentTest`,
+  `YamlStackProfileRepositoryTest`, `GenerateCommandE2ETest`,
+  `DistributionTest` — total ~41 tests for removed functionality.
+
+### Deferred
+
+Scope items from EPIC-0048 not shipped in v4.0.0 (tracked for future):
+
+- `LanguageFrameworkMapping.LANGUAGES = List.of("java")` hard restriction
+  (requires InteractivePrompter/arch test updates).
+- Non-Java agent templates, hook subdirs, settings JSONs,
+  stack-patterns, conditional rules (files remain in classpath but
+  are not referenced by any Java profile — safe to ship, delete in
+  v4.0.1 or later).
+
+### Migration guide
+
+- **Staying on v3.x:** pin `v3.11.0-SNAPSHOT` or the last tagged v3.x
+  release; the `legacy/v3` branch is frozen.
+- **Upgrading to v4.0.0:** if you only generate Java projects, the
+  upgrade is near-transparent. Your generated output gains a new
+  root `CLAUDE.md` file (1596 bytes for `java-spring`, comparable for
+  other profiles). If you prefer to retain hand-edited content, use
+  the temporary v4.0.0-only flag `--no-claude-md` (removed in v5.0.0).
+- **Users of non-Java profiles:** pin v3.x. Epic premise confirmed:
+  100% of observed usage was Java; no active consumer of non-Java
+  profiles was identified.
+
+### Related
+
+- Epic: [plans/epic-0048/epic-0048.md](plans/epic-0048/epic-0048.md)
+- Execution report: [plans/epic-0048/epic-execution-report.md](plans/epic-0048/epic-execution-report.md)
+
 ## [3.10.0] - 2026-04-21
 
 ### Changed
