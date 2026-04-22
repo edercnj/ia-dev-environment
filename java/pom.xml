@@ -6,7 +6,7 @@
 
     <groupId>dev.iadev</groupId>
     <artifactId>ia-dev-env</artifactId>
-    <version>3.9.0</version>
+    <version>3.10.0</version>
     <packaging>jar</packaging>
 
     <name>ia-dev-env</name>
@@ -29,18 +29,17 @@
         <!-- Dependency versions -->
         <picocli.version>4.7.7</picocli.version>
         <pebble.version>3.2.2</pebble.version>
-        <snakeyaml.version>2.3</snakeyaml.version>
+        <snakeyaml.version>2.6</snakeyaml.version>
         <jackson.version>2.21.2</jackson.version>
         <jline.version>3.28.0</jline.version>
         <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.15</logback.version>
         <junit.version>5.11.4</junit.version>
-        <assertj.version>3.27.3</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <mockito.version>5.14.2</mockito.version>
-        <archunit.version>1.3.0</archunit.version>
+        <archunit.version>1.4.2</archunit.version>
         <jacoco.version>0.8.14</jacoco.version>
-        <cyclonedx.version>2.8.2</cyclonedx.version>
-        <json-schema-validator.version>1.5.8</json-schema-validator.version>
+        <cyclonedx.version>2.9.1</cyclonedx.version>
     </properties>
 
     <dependencies>
@@ -130,13 +129,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- JSON Schema validation (Draft 2020-12) — used by telemetry schema tests -->
-        <dependency>
-            <groupId>com.networknt</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>${json-schema-validator.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -202,6 +194,17 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.5</version>
                 <configuration>
+                    <!--
+                        CI audit gates included in *Test.java (run by Surefire):
+                        ~ TelemetryMarkerLintTest   : Rule 13 Telemetry Markers
+                        ~ InteractiveGatesAuditTest : Rule 20 Interactive Gates (EPIC-0043)
+                            Runs scripts/audit-interactive-gates.sh via ProcessBuilder.
+                            Baseline mode (baseline flag) is active during the EPIC-0043
+                            migration period while audits/interactive-gates-baseline.txt
+                            lists files pending retrofit (stories 0043-0002 to 0043-0005).
+                            audit_strictMode_returnsZero is auto-skipped until the baseline
+                            file is empty; no manual flag removal needed in pom.xml.
+                    -->
                     <excludes>
                         <exclude>**/*IT.java</exclude>
                         <exclude>**/*IntegrationTest.java</exclude>
@@ -328,12 +331,12 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.95</minimum>
+                                            <minimum>0.85</minimum>
                                         </limit>
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.90</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

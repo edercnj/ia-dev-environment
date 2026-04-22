@@ -18,6 +18,19 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > - Retroactive diff patches for epics 0036–0040: [`plans/epic-0041/migrations/`](plans/epic-0041/migrations/) (EPIC-0040 flagged HIGH — hard conflict on `telemetry-phase.sh`).
 > - Skill inventory gained `/x-parallel-eval` (category `plan/`).
 
+> **Concluded — EPIC-0045 (CI Watch no Fluxo de PR).**
+> Delivered `x-pr-watch-ci` skill (CI polling + Copilot review detection, 8 stable exit codes — RULE-045-05), Rule 21 (CI-Watch, RULE-045-01) with fallback matrix and opt-out via `--no-ci-watch`, and retrofits to `x-story-implement` (Phase 2.2.8.5), `x-task-implement --worktree` (Step 4.5), and `x-release` (flag `--ci-watch`). `Epic0045SmokeTest` validates end-to-end contract. `PrWatchStatusClassifier` + `PrWatchExitCode` (zero-I/O, fully testable). All 6 stories merged to develop.
+> - Story index: [`plans/epic-0045/`](plans/epic-0045/)
+
+> **In progress — EPIC-0046 (Lifecycle Integrity Phase 2 — CI enforcement).**
+> Story-0046-0007 ships `LifecycleIntegrityAuditTest` (Maven CI-blocking). The audit scans every `SKILL.md` under `java/src/main/resources/targets/claude/skills/` for three Rule 22 regressions: `ORPHAN_PHASE` (dotted sub-section documented but not referenced elsewhere), `WRITE_WITHOUT_COMMIT` (write to `plans/epic-*/reports/` with no `x-git-commit` in the next 20 lines), and `SKIP_IN_HAPPY_PATH` (`--skip-verification` / `--skip-status-sync` used outside `## Recovery` / `## Error Handling`). Baseline at `audits/lifecycle-integrity-baseline.txt` tolerates current TOC-style sub-sections; any NEW violation fails the build with `LIFECYCLE_AUDIT_REGRESSION`. Escape hatch: place `<!-- audit-exempt -->` on the line immediately before (or on) the intentional violation; keep usage rare (reviewed exceptions only). Standalone CLI: `java -cp target/test-classes:target/classes dev.iadev.adapter.inbound.cli.LifecycleAuditCli scan [--skills-root <path>] [--json]` (exit 0 / 11 / 2).
+> - Story: [`plans/epic-0046/story-0046-0007.md`](plans/epic-0046/story-0046-0007.md)
+
+> **In progress — EPIC-0043 (Interactive Gates Convention).**
+> Standardizes interactive decision gates across orchestrating skills (`x-release`, `x-story-implement`, `x-epic-implement`, `x-review-pr`) with a fixed 3-option menu (PROCEED / FIX-PR / ABORT) as the default behavior. Menu is now default; `--non-interactive` replaces the patchwork of opt-in flags for CI/automation. FIX-PR slot invokes `x-pr-fix`/`x-pr-fix-epic` via Rule 13 INLINE-SKILL and loops back to the same menu. Guard-rail caps 3 consecutive fix attempts with `GATE_FIX_LOOP_EXCEEDED`. Rule 20 + ADR-0010 published in story-0043-0001; retrofits follow in stories 0043-0002 through 0043-0006.
+> - Decision record: [`adr/ADR-0010-interactive-gates-convention.md`](adr/ADR-0010-interactive-gates-convention.md)
+> - Story index: [`plans/epic-0043/`](plans/epic-0043/)
+
 > **In progress — EPIC-0036 (Skill Taxonomy Refactor).**
 > The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)

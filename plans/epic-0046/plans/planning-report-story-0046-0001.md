@@ -11,7 +11,7 @@
 
 ## Planning Summary
 
-Foundation story: publica Rule 21 (`lifecycle-integrity`), atualiza 3 templates principais com matriz de transição de status e entrega pacote Java `dev.iadev.application.lifecycle` (`StatusFieldParser`, `LifecycleTransitionMatrix`, `LifecycleAuditRunner` skeleton). Não altera skills — apenas disponibiliza infraestrutura. Desbloqueia as 6 stories restantes do EPIC-0046.
+Foundation story: publica Rule 22 (`lifecycle-integrity`), atualiza 3 templates principais com matriz de transição de status e entrega pacote Java `dev.iadev.application.lifecycle` (`StatusFieldParser`, `LifecycleTransitionMatrix`, `LifecycleAuditRunner` skeleton). Não altera skills — apenas disponibiliza infraestrutura. Desbloqueia as 6 stories restantes do EPIC-0046.
 
 ## Architecture Assessment
 
@@ -94,7 +94,7 @@ Foundation story: publica Rule 21 (`lifecycle-integrity`), atualiza 3 templates 
 |------|------------|----------|------------|------------|
 | Regex frágil a encoding (BOM, CRLF) | QA | MEDIUM | LOW | Ler via `Files.readString(path, UTF_8)`; testes com CRLF + BOM |
 | Atomic move não suportado em filesystem exótico (não-ext4, nfs) | SEC | LOW | LOW | Detectar `AtomicMoveNotSupportedException` e fallback documentado (log warn + non-atomic) |
-| Rule slot 21 conflito com outro épico paralelo | Tech Lead | LOW | LOW | Já validado: slot 20 é EPIC-0045; 21 livre |
+| Rule slot 22 conflito com outro épico paralelo | Tech Lead | LOW | LOW | Revalidado 2026-04-20: slot 21 ocupado por EPIC-0045 ci-watch; 22 livre no source |
 | Templates atualizados quebram outros épicos em planejamento | Tech Lead | LOW | MEDIUM | Golden diff captura; `_TEMPLATE-TASK/STORY/EPIC` mudança é aditiva (novo bloco header) |
 
 ## DoR Status

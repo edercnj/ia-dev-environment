@@ -79,15 +79,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 10 | `10-anti-patterns.md` | anti patterns |
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
 | 13 | `13-skill-invocation-protocol.md` | skill invocation protocol |
-| 14 | `14-worktree-lifecycle.md` | worktree lifecycle |
-| 15 | `15-task-testability.md` | task testability |
-| 16 | `16-task-io-contracts.md` | task io contracts |
-| 17 | `17-topological-execution.md` | topological execution |
-| 18 | `18-atomic-task-commits.md` | atomic task commits |
-| 19 | `19-backward-compatibility.md` | backward compatibility |
-| 20 | `20-telemetry-privacy.md` | telemetry privacy |
+| 14 | `14-project-scope.md` | project scope |
 
-**Total: 19 rules**
+**Total: 13 rules**
 
 ### Numbering
 
@@ -132,6 +126,8 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-pr-create** | `/x-pr-create` | Task-level PR creation with formatted title, automatic labels, structured body, and target branch logic. Creates standardized PRs for individual tasks with Task ID traceability. |
 | **x-pr-fix** | `/x-pr-fix` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
 | **x-pr-fix-epic** | `/x-pr-fix-epic` | Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution. |
+| **x-pr-merge-train** | `/x-pr-merge-train` | Merge-train automation: discovers, validates, and merges a sequence of PRs into develop in deterministic order. Supports --prs, --epic, and --pattern discovery modes with pre-merge validation and dry-run auditing. |
+| **x-pr-watch-ci** | `/x-pr-watch-ci` | Polls a PR's CI checks and Copilot review status, blocking until checks complete or timeout. Returns one of 8 stable exit codes (SUCCESS=0, CI_PENDING_PROCEED=10, CI_FAILED=20, TIMEOUT=30, PR_ALREADY_MERGED=40, NO_CI_CONFIGURED=50, PR_CLOSED=60, PR_NOT_FOUND=70). Writes a versioned state-file for session resume. |
 | **x-release** | `/x-release` | Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path. |
 | **x-release-changelog** | `/x-release-changelog` | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Invokes individual review skills in parallel via Skill tool, then consolidates into a scored report. Use for pre-PR quality validation. |
@@ -149,6 +145,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-security-pipeline** | `/x-security-pipeline` | Generate CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Support GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes, configurable severity thresholds, and SARIF artifact upload. |
 | **x-setup-env** | `/x-setup-env` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions. |
 | **x-spec-drift** | `/x-spec-drift` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-story-implement Phase 2). |
+| **x-status-reconcile** | `/x-status-reconcile` | Reconciles execution-state.json (telemetry) against the **Status:** field of Epic / Story markdown artifacts. Default mode (diagnose) is read-only and prints a divergence table. Opt-in --apply rewrites the markdowns atomically via StatusFieldParser and commits via x-git-commit. Respects Rule 19 (legacy v1 epics skip silently) and Rule 22 (markdown is SoT; state.json is telemetry). Use for manual recovery of legacy epics whose markdown status drifted from execution checkpoints. |
 | **x-story-create** | `/x-story-create` | Generate detailed User Story files from an Epic and system specification with full data contracts, Gherkin acceptance criteria, Mermaid sequence diagrams, dependency declarations, tagged sub-tasks, quality gate validation, and optional Jira integration. |
 | **x-story-implement** | `/x-story-implement` | Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement. |
 | **x-story-plan** | `/x-story-plan` | Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation. Schema-aware: v1 (legacy) runs the original 6-phase flow; v2 (task-first, EPIC-0038) adds Phases 4a-4c that emit task-TASK-NNN.md + plan-task-TASK-NNN.md per task and a task-implementation-map-STORY-*.md, wiring every task through x-task-plan in parallel. |
@@ -166,7 +163,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-test-tdd** | `/x-test-tdd` | Executes systematic Red-Green-Refactor TDD cycles for a task. Reads the task plan generated by x-task-plan, runs each cycle in TPP order, validates RED/GREEN/REFACTOR phases, delegates atomic commits to x-git-commit with TDD tags, and supports resume and dry-run. |
 | **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
 
-**Total: 88 skills**
+**Total: 91 skills**
 
 ### Usage Examples
 
@@ -327,8 +324,8 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 19 |
-| Skills (.claude) | 64 |
+| Rules (.claude) | 13 |
+| Skills (.claude) | 67 |
 | Knowledge Packs (.claude) | 24 |
 | Agents (.claude) | 14 |
 | Hooks (.claude) | 9 |

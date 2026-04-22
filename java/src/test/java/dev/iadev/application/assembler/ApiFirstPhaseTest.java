@@ -295,9 +295,22 @@ class ApiFirstPhaseTest {
             assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
+            // Story-0047-0002 flipped x-story-implement to slim
+            // orientation (ADR-0012). Phase 0.5 detailed content now
+            // lives in references/full-protocol.md; the slim SKILL.md
+            // keeps only the phase summary. Read both files so these
+            // Phase 0.5 content assertions continue to validate the
+            // full behavioral surface across the slim/full split.
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
             String content = Files.readString(lifecycle);
+            if (Files.isRegularFile(fullProtocol)) {
+                content = content + "\n"
+                        + Files.readString(fullProtocol);
+            }
             assertThat(content)
                     .contains("Phase 0.5");
             assertThat(content)
@@ -306,7 +319,7 @@ class ApiFirstPhaseTest {
 
         @Test
         @DisplayName("lifecycle template contains"
-                + " CONTRACT PENDING APPROVAL message")
+                + " AskUserQuestion contract gate (EPIC-0043)")
         void assemble_lifecycle_containsPendingApproval(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -322,11 +335,28 @@ class ApiFirstPhaseTest {
             assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
+            // Story-0047-0002 flipped x-story-implement to slim
+            // orientation (ADR-0012). Phase 0.5 detailed content now
+            // lives in references/full-protocol.md; the slim SKILL.md
+            // keeps only the phase summary. Read both files so these
+            // Phase 0.5 content assertions continue to validate the
+            // full behavioral surface across the slim/full split.
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
             String content = Files.readString(lifecycle);
+            if (Files.isRegularFile(fullProtocol)) {
+                content = content + "\n"
+                        + Files.readString(fullProtocol);
+            }
+            // EPIC-0043 replaced the old "CONTRACT PENDING APPROVAL" text
+            // with an interactive AskUserQuestion gate (Rule 20 canonical
+            // option menu). Verify the gate mechanism is present.
             assertThat(content)
-                    .contains("CONTRACT PENDING APPROVAL");
+                    .contains("AskUserQuestion")
+                    .contains("Step 0.5.4");
         }
 
         @Test
@@ -347,9 +377,22 @@ class ApiFirstPhaseTest {
             assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
+            // Story-0047-0002 flipped x-story-implement to slim
+            // orientation (ADR-0012). Phase 0.5 detailed content now
+            // lives in references/full-protocol.md; the slim SKILL.md
+            // keeps only the phase summary. Read both files so these
+            // Phase 0.5 content assertions continue to validate the
+            // full behavioral surface across the slim/full split.
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
             String content = Files.readString(lifecycle);
+            if (Files.isRegularFile(fullProtocol)) {
+                content = content + "\n"
+                        + Files.readString(fullProtocol);
+            }
             assertThat(content)
                     .contains("OpenAPI 3.1");
         }
@@ -372,9 +415,22 @@ class ApiFirstPhaseTest {
             assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
+            // Story-0047-0002 flipped x-story-implement to slim
+            // orientation (ADR-0012). Phase 0.5 detailed content now
+            // lives in references/full-protocol.md; the slim SKILL.md
+            // keeps only the phase summary. Read both files so these
+            // Phase 0.5 content assertions continue to validate the
+            // full behavioral surface across the slim/full split.
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
             String content = Files.readString(lifecycle);
+            if (Files.isRegularFile(fullProtocol)) {
+                content = content + "\n"
+                        + Files.readString(fullProtocol);
+            }
             assertThat(content)
                     .contains("AsyncAPI 2.6");
         }
@@ -397,9 +453,22 @@ class ApiFirstPhaseTest {
             assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
+            // Story-0047-0002 flipped x-story-implement to slim
+            // orientation (ADR-0012). Phase 0.5 detailed content now
+            // lives in references/full-protocol.md; the slim SKILL.md
+            // keeps only the phase summary. Read both files so these
+            // Phase 0.5 content assertions continue to validate the
+            // full behavioral surface across the slim/full split.
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
             String content = Files.readString(lifecycle);
+            if (Files.isRegularFile(fullProtocol)) {
+                content = content + "\n"
+                        + Files.readString(fullProtocol);
+            }
             assertThat(content)
                     .contains("Protobuf 3");
         }
@@ -422,9 +491,22 @@ class ApiFirstPhaseTest {
             assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
+            // Story-0047-0002 flipped x-story-implement to slim
+            // orientation (ADR-0012). Phase 0.5 detailed content now
+            // lives in references/full-protocol.md; the slim SKILL.md
+            // keeps only the phase summary. Read both files so these
+            // Phase 0.5 content assertions continue to validate the
+            // full behavioral surface across the slim/full split.
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
             String content = Files.readString(lifecycle);
+            if (Files.isRegularFile(fullProtocol)) {
+                content = content + "\n"
+                        + Files.readString(fullProtocol);
+            }
             assertThat(content)
                     .contains("x-test-contract-lint");
         }

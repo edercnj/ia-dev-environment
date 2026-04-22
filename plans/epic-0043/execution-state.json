@@ -1,0 +1,132 @@
+{
+  "version": "2.0",
+  "epicId": "0043",
+  "baseBranch": "develop",
+  "mergeMode": "auto",
+  "autoApprovePr": false,
+  "batchApproval": true,
+  "taskTracking": true,
+  "sequential": true,
+  "startedAt": "2026-04-19T00:00:00Z",
+  "stories": {
+    "story-0043-0001": {
+      "id": "story-0043-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "2822d50bf486efd06707dfa47f91af2ce3a1ad40",
+      "findingsCount": 0,
+      "summary": "Published ADR-0010 + Rule 20 (20-interactive-gates.md). RulesAssemblerInteractiveGatesTest added. Golden files regenerated for 18 profiles. PRs #461-466 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/466",
+      "prNumber": 466,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0043-0002": {
+      "id": "story-0043-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "295af2714",
+      "findingsCount": 0,
+      "summary": "Retrofit x-release Phase 8 APPROVAL-GATE: default interactive menu, --non-interactive opt-out, FIX-PR loop-back, guard-rail 3 attempts, state schema extended. PRs #467-473 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/473",
+      "prNumber": 473,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0043-0003": {
+      "id": "story-0043-0003",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "8fa262ff0",
+      "findingsCount": 0,
+      "summary": "Retrofit x-story-implement: Phase 0.5 + Phase 2.2.9 interactive gate menus default-on, --non-interactive opt-out, COALESCED TASK-0043-0003-004 pass-through to x-epic-implement, golden files regenerated. PRs #474-478 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/478",
+      "prNumber": 478,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0003-001": { "status": "DONE", "branch": "feat/task-0043-0003-001-phase-0-5-menu", "prNumber": 474, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/474", "commitSha": "1b807995d" },
+        "TASK-0043-0003-002": { "status": "DONE", "branch": "feat/task-0043-0003-002-phase-2-2-9-menu", "prNumber": 475, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/475", "commitSha": "e2a0ee53c" },
+        "TASK-0043-0003-003": { "status": "DONE", "branch": "feat/task-0043-0003-003-state-schema", "prNumber": 476, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/476", "commitSha": "c3e4e48e1" },
+        "TASK-0043-0003-004": { "status": "DONE", "branch": "feat/task-0043-0003-004-epic-calls-non-interactive", "prNumber": 477, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/477", "commitSha": "f69cb0eb2" },
+        "TASK-0043-0003-005": { "status": "DONE", "branch": "feat/task-0043-0003-005-regen-goldens", "prNumber": 478, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/478", "commitSha": "4c4feaa2a" }
+      }
+    },
+    "story-0043-0004": {
+      "id": "story-0043-0004",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "6d87bbac4",
+      "findingsCount": 0,
+      "summary": "Retrofit x-epic-implement batch PR gate: TASK-0043-0004-001 COALESCED with TASK-0043-0003-004 (PR #477). TASK-0043-0004-002: batchGate schema extended with waveIndex, fixAttempts shape, delegateSkill, EPIC_BATCH_FIX_LOOP_EXCEEDED error code (PR #479). TASK-0043-0004-003: golden regen + ApiFirstPhaseTest fix (PR #480). All 6066 tests green.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/480",
+      "prNumber": 480,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0004-001": { "status": "DONE", "branch": "feat/task-0043-0003-004-epic-calls-non-interactive", "prNumber": 477, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/477", "commitSha": "f69cb0eb2", "note": "COALESCED with TASK-0043-0003-004" },
+        "TASK-0043-0004-002": { "status": "DONE", "branch": "feat/task-0043-0004-002-state-batch-gate", "prNumber": 479, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/479", "commitSha": "00d79337d" },
+        "TASK-0043-0004-003": { "status": "DONE", "branch": "feat/task-0043-0004-003-regen-golden", "prNumber": 480, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/480", "commitSha": "9ddb00eb2" }
+      }
+    },
+    "story-0043-0005": {
+      "id": "story-0043-0005",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "955abb35e",
+      "findingsCount": 0,
+      "summary": "Retrofit x-review-pr exhausted-retry gate: Step 8.4 with canonical 3-option menu (PROCEED/FIX-PR/ABORT), --non-interactive bypass, state file opt-in plans/review/<pr>/state.json, --resume-review flag, error codes REVIEW_REMEDIATION_EXHAUSTED + REVIEW_FIX_LOOP_EXCEEDED. Golden files regenerated for all 19 profiles. All 6066 tests green. PRs #481-483 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/483",
+      "prNumber": 483,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0005-001": { "status": "DONE", "branch": "feat/task-0043-0005-001-exhausted-gate", "prNumber": 481, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/481", "commitSha": "282e8d722" },
+        "TASK-0043-0005-002": { "status": "DONE", "branch": "feat/task-0043-0005-002-state-resume", "prNumber": 482, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/482", "commitSha": "3c1bd1139" },
+        "TASK-0043-0005-003": { "status": "DONE", "branch": "feat/task-0043-0005-003-regen-golden", "prNumber": 483, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/483", "commitSha": "42de1b115" }
+      }
+    },
+    "story-0043-0006": {
+      "id": "story-0043-0006",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "cfcefea92",
+      "findingsCount": 0,
+      "summary": "CI audit guard: scripts/audit-interactive-gates.sh (Regex 1 HALT + Regex 2 deprecated flags, tokenized lookahead, --baseline mode). Baseline empty (all 5 retrofits complete). InteractiveGatesAuditTest (8 scenarios, all pass). Rule 20 §Audit Command updated. pom.xml documents baseline mode. Bug fix PR #490: subshell VIOLATIONS loss + false positives (frontmatter, code fences, HALT text prose). PRs #485-490.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/490",
+      "prNumber": 490,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0006-001": { "status": "DONE", "branch": "feat/task-0043-0006-001-audit-script", "prNumber": 485, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/485", "commitSha": "cfcefea92", "note": "Merged: audit script + baseline file (task 002 combined)" },
+        "TASK-0043-0006-002": { "status": "DONE", "branch": "feat/task-0043-0006-001-audit-script", "prNumber": 485, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/485", "commitSha": "cfcefea92", "note": "Combined with TASK-001 — baseline file created alongside script" },
+        "TASK-0043-0006-003": { "status": "DONE", "branch": "feat/task-0043-0006-003-audit-test", "prNumber": 486, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/486", "commitSha": "7a2ef692a" },
+        "TASK-0043-0006-004": { "status": "DONE", "branch": "feat/task-0043-0006-004-rule20-audit-cmd", "prNumber": 487, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/487", "commitSha": "ba62064ce" },
+        "TASK-0043-0006-005": { "status": "DONE", "branch": "feat/task-0043-0006-005-pipeline", "prNumber": 488, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/488", "commitSha": "3b85f21dc" },
+        "TASK-0043-0006-FIX": { "status": "DONE", "branch": "feat/task-0043-0006-audit-script-fix", "prNumber": 490, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/490", "commitSha": "2450f961e", "note": "Fix: subshell VIOLATIONS loss, false positives (frontmatter/code-fences/HALT-text/case-insensitive)" }
+      }
+    }
+  },
+  "phases": {
+    "0": { "status": "SUCCESS", "startedAt": "2026-04-19T00:00:00Z", "completedAt": "2026-04-19T17:00:00Z" },
+    "1": { "status": "SUCCESS", "startedAt": "2026-04-19T17:00:00Z", "completedAt": "2026-04-19T23:00:00Z" }
+  },
+  "mainShaBeforePhase": {
+    "0": "98f094a521f53fae1881b41baa61c1d9768f591f",
+    "1": "ad71476b0"
+  },
+  "integrityGates": {},
+  "versionBumps": []
+}

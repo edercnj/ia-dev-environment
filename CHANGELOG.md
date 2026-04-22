@@ -7,6 +7,179 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-04-21
+
+### Changed
+
+- **story-0047-0004 (EPIC-0047):** Compression sweep across the 5 largest
+  knowledge packs — `click-cli-patterns`, `k8s-helm`, `axum-patterns`,
+  `iac-terraform`, `dotnet-patterns`. Each `SKILL.md` was rewritten as a
+  slim narrative + Patterns Index pointing to
+  `references/examples-<pattern>.md` companions (one file per carved
+  numbered section), per RULE-047-02 / RULE-047-05. Combined hot-path
+  reduction: **4,729 → 275 lines (−94.2% across the 5 KPs)**; individual
+  SKILL.md line counts are now 64 (click-cli, was 1222), 47 (k8s-helm, was
+  944), 59 (axum, was 888), 46 (iac-terraform, was 861), 59 (dotnet, was
+  814) — all ≤ 250-line story-0047-0004 target. Thirty-three new
+  `references/examples-*.md` files (7 + 7 + 7 + 6 + 6) hold the complete
+  code samples byte-identical to the original inline blocks. The post-
+  sweep corpus (SKILL.md hot-path only) stands at **45,743 lines**
+  (−8.9% vs v3.9.0 baseline of 50,191); remaining gap to the −40%
+  epic target (< 30,115 lines) stays assigned to stories 0047-0002 (Slim
+  Mode retirement + flipped orientation) and Bucket C. Goldens regenerated
+  across the profile matrix; `audits/skill-size-baseline.txt` updated to
+  remove the 5 now-compliant entries (25 → 20 brownfield exemptions).
+  `Epic0047CompressionSmokeTest.smoke_kpsHaveCarvedExamples` validates
+  `SKILL.md ≤ 250 lines + references/examples-*.md present` across every
+  generated profile (stack-gated: missing KP on a profile skips silently).
+  Epic §6 updated with the post-sweep delta row.
+
+### Added
+
+- **story-0047-0003 (EPIC-0047):** `SkillSizeLinter` guard-rail enforcing
+  RULE-047-04 (500-line cap per `SKILL.md` without a non-empty
+  `references/` sibling). New classes under
+  `java/src/main/java/dev/iadev/quality/`: `LintFinding` record (6-field
+  data contract per story §5.1), `Severity` enum (INFO / WARN / ERROR
+  tiers per §5.2), and `SkillSizeLinter` static helper exposing
+  `lint(Path)` and `errorFindings(List)`. Brownfield-safe rollout: new
+  test `SkillSizeLinterAcceptanceTest` runs in `mvn test` default scope
+  against the real source-of-truth tree and fails ONLY on NEW offenders;
+  the 25 existing oversized SKILL.md files at the time this story landed
+  are enumerated in `audits/skill-size-baseline.txt` and will be carved
+  out by stories 0047-0002 (flipped orientation) and 0047-0004 (KP
+  sweep). Companion test `SkillCorpusSizeAudit` asserts the corpus
+  total stays below the RULE-047-07 cap (30,000 lines) with a soft-warn
+  default and opt-in hard-fail via `-Dskill.corpus.audit.enforce=true`.
+  Unit coverage: `LintFindingTest` (5 tests), `SkillSizeLinterTest` (17
+  tests including 3 boundary scenarios and `_shared/` exclusion). Full
+  lint + audit suite completes in < 1 s over ~130 SKILL.md.
+- **story-0046-0007 (EPIC-0046):** CI enforcement — `LifecycleIntegrityAuditTest` (Maven CI-blocking) scans every `SKILL.md` under `java/src/main/resources/targets/claude/skills/` and detects regressions across three Rule 22 dimensions: `ORPHAN_PHASE` (documented numbered sub-section not referenced elsewhere in the skill), `WRITE_WITHOUT_COMMIT` (write to `plans/epic-*/reports/` not followed within 20 lines by `x-git-commit`), and `SKIP_IN_HAPPY_PATH` (`--skip-verification`/`--skip-status-sync` used outside `## Recovery` / `## Error Handling` sections). Audit respects `<!-- audit-exempt -->` escape hatch, YAML frontmatter, and inline "Recovery-only" markers. Baseline file at `audits/lifecycle-integrity-baseline.txt` tolerates currently-accepted TOC-style sub-sections; any NEW violation fails the build with `LIFECYCLE_AUDIT_REGRESSION`. New classes: `LifecycleAuditRunner` (production detection logic replacing the story-0046-0001 skeleton), `LifecycleAuditCli` (standalone CLI, exit 0 / 11 / 2). 19 new tests: 9 unit detection tests (`LifecycleAuditRunnerDetectionTest`), 4 CLI tests (`LifecycleAuditCliTest`), 2 E2E smoke (`LifecycleAuditRegressionSmokeTest` — injects 3 synthetic regressions), 1 CI audit integration (`LifecycleIntegrityAuditTest`, < 2s over ~130 SKILL.md), plus existing skeleton contract tests. Performance budget: ≤ 2s over 40+ SKILL.md.
+- **story-0046-0005 (EPIC-0046):** `ReportCommitMessageBuilder` — canonical
+  builder of Conventional Commit messages for atomic epic report commits
+  (`docs(epic-XXXX): add execution plan` and `docs(epic-XXXX): add phase-N
+  report`). V2-gated retrofit of `x-epic-implement/SKILL.md` wires
+  `Skill(skill: "x-git-commit", ...)` via Rule 13 Pattern 1 INLINE-SKILL
+  immediately after each write to `plans/epic-XXXX/reports/`, closing the
+  window where reports were orphaned on the working tree and triggered
+  false positives in `x-release` `VALIDATE_DIRTY_WORKDIR`. Fails loudly
+  with exit `REPORT_COMMIT_FAILED` (21) on commit rejection (RULE-046-08);
+  forbids `--no-verify` fallback. Rule 19 backward compatibility preserved
+  — v1 epics remain untouched. New tests: `ReportCommitMessageBuilderTest`
+  (12), `ExecutionPlanCommitSmokeTest` (6), `PhaseReportCommitsSmokeTest`
+  (6), `EpicImplementReleaseCompatTest` (3), `ReportCommitFailLoudTest`
+  (3), `EpicV1NoReportCommitTest` (4).
+- **story-0046-0004 (EPIC-0046):** Story/Epic end-of-life status retrofit — Phase 3 unskippable + Phase 1.7 cabeada. `x-story-implement` Phase 3.8 gains explicit sub-steps 3.8.1–3.8.5 (read Status → validateOrThrow → writeStatus(Concluída) → update IMPLEMENTATION-MAP row → atomic `docs(story-*)` commit); each step is fail-loud with exit `STATUS_SYNC_FAILED` (Rule 22 RULE-046-08). `x-epic-implement` promotes orphan Section 1.6b to Phase 1.7 (Markdown Status Sync, wired into Core Loop step 6e) and adds new Phase 5 (Epic Finalization) after the last wave with all stories SUCCESS. `--skip-verification` documented as recovery-only (violates Rule 22 RULE-046-04 on happy path). New helper `EpicMapRowUpdater` for atomic Status-column rewrite in epic `IMPLEMENTATION-MAP.md` (distinct 6-column schema from task-map). 4 smoke tests (`StoryImplementFinalizeSmokeTest`, `EpicImplementFinalizeSmokeTest`, `EpicFinalizeFailLoudTest`, `EpicFinalizeIdempotencyTest`) cover happy-path, fail-loud (missing epic/map files), and idempotency (re-run byte-stable). V2-gated (Rule 19 backward-compat). Golden files regenerated for all profiles.
+- **story-0046-0003 (EPIC-0046):** Phase 3.5 (Task-Level Status Transition) retrofit in `x-task-implement` — between Phase 3 (output-contract verification) and Phase 4 (atomic commit). V2-gated via `SchemaVersionResolver`; v1 epics skip silently. New application helper `TaskMapRowUpdater` (pure-function `rewriteRow` + atomic-rename `updateRow`) and CLI wrapper `TaskMapRowUpdaterCli` with exit codes `0` / `20 STATUS_SYNC_FAILED` / `40 INVALID_ARGS`. Rule 18 (1 commit per task) preserved — helpers stage artefacts onto the index; the single Phase 4 `x-git-commit` absorbs the status + map-row delta together with the TDD diff. Coalesced pairs (Rule 15) update BOTH partner task files and BOTH map rows inside the same commit. New error codes `STATUS_SYNC_FAILED` and `STATUS_TRANSITION_INVALID` surface fail-loud at the skill boundary (RULE-046-08). Smoke coverage: `TaskImplementStatusSmokeTest`, `CoalescedTaskStatusTest`, `TaskStatusFailLoudTest`, `TaskAtomicCommitAuditTest` (reflection-based Rule 18 API-boundary guard). Goldens regenerated for 19 stack profiles + 2 platform variants.
+- **story-0045-0001 (EPIC-0045):** New skill `x-pr-watch-ci` for polling PR CI checks + Copilot review detection with 8 stable exit codes (`SUCCESS/0`, `CI_PENDING_PROCEED/10`, `CI_FAILED/20`, `TIMEOUT/30`, `PR_ALREADY_MERGED/40`, `NO_CI_CONFIGURED/50`, `PR_CLOSED/60`, `PR_NOT_FOUND/70`). Encapsulates the `gh pr checks` / `statusCheckRollup` polling loop with configurable global timeout (default 1800s), Copilot-specific sub-timeout (default 900s), and atomic state-file for session resume. Introduced `PrWatchExitCode` enum and `PrWatchStatusClassifier` (zero-I/O, fully testable, covers all 8 codes via `@ParameterizedTest`).
+- **story-0045-0002 (EPIC-0045):** Rule 21 (CI-Watch) formalizes `x-pr-watch-ci` as the default CI gate in schema v2 orchestrators; no-op in schema v1 (Rule 19 backward-compat). Specifies opt-out via `--no-ci-watch`, fallback matrix (V1 no-op / V2 active / V2 skipped), and regression audit script `scripts/audit-rule-20.sh`. Adds `RulesAssemblerCiWatchTest` (3 tests) verifying rule is copied, has mandatory sections, and contains canonical identifiers. Golden files regenerated for all profiles.
+- **story-0045-0005 (EPIC-0045):** `x-release --ci-watch` flag enables opt-in CI gate between `x-pr-create` and the Phase 8 APPROVAL-GATE. When enabled, invokes `x-pr-watch-ci` via Rule 13 Pattern 1 INLINE-SKILL; aborts on `CI_FAILED` or `TIMEOUT`, proceeds on `SUCCESS` / `CI_PENDING_PROCEED` / `PR_ALREADY_MERGED` / `NO_CI_CONFIGURED`. `ReleaseSkillTest` gains 9 tests covering the `--ci-watch` phase block.
+- **story-0045-0006 (EPIC-0045):** `Epic0045SmokeTest` validates the end-to-end CI-Watch integration contract: 8 stable exit codes (RULE-045-05), `PrWatchStatusClassifier` coverage of all 8 codes, `x-pr-watch-ci` SKILL.md existence and content, golden file regeneration, and `SkillsAssembler` discoverability. SMOKE_E2E=true path creates a live PR and exercises the full flow.
+
+### Changed
+
+- **story-0045-0003 (EPIC-0045):** `x-story-implement` Phase 2.2.8.5: new step between PR_CREATED and the interactive APPROVAL GATE. Invokes `x-pr-watch-ci` via Rule 13 INLINE-SKILL and waits for CI checks + Copilot review to complete before presenting the gate menu. Forces the interactive menu (instead of auto-proceed) on `CI_FAILED` or `TIMEOUT`; proceeds transparently on `SUCCESS` / `CI_PENDING_PROCEED`. Skipped when `planningSchemaVersion == "1.0"` (Rule 19) or `--no-ci-watch` flag present.
+- **story-0045-0004 (EPIC-0045):** `x-task-implement --worktree` Step 4.5: waits for CI checks via `x-pr-watch-ci` before the approval gate when running standalone (non-orchestrated). Skipped when invoked by a parent orchestrator (`x-story-implement`, `x-epic-implement`) to avoid double-waiting; skipped when `--no-ci-watch` flag present.
+
+- **story-0043-0001 (EPIC-0043):** Convention — Interactive Gates (ADR-0010 + Rule 20).
+  Establishes the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) as the
+  default behavior for all orchestrating skills that pause for human approval
+  (`x-release`, `x-story-implement`, `x-epic-implement`, `x-review-pr`).
+  - [ADR-0010 — Interactive Gates Convention](adr/ADR-0010-interactive-gates-convention.md):
+    documents decision rationale, FIX-PR loop-back with 3-attempt guard-rail, uniform
+    state file schema, deprecation of opt-in flags, and grep-based audit enforcement.
+  - [Rule 20 — Interactive Gates](`.claude/rules/20-interactive-gates.md`):
+    normative rule with 10 mandatory sections — Scope, Canonical Option Menu, State File
+    Schema, Default Behavior, FIX-PR Loop-Back, Deprecation of Opt-In Flags, Forbidden,
+    Audit Command, Rationale. Source at
+    `java/src/main/resources/targets/claude/rules/20-interactive-gates.md`.
+  - Golden files regenerated for all 18 profiles; `20-interactive-gates.md` present in
+    every golden `.claude/rules/` output.
+  - `RulesAssemblerInteractiveGatesTest` (3 tests) verifies rule is copied, has ≥ 10
+    sections, and contains canonical slot labels and state schema fields.
+
+- **story-0043-0005 (EPIC-0043):** Retrofit `x-review-pr` exhausted-retry gate — default interactive menu after auto-remediation exhaustion.
+  When the Tech Lead review returns NO-GO and all 2 auto-remediation retry cycles exhaust without convergence, `x-review-pr` now
+  presents the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) by default instead of silently returning NO-GO.
+  `--non-interactive` is the CI/automation opt-out (preserves legacy HALT text + exit 0).
+  - **PROCEED (slot 1):** re-dispatches auto-remediation agents (+2 loops); description contextualises the action per Rule 20 note on `x-review-pr`.
+  - **FIX-PR loop-back (slot 2):** invokes `Skill(skill: "x-pr-fix", args: "<PR>")` via Rule 13 Pattern 1 INLINE-SKILL; re-presents menu on return.
+  - **Guard-rail:** 3 consecutive PROCEED/FIX-PR attempts without converging to GO trigger `REVIEW_FIX_LOOP_EXCEEDED` auto-terminate.
+  - **State file (opt-in):** `plans/review/<pr>/state.json` written only on FIX-PR selection (Rule 20 §5.1 schema); enables `--resume-review <pr>` re-entry.
+  - **New error codes:** `REVIEW_REMEDIATION_EXHAUSTED` (ABORT selection), `REVIEW_FIX_LOOP_EXCEEDED` (guard-rail), `GATE_SCHEMA_INVALID` (corrupt state file).
+  - **`allowed-tools` updated:** `AskUserQuestion`, `Skill` added per Rule 20 Forbidden clause.
+  - Golden files regenerated for all 19 profiles. Rule 13 audit: zero bare-slash violations. All 6066 tests pass.
+  - TASK-0043-0005-001 (PR #481), TASK-0043-0005-002 (PR #482), TASK-0043-0005-003 (PR #483).
+
+- **story-0043-0004 (EPIC-0043):** Retrofit `x-epic-implement` batch PR consolidation gate — default interactive menu.
+  The batch consolidation gate (§1.3b) now **always** opens the canonical 3-option menu (`PROCEED` / `FIX-PR` / `ABORT`) by default.
+  `--non-interactive` is the CI/automation opt-out (auto-approves without prompting). `--manual-batch-approval` is deprecated (no-op, one-time warning).
+  - **FIX-PR loop-back:** option 2 invokes `Skill(skill: "x-pr-fix-epic", args: "--epic {EPIC_ID}")` via Rule 13 Pattern 1 INLINE-SKILL,
+    records the attempt in `batchGate.fixAttempts[]`, and re-presents the menu on return.
+  - **Guard-rail:** 3 consecutive FIX-PR attempts trigger `EPIC_BATCH_FIX_LOOP_EXCEEDED` (auto-terminate, state preserved for `--resume`).
+  - **State file extension:** `batchGate` sub-object added to `plans/epic-<ID>/execution-state.json` with fields
+    `lastGateDecision` (Enum|null), `fixAttempts[]` (with `attemptNumber`, `delegateSkill`, `invokedAt`, `outcome`),
+    `waveIndex` (Integer|null, which wave triggered the gate), and `schemaVersion`. Silent migration for legacy state files.
+  - **Golden files** regenerated for all 19 profiles. `ApiFirstPhaseTest` updated to check for new AskUserQuestion gate.
+  - TASK-0043-0004-001 was COALESCED with TASK-0043-0003-004 (PR #477); TASK-0043-0004-002 (PR #479); TASK-0043-0004-003 (PR #480).
+
+- **story-0043-0002 (EPIC-0043):** Retrofit `x-release` Phase 8 APPROVAL-GATE — default interactive menu.
+  Phase 8 now **always** opens the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) by default,
+  without any flag. `--non-interactive` is the new CI/automation opt-out (prints the legacy HALT text + exits 0).
+  `--interactive` (without `--dry-run`) is deprecated as gate opt-in; emits a deprecation warning and is a no-op.
+  `--interactive --dry-run` interactive dry-run sub-modality is **preserved unchanged**.
+  - **FIX-PR loop-back:** option 2 invokes `Skill(skill: "x-pr-fix", args: "<PR_NUMBER>")` via Rule 13 Pattern 1
+    INLINE-SKILL, records the attempt in `fixAttempts[]`, and re-presents the menu on return.
+  - **Guard-rail:** 3 consecutive FIX-PR attempts trigger `RELEASE_FIX_LOOP_EXCEEDED` (exit 1, state preserved).
+  - **State file extension:** `lastGateDecision` (String|null) and `fixAttempts[]` (Array<FixAttempt>) added to
+    `plans/release-state-{VERSION}.json`. Silent migration for legacy state files (≤3.6.0) that lack these fields:
+    emits `WARN [RELEASE_STATE_SCHEMA_LEGACY]` and initializes fields to `null`/`[]` on first write.
+  - **Reference docs updated:** `references/approval-gate-workflow.md` completely rewritten with Mermaid sequence
+    diagram, FIX-PR loop-back decision tree, and Historical Behavior (pre-EPIC-0043) section.
+    `references/state-file-schema.md` gains a "Gate Fields (EPIC-0043)" section.
+  - Golden files regenerated for all 18 profiles. `ReleaseApprovalGateTest.stepEight_optionTwoFixPr` validates
+    the new option 2 semantics (was `stepEight_optionTwoHalt` for the pre-EPIC-0043 menu).
+
+- **story-0042-0003 (EPIC-0042):** `x-pr-merge-train` skill completed with Phases 6–7, full state.json schema, atomic-write pattern, `--resume` entry logic, 16-code Error Handling table, Integration Notes, and ≥ 4 Examples.
+  - **Phase 6 — Final Verification:** fetches + pulls `develop`, runs `mvn compile` + `mvn test` smoke checks after all merges, and asserts each merged PR reached `MERGED` state via GitHub API. Any test failure sets `phase = FAILED` with `reason = SMOKE_TEST_FAILED` and preserves the worktree for diagnosis (Rule 14 §4).
+  - **Phase 7 — Report + Cleanup:** writes `plans/merge-train/<trainId>/report.md` (PRs Merged, Waves, Errors Observed tables), conditionally removes the worktree via `x-git-worktree` INLINE-SKILL (Rule 13 Pattern 1) when `TRAIN_OWNS_WORKTREE && phase != FAILED`, and finalizes `state.json` with `phase = COMPLETED`.
+  - **state.json Complete Schema:** documents all 13 fields including `schemaVersion`, `lastPhaseCompletedAt`, `neuteredParallel`, `waves[]`, and all 14 `phase` enum values, with a full JSON example.
+  - **Atomic State Writes:** `.tmp` + `mv` rename pattern documented to prevent `state.json` corruption on SIGKILL mid-write.
+  - **`--resume` Entry Logic:** `STATE_CONFLICT` abort when no `state.json` exists; `--train-id` mandatory when multiple state files exist; resumes from next incomplete phase preserving `prsMergedOk[]` and `waves[]`.
+  - **Error Handling Table:** 16 error codes with Phase, Condition, and Remediation columns covering all failure modes from `MODE_AMBIGUOUS` through `STATE_CONFLICT`.
+  - **Integration Notes Table:** 4 rows documenting relationships with `x-git-worktree`, `x-git-commit`, `x-pr-fix-epic`, and `x-story-implement`.
+  - **Examples:** 4 invocations with context (explicit `--prs`, `--epic` auto-discover, `--dry-run` audit, `--resume --train-id` post-conflict recovery).
+  - Four TDD test classes added: `MergeTrainSkillPhase6Test` (×2), `MergeTrainSkillSchemaTest` (×1), `MergeTrainSkillErrorHandlingTest` (×1), `MergeTrainSkillExamplesTest` (×1).
+
+- **story-0042-0002 (EPIC-0042):** `x-pr-merge-train` gains Phases 3, 4, and 5 — merge orchestration and parallel rebase subagents.
+  - **Phase 3 — Sort + File-Overlap Precheck:** reorders the validated PR list by `createdAt` ascending (or preserves explicit `--prs` order), then computes file-set intersections for every PR pair via `gh pr view --json files`. Any overlap outside `golden/**` forces `MAX_PARALLEL=1` and logs `NEUTERED_PARALLEL` to `state.json` (telemetry only, not an error). The first PR becomes `BASE_PR`; the rest form `TAIL[]`.
+  - **Phase 4 — Base PR Merge:** triggers `gh pr merge <BASE_PR> --squash --auto --delete-branch` and polls every 60 s until `state == MERGED` (default 30-minute timeout). Aborts with `MERGE_POLL_TIMEOUT` on timeout or `MERGE_REJECTED_BY_PROTECTION` on branch-protection rejection. Updates `state.json` fields `phase`, `prsMergedOk[]`, and `prsFailed[]`.
+  - **Phase 5 — Parallel Tail Orchestration:** wave dispatcher loop dispatches up to `MAX_PARALLEL` rebase workers per wave as sibling `Agent(subagent_type: "general-purpose", ...)` calls in a single assistant message (Rule 13 Pattern 2). Each worker executes the canonical rebase subagent prompt, which embeds the golden-regen block verbatim from `README.md:810-818` (RULE-005), resolves golden conflicts with `--ours` + regen (RULE-004), and aborts with `CODE_CONFLICT_NEEDS_HUMAN` on code conflicts. Workers write structured `worker-<pr>.log` JSON. After all workers in a wave return, OK PRs are merged serially; any `CODE_CONFLICT_NEEDS_HUMAN` or `PUSH_LEASE_REJECTED` failure aborts the train with worktree preserved for diagnosis.
+  - `state.json` extended with `neuteredParallel`, `prsMergedOk[]`, `prsFailed[]`, and `waves[]` fields.
+  - Four TDD tests added: `MergeTrainSkillPhase3Test`, `MergeTrainSkillPhase4Test` (×1), `MergeTrainSkillPhase5Test` (×2).
+
+- **story-0042-0004 (EPIC-0042):** `x-story-implement` now auto-fixes task PR review comments after Tech Lead GO. New Step 3.6.5 gates on `decision=GO`, discovers task PRs from `execution-state.json`, checks per-PR review comment count via `gh api`, and invokes `Skill(skill: "x-pr-fix", ...)` for each PR with comments. Compile-regression guard aborts with `PR_FIX_COMPILE_REGRESSION` if a fix breaks the build, skipping Step 3.7 without auto-retry (RULE-007 single-pass). Integration Notes and Error Handling tables updated accordingly.
+
+- **story-0045-0002 (EPIC-0045):** Rule 21 — CI-Watch (RULE-045-01) + `scripts/audit-rule-20.sh` regression guard.
+  Introduces the normative rule for the CI-Watch requirement: skills that invoke `x-pr-create` via
+  `Skill(skill: "x-pr-create", ...)` MUST also invoke `Skill(skill: "x-pr-watch-ci", ...)` immediately after,
+  unless the caller declares `--no-ci-watch` as the sole opt-out token.
+  - **Fallback Matrix (3 rows):** V1 no-op (`planningSchemaVersion` absent or `"1.0"` — Rule 19 backward compat),
+    V2 active (default for `"2.0"`), V2 skipped (`--no-ci-watch` opt-out).
+  - **`scripts/audit-rule-20.sh`:** grep-based CI guard; scans every `SKILL.md` under the skills source tree,
+    exits 0 (PASS) when all files invoking `x-pr-create` also invoke `x-pr-watch-ci` or declare `--no-ci-watch`;
+    exits 1 (FAIL) with per-file violation messages otherwise. Supports `--skills-dir <path>` for test isolation.
+    Fixed macOS `grep -F` flag-parsing bug: opt-out pattern matched via `grep -qE -- '--no-ci-watch'`.
+  - **`RulesAssemblerCiWatchTest`** (3 tests): verifies `21-ci-watch.md` is copied into assembled output,
+    has all 5 mandatory sections, and contains canonical identifiers (`RULE-045-01`, fallback variants,
+    `x-pr-watch-ci`, `x-pr-create`, `audit-rule-20.sh`).
+  - **`Rule20AuditTest`** (5 tests via `ProcessBuilder`): compliant SKILL.md exits 0; `--no-ci-watch`
+    opt-out exits 0; missing CI-Watch exits 1 with mention of `x-pr-create`; no `x-pr-create` exits 0;
+    prose-only mention exits 0.
+  - Golden files regenerated for all 19 profiles; rule count 20 → 21; `21-ci-watch.md` entry added to
+    every `.claude/README.md` golden output.
+  - `CLAUDE.md` updated with EPIC-0045 "In progress" block.
+
 ## [3.9.0] - 2026-04-19
 
 ### Added

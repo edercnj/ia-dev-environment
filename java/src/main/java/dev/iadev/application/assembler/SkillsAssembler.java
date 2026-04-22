@@ -60,6 +60,7 @@ public final class SkillsAssembler implements Assembler {
     private static final String CORE_DIR = "core";
     private static final String CONDITIONAL_DIR =
             "conditional";
+    private static final String SHARED_DIR = "_shared";
     private static final String SKILLS_OUTPUT = "skills";
 
     private final Path resourcesDir;
@@ -98,8 +99,55 @@ public final class SkillsAssembler implements Assembler {
         generated.addAll(
                 assembleKnowledge(
                         config, outputDir, engine, context));
+        assembleShared(outputDir)
+                .ifPresent(generated::add);
         pruneStaleSkills(outputDir, generated);
         return generated;
+    }
+
+    /**
+     * Copies the source-of-truth {@code _shared/} directory
+     * (peer of {@code core/} / {@code conditional/} /
+     * {@code knowledge-packs/}) to
+     * {@code outputDir/skills/_shared/} verbatim.
+     *
+     * <p>Story-0047-0001 introduces {@code _shared/} for
+     * cross-cutting Markdown snippets referenced by
+     * consumer skills via Markdown relative links
+     * (per ADR-0011 — shared-snippets inclusion strategy).
+     * For links like {@code ../_shared/error-handling.md}
+     * in a generated {@code skills/x-git-commit/SKILL.md}
+     * to resolve at runtime, the target directory must ship
+     * in the same output tree.</p>
+     *
+     * <p>When the source {@code _shared/} directory does not
+     * exist, this method is a no-op and returns
+     * {@link Optional#empty()}.</p>
+     *
+     * <p>Returning the output path (when present) lets
+     * {@link #pruneStaleSkills(Path, List)} keep the
+     * directory across reruns.</p>
+     *
+     * @param outputDir the output root directory
+     * @return the absolute output path of the copied
+     *         {@code _shared/} directory, or empty when the
+     *         source directory is absent
+     */
+    private Optional<String> assembleShared(Path outputDir) {
+        Path sharedSrc = sharedPath();
+        if (!Files.exists(sharedSrc)
+                || !Files.isDirectory(sharedSrc)) {
+            return Optional.empty();
+        }
+        Path dest = outputDir.resolve(
+                SKILLS_OUTPUT + "/" + SHARED_DIR);
+        CopyHelpers.copyDirectory(sharedSrc, dest);
+        return Optional.of(dest.toString());
+    }
+
+    private Path sharedPath() {
+        return resourcesDir.resolve(
+                SKILLS_TEMPLATES_DIR + "/" + SHARED_DIR);
     }
 
     /**

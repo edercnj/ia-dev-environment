@@ -3,7 +3,7 @@ name: x-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, AskUserQuestion, TaskCreate, TaskUpdate
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--manual-batch-approval] [--task-tracking] [--dry-run-only-comments] [--revert-on-failure]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--manual-batch-approval] [--non-interactive] [--task-tracking] [--dry-run-only-comments] [--revert-on-failure]"
 context-budget: heavy
 ---
 
@@ -97,7 +97,8 @@ ERROR: Epic ID is required. Usage: /x-epic-implement [EPIC-ID] [flags]
 | `--auto-approve-pr` | boolean | `false` | Propagate to x-story-implement dispatches. Each story creates a parent branch and task PRs auto-merge into it. Parent branches require human review before merging to develop (RULE-004). |
 | `--batch-approval` | boolean | `true` | Enable/disable batch approval for parallel story task PRs (RULE-013). When enabled, consolidates pending PRs from parallel stories into a single approval prompt. |
 | `--task-tracking` | boolean | `true` | Enable/disable task-level tracking in execution-state.json. When enabled, individual task progress is tracked with PR fields (prUrl, prNumber, branch). |
-| `--manual-batch-approval` | boolean | `false` | Force human gate for batch PR approval. Without this flag, PRs are auto-approved when no CRITICAL review findings exist (EPIC-0042). |
+| `--non-interactive` | boolean | `false` | Skip all interactive gates (AskUserQuestion menus). Auto-approves batch PR gate and passes `--non-interactive` to all `x-story-implement` dispatches. For CI/automation. |
+| `--manual-batch-approval` | boolean | `false` | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-batch-approval is no longer needed; the gate menu is now the default."` |
 | `--dry-run-only-comments` | boolean | `false` | Suppress auto-apply of PR comment fixes. When set, Phase 4 generates the dry-run report but does not apply fixes without confirmation (EPIC-0042). |
 | `--revert-on-failure` | boolean | `false` | Skip agent-assisted regression fix and revert directly on integrity gate failure (EPIC-0042). When set, the original revert behavior is used without attempting auto-remediation. |
 
@@ -266,6 +267,41 @@ that Product Owners and reviewers can inspect before authorizing execution.
 
 4. Write the plan to `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md`
 5. The plan header MUST include: Epic ID, Date, Author (role), Template Version (RULE-011)
+
+#### Atomic Commit — Execution Plan (V2-gated, story-0046-0005)
+
+After the execution-plan file has been written (or confirmed reused) and
+BEFORE entering the wave loop, orchestrators running a v2 epic
+(`planningSchemaVersion == "2.0"`) MUST commit the report atomically so that
+the working tree stays clean for downstream tools (RULE-046-05, RULE-046-06).
+
+Fallback matrix (Rule 19 — Backward Compatibility):
+
+| `planningSchemaVersion` | Action |
+| :--- | :--- |
+| absent / `"1.0"` / invalid | **V1 no-op.** Skip the commit block entirely. Reports remain optional and uncommitted (legacy behavior). |
+| `"2.0"` | **V2 active.** Execute the 3-step block below. |
+
+Three-step block (V2 only):
+
+1. **Stage**: `git add plans/{epicId}/reports/epic-execution-plan-{epicId}.md`
+   (idempotent — adding an already-tracked file with no diff is a no-op and
+   keeps the block safe across resume).
+2. **Build message** via `ReportCommitMessageBuilder.executionPlan(epicId,
+   waves, stories)` — produces the canonical subject `docs(epic-{epicId}):
+   add execution plan` plus body with wave count, story count, schema tag,
+   and `Refs:` line.
+3. **Commit** via Rule 13 Pattern 1 INLINE-SKILL:
+
+       Skill(skill: "x-git-commit", args: "--message \"<built message>\"")
+
+   On non-zero exit, abort the epic with exit code
+   `REPORT_COMMIT_FAILED` (21) and stream the hook's stderr so the operator
+   can diagnose (RULE-046-08 — fail loud). Do NOT fall back to `--no-verify`.
+
+Idempotence: if staging produces no diff (file already committed on a prior
+run of the epic), skip the `Skill(x-git-commit)` call with log
+`"Reusing committed execution plan for EPIC-{epicId}"` and proceed.
 
 ## Resume Workflow
 
@@ -808,13 +844,23 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-     e. Circuit breaker check (Section 1.7):
+     e. Markdown Status Sync (Phase 1.7 — see Section 1.7 below): propagate the
+        updated status to `story-XXXX-YYYY.md` and to the IMPLEMENTATION-MAP row
+        via the helpers from story-0046-0001 / story-0046-0004. V2-gated and
+        unskippable on the happy path (Rule 22 RULE-046-04 — non-skippable
+        status transition). Failure aborts the loop with exit STATUS_SYNC_FAILED.
+     f. Circuit breaker check (Section 1.7b):
         - If story SUCCESS: reset consecutiveFailures to 0
         - If story FAILED: increment consecutiveFailures and totalFailuresInPhase
-  7. Run integrity gate between phases (Section 1.7 — Local Integrity Gate)
-  8. Post-gate prompt: present options to user (Section 1.7b)
+  7. Run integrity gate between phases (Section 1.7c — Local Integrity Gate)
+  8. Post-gate prompt: present options to user (Section 1.7d)
   9. Generate phase completion report (Read references/phase-reports.md)
   10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+
+After the Core Loop finishes (last phase completes and all stories are SUCCESS),
+the orchestrator enters Phase 5 — Epic Finalization (see Section 5 below) to
+transition the epic Status to `Concluído` and atomically commit the epic-closing
+diff. Phase 5 is V2-gated and fail-loud (Rule 22 RULE-046-08).
 ```
 
 The loop ensures that:
@@ -855,53 +901,120 @@ function checkCrossStoryTaskDeps(storyId, executionState):
 
 This enables fine-grained dependency management: story-B can start as soon as the specific task it depends on in story-A is DONE, without waiting for all of story-A to complete.
 
-#### 1.3b Batch Approval for Parallel Stories (RULE-013) (EPIC-0042)
+#### 1.3b Batch Approval for Parallel Stories (RULE-013) (EPIC-0043)
 
-**Default behavior (auto-approve):** When `--batch-approval` is enabled (default: `true`) and
-no CRITICAL review findings exist, auto-approve all pending PRs from parallel stories without
-prompting. For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status
-to `PR_MERGED` then `DONE`. Log:
-`"Batch auto-approve: {N} PRs across {M} stories (no CRITICAL findings, EPIC-0042)"`
+**Deprecated flag:** If `--manual-batch-approval` is present, emit one-time warning
+`"[DEPRECATED] --manual-batch-approval is no longer needed; the gate menu is now the default."`
+and continue (no-op).
+
+**Trigger:** After parallel story dispatch completes (Section 1.4a step 4), collect all task PRs
+with status `PR_CREATED` or `PR_APPROVED` across the parallel stories.
+
+**`--non-interactive` mode (auto-approve):** When `--non-interactive` is present, auto-approve
+all pending PRs without prompting. For each pending PR, execute `gh pr merge {prNumber} --merge`.
+Update task status to `PR_MERGED` then `DONE`. Log:
+`"Batch auto-approve (--non-interactive): {N} PRs across {M} stories"`
 If any merge fails, log warning and retry once. If retry fails, mark the specific task as FAILED.
 
-**Exception — CRITICAL review findings:** When ANY story in the parallel batch has review
-findings with severity CRITICAL, fall through to the manual batch prompt below. Log:
-`"CRITICAL review findings detected — requiring manual batch approval"`
-
-**Manual batch approval flag `--manual-batch-approval` (EPIC-0042):** When
-`--manual-batch-approval` is present, always use the manual batch prompt regardless
-of review findings.
-
-**Manual batch prompt (via AskUserQuestion) — used when CRITICAL findings exist or
-`--manual-batch-approval` is present:**
-
-**Trigger:** After parallel story dispatch completes (Section 1.4a step 4), collect all task PRs with status `PR_CREATED` or `PR_APPROVED` across the parallel stories.
-
-```
-question: "{N} task PRs pending approval across {M} stories"
-header: "Batch PR Approval"
-options:
-  - label: "Approve all {N} PRs"
-    description: "Approve and merge all pending task PRs into their parent branches"
-  - label: "Review individually"
-    description: "Present each PR one at a time for individual review/approval/rejection"
-  - label: "Pause all"
-    description: "Save state and pause execution. Resume with --resume after manual review."
-multiSelect: false
-```
+**Default behavior (interactive menu):** When execution reaches this gate WITHOUT `--non-interactive`,
+present the operator with `AskUserQuestion` (Rule 20 — Canonical Option Menu, PR variant).
+Display the PR List Table before the menu.
 
 **PR List Table (displayed before options):**
 
 | Story ID | Task ID | PR # | PR URL | Title | Changed Files |
 |----------|---------|------|--------|-------|---------------|
 
-**Response Handling:**
+**AskUserQuestion call shape:**
 
-- **"Approve all N PRs"**: For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status to `PR_MERGED` then `DONE`. If any merge fails, log warning and fall back to "Review individually" for that specific PR.
-- **"Review individually"**: Present each PR sequentially. For each, offer: Approve / Reject / Skip. Update task status accordingly.
-- **"Pause all"**: Save execution state and exit. User runs `--resume` after manual review.
+```markdown
+AskUserQuestion(
+  question: "{N} task PRs pending across {M} stories. Review and choose an action.",
+  options: [
+    {
+      header: "Proceed",
+      label: "Continue (Recommended)",
+      description: "Merge all {N} pending task PRs and continue epic execution."
+    },
+    {
+      header: "Fix PR",
+      label: "Run x-pr-fix-epic and retry",
+      description: "Invokes x-pr-fix-epic on all epic PRs; reapresents this menu on return."
+    },
+    {
+      header: "Abort",
+      label: "Cancel the operation",
+      description: "Save execution state and exit. Resume with --resume after manual review."
+    }
+  ]
+)
+```
 
-**Skip condition:** When `--batch-approval=false` or `--auto-approve-pr` is set (task PRs auto-merge), skip batch approval entirely. When `--sequential` is set, there are no parallel PRs to consolidate.
+**On PROCEED:** For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status
+to `PR_MERGED` then `DONE`. If any merge fails, log warning and fall back to individual retry.
+
+**On FIX-PR:** Record the attempt in `batchGate.fixAttempts[]` (see schema below). Invoke fix skill
+via Rule 13 INLINE-SKILL:
+
+    Skill(skill: "x-pr-fix-epic", args: "--epic {EPIC_ID}")
+
+On return: update `outcome` in the last `FixAttempt`. Reapresent the full gate menu (loop-back).
+Guard-rail: if `batchGate.fixAttempts.size() == 3` before selecting FIX-PR, emit
+`EPIC_BATCH_FIX_LOOP_EXCEEDED` and terminate automatically:
+`"Loop de fix excedeu 3 tentativas no epic {EPIC_ID}; gate encerrado automaticamente.
+  Retomar via --resume com --non-interactive ou edição manual do state file."`
+No 4th option is presented (total option count remains exactly 3, per RULE-002).
+
+**On ABORT:** Save execution state. Set `batchGate.lastGateDecision = "ABORT"`. Exit the skill.
+Resume with `--resume` after manual review.
+
+**`execution-state.json` schema extension (EPIC-0043):**
+
+The top-level `execution-state.json` gains a `batchGate` sub-object:
+
+```json
+{
+  "batchGate": {
+    "lastGateDecision": null,
+    "fixAttempts": [
+      {
+        "attemptNumber": 1,
+        "delegateSkill": "x-pr-fix-epic",
+        "invokedAt": "2026-04-19T12:00:00Z",
+        "outcome": "applied"
+      }
+    ],
+    "waveIndex": 2,
+    "schemaVersion": "1.0"
+  }
+}
+```
+
+**Field reference:**
+
+| Field | Type | M/O | Description |
+| :--- | :--- | :--- | :--- |
+| `batchGate.lastGateDecision` | `Enum \| null` | M | `null` before first interaction; then `PROCEED` \| `FIX_PR` \| `ABORT` |
+| `batchGate.fixAttempts` | `List<FixAttempt>` | O (default `[]`) | Each FIX-PR selection appends one entry; max 3 |
+| `batchGate.fixAttempts[].attemptNumber` | `Integer` | M | 1-based attempt counter |
+| `batchGate.fixAttempts[].delegateSkill` | `String` | M | Always `"x-pr-fix-epic"` |
+| `batchGate.fixAttempts[].invokedAt` | `ISO-8601` | M | Timestamp of the invocation |
+| `batchGate.fixAttempts[].outcome` | `String` | M | `"applied"` \| `"no-op"` \| `"error"` |
+| `batchGate.waveIndex` | `Integer \| null` | O (≥ 0) | Wave of the epic at which the gate was reached; `null` when not wave-partitioned |
+| `batchGate.schemaVersion` | `String` | M | `"1.0"` |
+
+**Error code:**
+
+| Code | Condition | Message |
+| :--- | :--- | :--- |
+| `EPIC_BATCH_FIX_LOOP_EXCEEDED` | 3 consecutive FIX-PR attempts at the batch gate | `"Loop de fix excedeu 3 tentativas no epic {EPIC_ID} wave {WAVE}; gate encerrado automaticamente. Retomar via --resume com --non-interactive ou edição manual do state file."` |
+
+Legacy files (without `batchGate`) are read as `null` and initialized on first write. Log on first
+migration: `"EPIC_BATCH_GATE_SCHEMA_LEGACY: execution-state.json sem batchGate; inicializando"`
+
+**Skip condition:** When `--batch-approval=false` or `--auto-approve-pr` is set (task PRs
+auto-merge into parent branches), skip batch approval entirely. When `--sequential` is set,
+there are no parallel PRs to consolidate.
 
 #### `getExecutableStories()` Algorithm (RULE-003)
 
@@ -1005,10 +1118,13 @@ Skip review: {skipReview}
 Auto-approve PR: {autoApprovePr}
 
 CRITICAL: Invoke the /x-story-implement skill using the Skill tool:
-  Skill(skill: "x-story-implement", args: "{storyId}")
+  Skill(skill: "x-story-implement", args: "{storyId} --non-interactive")
 
 The /x-story-implement skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
 Do NOT manually perform these steps. Let the skill handle all orchestration.
+Note: --non-interactive is always passed by x-epic-implement so x-story-implement's interactive
+gates (Phase 0.5, Phase 2.2.9) auto-approve without pausing (Rule 20 — EPIC-0043).
+When x-epic-implement itself is called with --non-interactive, also propagate to x-story-implement dispatches.
 
 If /x-story-implement is unavailable (Skill tool error), fall back to manual execution:
 1. Read story -> 2. Plan -> 3. TDD (Red-Green-Refactor) -> 4. Test + coverage
@@ -1264,7 +1380,26 @@ After each story completes (success or failure), persist the result:
 3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
 4. Between story completions, the checkpoint always reflects the current execution state
 
-### 1.6b Markdown Status Sync
+### 1.7 Phase 1.7 — Markdown Status Sync (was Section 1.6b, promoted to Phase 1.7 by story-0046-0004)
+
+Phase 1.7 is cabled explicitly into the Core Loop step 6e (Section 1.3). It runs
+after every story checkpoint update and is the single source of truth for
+propagating a story's end-of-life status from `execution-state.json` to the
+markdown artifacts (`story-XXXX-YYYY.md` + IMPLEMENTATION-MAP row). V2-gated:
+when `planningSchemaVersion == "2.0"`, Phase 1.7 is unskippable on the happy
+path (Rule 22 RULE-046-04). Each helper call is fail-loud — any
+`StatusSyncException` exits the orchestrator with code `STATUS_SYNC_FAILED` and
+stderr carrying the offending path (Rule 22 RULE-046-08). V1 epics retain the
+legacy in-place rewrite below (Rule 19 — backward compatibility).
+
+Implementation uses the helpers shipped by story-0046-0001 and story-0046-0004:
+
+- `StatusFieldParser.readStatus(path)` / `.writeStatus(path, status)` — atomic
+  Status header read/write for story and epic markdown files.
+- `LifecycleTransitionMatrix.validateOrThrow(current, target)` — rejects illegal
+  transitions (e.g., PENDENTE → CONCLUIDA without passing EM_ANDAMENTO).
+- `EpicMapRowUpdater.updateRow(mapFile, storyId, newStatus)` — atomic rewrite of
+  the Status cell of a single row in `IMPLEMENTATION-MAP.md`.
 
 After updating the execution-state.json checkpoint (Section 1.6), propagate the status
 change to markdown files. This is executed by the orchestrator (not the subagent) to ensure
@@ -1311,10 +1446,14 @@ consistency across local files and external systems.
 | BLOCKED | Bloqueada | — |
 | PENDING | Pendente | — |
 
-**Epic-level completion check:**
+**Epic-level completion check (legacy inline shortcut — v1 only):**
+
+Retained for backward compatibility with schema v1 epics (Rule 19). When
+`planningSchemaVersion == "2.0"`, epic finalization is handled by **Phase 5 —
+Epic Finalization** (Section 5 below), which is the normative path.
 
 After updating story status to SUCCESS, check if ALL stories in the epic have status SUCCESS
-in the checkpoint. If yes:
+in the checkpoint. If yes (v1 only):
 1. Read `plans/epic-{epicId}/EPIC-{epicId}.md`
 2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
 3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
@@ -1322,6 +1461,71 @@ in the checkpoint. If yes:
    - Find the transition to "Done"
    - Call `mcp__atlassian__transitionJiraIssue`
    - If transition fails: log warning, continue (non-blocking)
+
+### 5. Phase 5 — Epic Finalization (V2-gated, added by story-0046-0004)
+
+Phase 5 is the end-of-epic status-finalize block. It executes **once**, after
+the Core Loop finishes the last phase with all stories reaching SUCCESS, and
+before the orchestrator returns to the caller. V2-gated — only active when
+`planningSchemaVersion == "2.0"`. For v1 epics, the legacy inline shortcut
+above is used instead (Rule 19 fallback).
+
+**Preconditions.** Every story in `execution-state.json` MUST be in `SUCCESS`
+state. If any story is still `PENDING`, `IN_PROGRESS`, `FAILED`, `PARTIAL`, or
+`BLOCKED`, Phase 5 is a no-op and the orchestrator returns with the existing
+mixed state (Rule 22 — source-of-truth invariant — prevents false epic
+closure).
+
+**Sub-steps (all fail-loud — any failure exits STATUS_SYNC_FAILED per
+Rule 22 RULE-046-08).**
+
+1. **Read epic Status.** Call `StatusFieldParser.readStatus(epicFilePath)`
+   where `epicFilePath = plans/epic-{epicId}/epic-{epicId}.md`. The expected
+   current value is `EM_ANDAMENTO` or `EM_REFINAMENTO` (legacy label —
+   tolerated by Rule 22 matrix, treated as EM_ANDAMENTO for transition
+   purposes). If the file is missing: exit `STATUS_SYNC_FAILED` with the path
+   in stderr (fail-loud scenario covered by story-0046-0004 AC).
+
+2. **Validate transition.** `LifecycleTransitionMatrix.validateOrThrow(current,
+   CONCLUIDA)`. Rejection → exit `STATUS_SYNC_FAILED`.
+
+3. **Write epic Status = Concluído.** `StatusFieldParser.writeStatus(
+   epicFilePath, LifecycleStatus.CONCLUIDA)`. Atomic write via
+   temp-file-plus-rename. IOException → `StatusSyncException` → exit
+   `STATUS_SYNC_FAILED`.
+
+4. **Atomic commit.** Stage exactly the epic file and invoke x-git-commit via
+   the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+       Skill(skill: "x-git-commit", args: "--type chore --scope epic-{epicId} --subject \"finalize status to Concluído\" --body \"Epic Status: Em Andamento → Concluído. Implementation map columns updated for all stories.\"")
+
+   The pre-commit chain (format → lint → compile) MUST succeed.
+
+5. **Idempotency.** If Step 1 reads `CONCLUIDA`, log
+   `"Phase 5: epic {epicId} already Concluído — no-op"` and return. No commit
+   is created (Rule 22 RULE-046-06 — clean workdir invariant after re-run).
+
+6. **Clean-workdir verification.** After the commit (or no-op return), assert
+   `git status --porcelain` is empty. A dirty workdir exits
+   `STATUS_SYNC_FAILED` — this catches orphan `*.tmp` files from a partially
+   failed atomic move (Rule 22 RULE-046-06).
+
+7. **Jira epic transition (optional, non-blocking).** If the epic has a Jira
+   key, call `mcp__atlassian__transitionJiraIssue` to move the epic to Done.
+   Failures log a warning and continue — Jira is an external system outside
+   the Rule 22 fail-loud contract.
+
+**Gherkin contract.** Phase 5 satisfies the following acceptance criteria from
+story-0046-0004 §7:
+
+- "Épico v2 happy path — story e epic concluídos" — 3 commits exist: 2
+  story-finalize (Phase 3.8.5) + 1 epic-finalize (this phase).
+- "Falha de status update no epic-finalize (fail loud)" — deleting the epic
+  file before Phase 5 triggers exit `STATUS_SYNC_FAILED` with the path in
+  stderr.
+- "Clean workdir após x-epic-implement" — Step 6 assertion.
+- "Idempotência — re-rodar x-epic-implement em épico já concluído" — Step 5
+  short-circuit.
 
 ### 1.7 Extension Points
 
@@ -1605,6 +1809,53 @@ The phase completion report is generated AFTER the integrity gate completes
 (whether PASS or FAIL). This ensures the gate results are included in the report.
 If the gate fails, the report documents the failure and serves as a diagnostic
 artifact for the operator deciding whether to resume or abort.
+
+#### Atomic Commit — Phase Report (V2-gated, story-0046-0005)
+
+After the phase-report subagent returns with the generated path, the
+orchestrator MUST commit the report atomically before advancing to the next
+wave (RULE-046-05 — reports atomically committed, RULE-046-06 — clean
+workdir invariant). This eliminates the window where reports are orphaned on
+the working tree and prevents false positives in
+`x-release VALIDATE_DIRTY_WORKDIR`.
+
+Fallback matrix (Rule 19 — Backward Compatibility):
+
+| `planningSchemaVersion` | Action |
+| :--- | :--- |
+| absent / `"1.0"` / invalid | **V1 no-op.** Skip the commit block entirely. Phase reports remain optional and uncommitted. |
+| `"2.0"` | **V2 active.** Execute the 3-step block below once per wave, immediately after Phase 1.7 (per-wave status sync from story-0046-0004). |
+
+Three-step block (V2 only, one per wave):
+
+1. **Stage** the phase-report path returned by the subagent:
+   `git add plans/{epicId}/reports/phase-{N}-completion-{epicId}.md`
+   (idempotent; no-op when no diff).
+2. **Build message** via `ReportCommitMessageBuilder.phaseReport(epicId,
+   waveNumber, storyCount, commitCount)` — produces subject
+   `docs(epic-{epicId}): add phase-{N} report` plus body summarising the
+   wave outcome.
+3. **Commit** via Rule 13 Pattern 1 INLINE-SKILL:
+
+       Skill(skill: "x-git-commit", args: "--message \"<built message>\"")
+
+   On non-zero exit, abort with exit code `REPORT_COMMIT_FAILED` (21) and
+   stream the hook's stderr (RULE-046-08 — fail loud).
+   Do NOT fall back to `--no-verify`.
+
+Canonical v2 ordering (see story-0046-0005 §3.4):
+
+```
+Wave N executes
+ → Phase 1.7 (per-story status sync — story 0046-0004) → commit docs(story-*)
+ → Phase 1.8 (NEW: phase-report write + commit — this story) → commit docs(epic-*)
+ → advance to Wave N+1
+...
+Phase 5 (epic finalize — story 0046-0004) → commit chore(epic-*)
+```
+
+Idempotence: if staging produces no diff, skip the commit with log
+`"Reusing committed phase-{N} report for EPIC-{epicId}"` and proceed.
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-implement Phase-1-Execution-Loop ok`
@@ -1943,6 +2194,7 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-i
 | Rebase conflict resolution fails after MAX_REBASE_RETRIES (3) | Abort rebase, mark story FAILED, close PR, trigger block propagation |
 | 3 consecutive story failures (circuit breaker) | Transition to OPEN, pause execution, AskUserQuestion |
 | 5 total failures in phase (circuit breaker) | Abort phase, mark remaining as BLOCKED |
+| `EPIC_BATCH_FIX_LOOP_EXCEEDED` — 3 consecutive FIX-PR at batch gate | Auto-terminate gate, log error code + manual resume instructions, exit skill |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
 | Template file not found (RULE-012 — Template Fallback) | Log warning, use inline format as fallback |
 

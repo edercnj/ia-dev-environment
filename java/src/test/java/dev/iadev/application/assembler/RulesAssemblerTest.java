@@ -848,8 +848,8 @@ class RulesAssemblerTest {
                     "05-quality-gates.md");
 
             assertThat(expected)
-                    .contains("95%")
-                    .contains("90%");
+                    .contains("85%")
+                    .contains("80%");
         }
 
         @Test

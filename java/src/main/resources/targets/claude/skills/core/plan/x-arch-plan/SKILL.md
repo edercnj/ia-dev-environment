@@ -387,3 +387,35 @@ For in-depth guidance on architecture patterns, consult:
 - `skills/observability/SKILL.md` — observability patterns
 - `skills/resilience/SKILL.md` — resilience patterns
 - `skills/infrastructure/SKILL.md` — infrastructure patterns
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19).
+
+After writing `arch-story-XXXX-YYYY.md`, this skill checks the associated story's lifecycle status. The architecture plan does NOT itself drive the `Pendente → Planejada` transition — that is owned by `x-story-plan` (Rule 22 single-writer invariant). If the story is still `Pendente` when the architecture plan is generated standalone (i.e. `x-arch-plan` invoked directly without `x-story-plan`), transition it to `Planejada` here (idempotent if already `Planejada`).
+
+**Steps (end of architecture-plan generation, BEFORE the final commit):**
+
+1. Detect v2 via SchemaVersionResolver on the epic's `execution-state.json`. If v1: skip.
+2. Read the story's current status via the CLI:
+   ```bash
+   CURRENT=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/story-XXXX-YYYY.md)
+   ```
+3. If `CURRENT == "Pendente"`, write `Planejada`:
+   ```bash
+   java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       write plans/epic-XXXX/story-XXXX-YYYY.md Planejada
+   ```
+   If `CURRENT == "Planejada"`: idempotent no-op.
+4. Stage both files and commit via `x-git-commit`:
+   ```bash
+   git add plans/epic-XXXX/story-XXXX-YYYY.md plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md
+   ```
+   Then:
+
+       Skill(skill: "x-git-commit", args: "docs(story-XXXX-YYYY): add architecture plan + update status to Planejada")
+
+**Fail-loud:** non-zero exit from CLI → abort skill (RULE-046-08).

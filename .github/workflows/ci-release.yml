@@ -31,10 +31,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup JDK 21 (Temurin) + Maven cache
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload JaCoCo report (artifact, retention 7d)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jacoco-report-${{ github.run_id }}
           path: java/target/site/jacoco/
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: success()
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: java/target/site/jacoco/jacoco.xml
@@ -84,7 +84,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Review new dependencies for CVEs / license issues
         uses: actions/dependency-review-action@v4
@@ -102,12 +102,12 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # server-id=github wires ~/.m2/settings.xml so `mvn deploy`
       # authenticates to GitHub Packages with the workflow token.
       - name: Setup JDK 21 + Maven settings (server-id=github)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -122,7 +122,7 @@ jobs:
         run: mvn -B -DskipTests deploy
 
       - name: Stash uber-jar + SBOM for downstream jobs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-artifacts-${{ github.ref_name }}
           path: |
@@ -142,7 +142,7 @@ jobs:
       attestations: write   # SLSA build provenance attestation
     steps:
       - name: Checkout (for default release notes)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -153,7 +153,7 @@ jobs:
           path: artifacts/
 
       - name: Generate SLSA build-provenance attestation
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: "artifacts/ia-dev-env-*.jar"
 
@@ -205,7 +205,7 @@ jobs:
       contents: read
     steps:
       - name: Setup JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
