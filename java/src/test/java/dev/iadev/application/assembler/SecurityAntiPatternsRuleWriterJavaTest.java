@@ -246,54 +246,6 @@ class SecurityAntiPatternsRuleWriterJavaTest {
         }
     }
 
-    @Nested
-    @DisplayName("Kotlin generates J1-J8 adapted patterns")
-    class KotlinSecurityAntiPatterns {
-
-        @Test
-        @DisplayName("kotlin generates"
-                + " 12-security-anti-patterns.md"
-                + " with 8 entries")
-        void write_kotlin_generatesEightEntries(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path resourceDir =
-                    SecurityAntiPatternsTestHelper
-                            .createResourcesWithTemplate(
-                                    tempDir, "kotlin");
-            Path rulesDir = tempDir.resolve("rules");
-            Files.createDirectories(rulesDir);
-
-            SecurityAntiPatternsRuleWriter writer =
-                    new SecurityAntiPatternsRuleWriter(
-                            resourceDir);
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .language("kotlin", "1.9")
-                    .framework("ktor", "2.3")
-                    .build();
-
-            List<String> files =
-                    writer
-                            .copyConditionalSecurityAntiPatternsRule(
-                                    config, rulesDir,
-                                    new TemplateEngine(),
-                                    Map.of());
-
-            assertThat(files).hasSize(1);
-
-            String content = Files.readString(
-                    rulesDir.resolve(
-                            "12-security-anti-patterns.md"),
-                    StandardCharsets.UTF_8);
-
-            long count = content.lines()
-                    .filter(l -> l.startsWith("### J"))
-                    .count();
-            assertThat(count)
-                    .as("Kotlin must have 8 security"
-                            + " anti-patterns (J1-J8)")
-                    .isEqualTo(8);
-        }
-    }
+    // Kotlin security-anti-patterns test removed — kotlin template
+    // resource deleted in EPIC-0048 full cleanup.
 }

@@ -39,9 +39,3 @@ knowledge-packs/infra-patterns/iac-crossplane/SKILL.md
 knowledge-packs/infra-patterns/k8s-deployment/SKILL.md
 knowledge-packs/infra-patterns/k8s-kustomize/SKILL.md
 knowledge-packs/layer-templates/SKILL.md
-knowledge-packs/stack-patterns/django-patterns/SKILL.md
-knowledge-packs/stack-patterns/express-patterns/SKILL.md
-knowledge-packs/stack-patterns/fastapi-patterns/SKILL.md
-knowledge-packs/stack-patterns/gin-patterns/SKILL.md
-knowledge-packs/stack-patterns/ktor-patterns/SKILL.md
-knowledge-packs/stack-patterns/nestjs-patterns/SKILL.md
