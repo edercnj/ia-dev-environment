@@ -12,8 +12,8 @@
 | story-0048-0002 | ADR-0048-A (Java-only scope) + ADR-0048-B (CLAUDE.md contract) | — | story-0048-0001 | story-0048-0003, story-0048-0010 | Concluída |
 | story-0048-0003 | Restringir LanguageFrameworkMapping + CliLanguageValidator + UnsupportedLanguageException | — | story-0048-0002 | story-0048-0004, story-0048-0005, story-0048-0006, story-0048-0007 | Concluída |
 | story-0048-0004 | Limpar StackMapping + StackResolver + StackValidator (incl. csharp-dotnet leftover) | — | story-0048-0003 | — | Concluída |
-| story-0048-0005 | Remover templates targets/claude/{agents,hooks,settings} não-Java | — | story-0048-0003 | story-0048-0007 | Deferida |
-| story-0048-0006 | Remover skills, rules, anti-patterns, security-anti-patterns não-Java | — | story-0048-0003 | story-0048-0007 | Deferida |
+| story-0048-0005 | Remover templates targets/claude/{agents,hooks,settings} não-Java | — | story-0048-0003 | story-0048-0007 | Concluída |
+| story-0048-0006 | Remover skills, rules, anti-patterns, security-anti-patterns não-Java | — | story-0048-0003 | story-0048-0007 | Concluída |
 | story-0048-0007 | Remover 8 goldens + 8 YAMLs setup-config (atomicamente) | — | story-0048-0003, story-0048-0005, story-0048-0006 | story-0048-0008 | Concluída |
 | story-0048-0008 | Atualizar testes parametrizados: SmokeProfiles 17→9, GoldenFileTest, ConfigProfiles, expected-artifacts.json | — | story-0048-0007 | story-0048-0009 | Concluída |
 | story-0048-0009 | Bug A — OutputDirectoryIntegrityTest (RED) → pruneEmptyDirs (GREEN) → regen 9 goldens | — | story-0048-0008 | story-0048-0012 | Concluída |
