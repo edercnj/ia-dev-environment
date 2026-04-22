@@ -35,26 +35,20 @@ import java.util.Set;
 public final class GoldenFileRegenerator {
 
     private static final List<String> PLATFORM_PROFILES =
-            List.of("go-gin", "java-spring");
+            List.of("java-spring");
 
     private static final String PLATFORM_SUBDIR =
             "platform-claude-code";
 
     private static final List<String> PROFILES = List.of(
-            "go-gin", "java-quarkus", "java-spring",
+            "java-quarkus", "java-spring",
             "java-spring-clickhouse",
             "java-spring-cqrs-es",
             "java-spring-elasticsearch",
             "java-spring-event-driven",
             "java-spring-fintech-pci",
             "java-spring-hexagonal",
-            "java-spring-neo4j",
-            "kotlin-ktor", "python-click-cli",
-            "python-fastapi",
-            "python-fastapi-timescale",
-            "rust-axum",
-            "typescript-commander-cli",
-            "typescript-nestjs");
+            "java-spring-neo4j");
 
     private GoldenFileRegenerator() {
     }

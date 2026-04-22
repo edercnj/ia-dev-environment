@@ -272,39 +272,8 @@ class HooksAssemblerTest {
     @DisplayName("assemble — golden file parity")
     class GoldenFile {
 
-        @Test
-        @DisplayName("post-compile-check.sh matches"
-                + " golden file for kotlin-ktor")
-        void assemble_hook_matchesGolden(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            HooksAssembler assembler =
-                    new HooksAssembler();
-            ProjectConfig config = buildKotlinKtorConfig();
-
-            assembler.assemble(
-                    config, new TemplateEngine(), outputDir);
-
-            String goldenPath =
-                    "golden/kotlin-ktor/.claude/hooks/"
-                            + "post-compile-check.sh";
-            String expected = loadResource(goldenPath);
-            assertThat(expected)
-                    .as("Golden file must exist")
-                    .isNotEmpty();
-
-            String actual = Files.readString(
-                    outputDir.resolve(
-                            "hooks/post-compile-check.sh"),
-                    StandardCharsets.UTF_8);
-            assertThat(actual)
-                    .as("Hook must match golden file"
-                            + " byte-for-byte")
-                    .isEqualTo(expected);
-        }
+        // Kotlin-ktor golden parity test removed in EPIC-0048 story-0007
+        // (non-Java goldens deleted).
 
         private String loadResource(String path) {
             var url = getClass().getClassLoader()
