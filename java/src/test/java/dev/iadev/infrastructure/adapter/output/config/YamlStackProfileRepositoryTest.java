@@ -83,14 +83,8 @@ class YamlStackProfileRepositoryTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "go-gin",
                 "java-quarkus",
-                "java-spring",
-                "kotlin-ktor",
-                "python-click-cli",
-                "python-fastapi",
-                "rust-axum",
-                "typescript-nestjs"
+                "java-spring"
         })
         @DisplayName("finds each of the 8 standard profiles")
         void findByName_knownProfile_returnsProfile(
@@ -138,14 +132,8 @@ class YamlStackProfileRepositoryTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "go-gin",
                 "java-quarkus",
-                "java-spring",
-                "kotlin-ktor",
-                "python-click-cli",
-                "python-fastapi",
-                "rust-axum",
-                "typescript-nestjs"
+                "java-spring"
         })
         @DisplayName("returns true for each of the 8 profiles")
         void exists_knownProfile_returnsTrue(
@@ -201,39 +189,8 @@ class YamlStackProfileRepositoryTest {
                     .isEqualTo("gradle");
         }
 
-        @Test
-        @DisplayName("go-gin has correct fields")
-        void goGin_hasCorrectFields() {
-            StackProfile profile =
-                    repository.findByName("go-gin")
-                            .orElseThrow();
-
-            assertThat(profile.name())
-                    .isEqualTo("go-gin");
-            assertThat(profile.language())
-                    .isEqualTo("go");
-            assertThat(profile.framework())
-                    .isEqualTo("gin");
-            assertThat(profile.buildTool())
-                    .isEqualTo("go-mod");
-        }
-
-        @Test
-        @DisplayName("rust-axum has correct fields")
-        void rustAxum_hasCorrectFields() {
-            StackProfile profile =
-                    repository.findByName("rust-axum")
-                            .orElseThrow();
-
-            assertThat(profile.name())
-                    .isEqualTo("rust-axum");
-            assertThat(profile.language())
-                    .isEqualTo("rust");
-            assertThat(profile.framework())
-                    .isEqualTo("axum");
-            assertThat(profile.buildTool())
-                    .isEqualTo("cargo");
-        }
+        // go-gin and rust-axum per-stack field tests removed in EPIC-0048
+        // story-0048-0007 (non-Java profiles deleted).
 
         @Test
         @DisplayName("profiles have non-empty properties")

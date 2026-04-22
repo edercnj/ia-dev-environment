@@ -283,19 +283,13 @@ class ResourceDiscoveryTest {
     }
 
     @Nested
-    @DisplayName("all 8 shared/config-templates accessible")
+    @DisplayName("all shared/config-templates accessible (Java-only since EPIC-0048)")
     class ConfigTemplatesAccessible {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "shared/config-templates/setup-config.go-gin.yaml",
                 "shared/config-templates/setup-config.java-quarkus.yaml",
-                "shared/config-templates/setup-config.java-spring.yaml",
-                "shared/config-templates/setup-config.kotlin-ktor.yaml",
-                "shared/config-templates/setup-config.python-click-cli.yaml",
-                "shared/config-templates/setup-config.python-fastapi.yaml",
-                "shared/config-templates/setup-config.rust-axum.yaml",
-                "shared/config-templates/setup-config.typescript-nestjs.yaml"
+                "shared/config-templates/setup-config.java-spring.yaml"
         })
         @DisplayName("config template exists and is readable")
         void configTemplate_existsAndReadable(String path) {
