@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **EPIC-0049 / story-0049-0015:** new internal skill `x-internal-story-report`
+  under `skills/core/internal/plan/x-internal-story-report/` (eighth
+  `x-internal-*` skill, fifth under `internal/plan/`). Closes the
+  `load → build → verify → resume → report` quintet — final-report carve-out
+  of `x-story-implement` Phase 3. Reads `plans/epic-XXXX/execution-state.json`,
+  collects `tasksCount` / `tasksDone` / `commitsCount` / `prNumber` / `prState`
+  / `coverageLine` / `coverageBranch`, builds a structured payload with
+  per-task and per-finding arrays, then delegates rendering to
+  `x-internal-report-write` using the new template
+  `_TEMPLATE-STORY-COMPLETION-REPORT.md` (21st template in the registered
+  plan-template set). 5 stable exit codes (0 `SUCCESS`; 1 `STATE_NOT_FOUND`;
+  2 `TEMPLATE_MISSING`; 64 `EX_USAGE`; 127 `DEPENDENCY_MISSING`). `allowed-tools:
+  Bash, Skill` — `Skill` is required to dispatch the delegated render. Response
+  envelope: `{reportPath, summary}`. `Epic0049StoryReportSmokeTest` locks
+  source-of-truth + template shipment across all 9 profiles (12 scenarios).
+  Goldens regenerated for all 9 Java profiles (+1 platform golden);
+  `PlanTemplatesAssembler` template count 20 → 21.
+
 - **EPIC-0049 / story-0049-0004:** new public skill `x-planning-commit` under
   `skills/core/git/x-planning-commit/` that batch-commits planning artifacts
   under `plans/epic-XXXX/**` (or `.claude/templates/**`) without invoking the

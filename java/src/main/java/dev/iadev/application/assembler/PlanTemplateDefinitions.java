@@ -25,7 +25,7 @@ import java.util.Map;
 final class PlanTemplateDefinitions {
 
     /** Number of templates currently managed. */
-    static final int TEMPLATE_COUNT = 20;
+    static final int TEMPLATE_COUNT = 21;
 
     private static final List<Map.Entry<String, List<String>>>
             STORY_PLANNING_TEMPLATES = List.of(
@@ -139,7 +139,13 @@ final class PlanTemplateDefinitions {
                             "TDD Compliance",
                             "Coverage Delta",
                             "Blockers Encountered",
-                            "Next Phase Readiness")));
+                            "Next Phase Readiness")),
+                    Map.entry("_TEMPLATE-STORY-COMPLETION-REPORT.md", List.of(
+                            "Executive Summary",
+                            "Tasks",
+                            "Pull Request",
+                            "Review Findings",
+                            "Coverage Delta")));
 
     private static final List<Map.Entry<String, List<String>>>
             TASK_FIRST_TEMPLATES = List.of(
