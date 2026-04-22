@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **EPIC-0049 / story-0049-0003:** new public skill `x-pr-merge` under
+  `skills/core/pr/x-pr-merge/` that merges a single PR via `gh pr merge`
+  with configurable strategy (`merge` / `squash` / `rebase`), idempotent
+  handling of already-merged PRs, synchronous pre-checks
+  (`mergeable`, `reviewDecision`, `statusCheckRollup`) and GitHub native
+  auto-merge via `--auto`. Produces a single-line JSON result envelope
+  on stdout and 6 stable exit codes (0 success; 1 `PR_NOT_FOUND`;
+  2 `PR_CLOSED`; 3 `NOT_APPROVED`; 4 `CI_FAILING`; 5 `MERGE_CONFLICT`;
+  6 `TIMEOUT`). Replaces the ad-hoc `gh pr merge` + polling block
+  previously embedded in `x-epic-implement` Phase 1.3b (~80 lines);
+  downstream stories 0049-0016 (`x-pr-create --auto-merge`) and
+  0049-0018 (`x-epic-implement` refactor) will consume this skill.
+  Goldens regenerated for all 9 Java profiles.
+
 ## [4.0.0] - 2026-04-22
 
 ### Breaking
