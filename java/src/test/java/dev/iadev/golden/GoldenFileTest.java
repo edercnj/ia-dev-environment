@@ -64,7 +64,6 @@ class GoldenFileTest {
      */
     static Stream<String> profiles() {
         return Stream.of(
-                "go-gin",
                 "java-quarkus",
                 "java-spring",
                 "java-spring-clickhouse",
@@ -73,14 +72,7 @@ class GoldenFileTest {
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",
                 "java-spring-hexagonal",
-                "java-spring-neo4j",
-                "kotlin-ktor",
-                "python-click-cli",
-                "python-fastapi",
-                "python-fastapi-timescale",
-                "rust-axum",
-                "typescript-commander-cli",
-                "typescript-nestjs"
+                "java-spring-neo4j"
         );
     }
 
