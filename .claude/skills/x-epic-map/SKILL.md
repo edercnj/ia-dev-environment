@@ -283,6 +283,54 @@ graph LR
 If stories do not contain formal task IDs, **skip this step entirely** and note:
 "Task-level dependency graph skipped — stories do not contain formal task definitions (TASK-XXXX-YYYY-NNN)."
 
+### Step 8.5 — Parallelism Conflict Analysis (EPIC-0041)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-8-5-Parallelism-Eval`
+
+Invoke `/x-parallel-eval --scope=epic` against the epic under analysis to detect file-level collision risks between stories that Step 2 placed in the same phase. The output feeds the "## 8.5 Restrições de Paralelismo" section of the map.
+
+**Fail-open behavior (RULE-005 / RULE-006):** If the `x-parallel-eval` skill is not available in the project (skill file missing under `.claude/skills/x-parallel-eval/` or `java/src/main/resources/targets/claude/skills/core/plan/x-parallel-eval/`) OR the invocation returns a non-zero exit code, DO NOT abort the map generation. Instead, emit section 8.5 with the following body:
+
+```markdown
+## 8.5 Restrições de Paralelismo
+
+> análise pulada — /x-parallel-eval não disponível (RULE-006 fail-open)
+```
+
+and continue to Step 9. Log a WARNING with the reason (skill missing, exit code N, etc.) for operator diagnostics.
+
+**Happy-path output** (skill available and returned successfully):
+
+```markdown
+## 8.5 Restrições de Paralelismo
+
+> Análise gerada por /x-parallel-eval em <timestamp omitido para determinismo>.
+
+**Conflitos detectados:** <H> hard, <R> regen, <S> soft
+
+### 8.5.1 Pares Serializados Dentro da Fase
+
+| Fase | A | B | Categoria | Motivo |
+| :--- | :--- | :--- | :--- | :--- |
+| <Phase N> | <story-A> | <story-B> | <hard|regen|soft> | <file shared or regen collision> |
+
+### 8.5.2 Recomendação de Reagrupamento
+
+<Para cada fase com conflitos, descrever a nova ordem após serialização forçada.>
+```
+
+**Determinism (RULE-008):** The section MUST be byte-identical across re-runs EXCEPT for the timestamp comment on the header line. The same input epic + story set MUST produce the same collision matrix ordering (sort pairs by Phase ASC → Story-A lexicographic → Story-B lexicographic).
+
+**Invocation shape:** Invoke via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-parallel-eval", args: "--scope=epic --epic <EPIC_FILE>")
+
+**Degenerate case:** If no conflicts are detected (`0 hard, 0 regen, 0 soft`), emit section 8.5 with "Conflitos detectados: 0" and omit subsections 8.5.1 / 8.5.2.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-8-5-Parallelism-Eval ok`
+
 ### Step 9 — Save and Report
 
 Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
@@ -302,6 +350,7 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 | Cross-story task dep without story-level dep (RULE-012) | Abort with error listing the inconsistent dependencies |
 | Cycle in task dependency graph | Abort with cycle path: "Cycle detected: TASK-A -> TASK-B -> TASK-A" |
 | Stories without formal task IDs | Skip Section 8 with note; proceed with story-level map only |
+| `/x-parallel-eval` skill missing or exit code ≥ 1 (Step 8.5) | Fail-open: emit section 8.5 with "análise pulada — /x-parallel-eval não disponível" (RULE-005 / RULE-006); log WARNING; continue to Step 9 |
 
 ## Common Mistakes
 
@@ -325,3 +374,35 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 | Knowledge Pack | Usage |
 |----------------|-------|
 | story-planning | Phase computation, dependency DAG, critical path analysis |
+| parallelism-heuristics | Step 8.5 collision categories (hard/regen/soft) consumed from `/x-parallel-eval` output |
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when the epic declares `planningSchemaVersion: "2.0"` in its `execution-state.json`. For v1 epics: skip silently (Rule 19).
+
+`x-epic-map` reads story files (it does NOT write to them) and emits/refreshes `plans/epic-XXXX/IMPLEMENTATION-MAP.md` with two lifecycle columns:
+
+- **Planejamento** — mirrors the current `**Status:**` of each story (values: `Pendente`, `Planejada`, `Em Andamento`, `Concluída`, `Falha`, `Bloqueada`).
+- **Status** — the execution lifecycle status (same six values; driven by `x-story-implement` / `x-epic-implement` downstream).
+
+Both columns are populated by reading the story files in situ via the CLI. `x-epic-map` never transitions any story — it is a read-only skill with respect to lifecycle status. The `{{PLANNING_STATUS}}` token in the implementation-map template is resolved at render-time by reading each story.
+
+**Steps (end of map generation, BEFORE the final commit):**
+
+1. Detect v2 via `execution-state.json`. If v1: leave legacy columns untouched (skip this block).
+2. For each story row being rendered into the map:
+   ```bash
+   STATUS=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/story-XXXX-YYYY.md)
+   ```
+   Use `$STATUS` to fill the `Planejamento` column for that row. Exit code 20 for any story → abort map generation (source-of-truth invariant RULE-046-01 must hold).
+3. The `Status` (execution) column is filled from `execution-state.json` (not from the story file) — the story's `**Status:**` line is authoritative for planning only in v2.
+4. Stage and commit the updated map:
+   ```bash
+   git add plans/epic-XXXX/IMPLEMENTATION-MAP.md
+   ```
+
+       Skill(skill: "x-git-commit", args: "docs(epic-XXXX): refresh implementation map with lifecycle columns")
+
+**Fail-loud:** CLI exit 20 on any story aborts map generation (RULE-046-08). `x-epic-map` never calls `write` on a story — the skill only reads.

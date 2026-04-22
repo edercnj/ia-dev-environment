@@ -4,6 +4,7 @@ description: "Generates a detailed per-task implementation plan (plan-task-TASK-
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "--task-file <path> [--output-dir <dir>]  |  [STORY-ID] --task [TASK-ID] [--force]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -441,3 +442,35 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-p
 | security | `skills/security/SKILL.md` | OWASP Top 10, security checklist items |
 | parallelism-heuristics | `skills/knowledge-packs/parallelism-heuristics/SKILL.md` | File Footprint semantics (write/read/regen sub-sections) consumed by Phase 4.5 |
 | coding-standards | `skills/coding-standards/SKILL.md` | {{LANGUAGE}} conventions, naming, SOLID principles |
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19).
+
+After writing `plan-task-TASK-XXXX-YYYY-NNN.md`, propagate the lifecycle status of the source task artifact (`task-TASK-XXXX-YYYY-NNN.md` in v2, or the Section 8 task entry in v1) from `Pendente` to `Planejada` in the SAME commit as the plan artefact.
+
+**Steps (end of Phase 3, BEFORE the final commit):**
+
+1. Detect v2 via SchemaVersionResolver on the epic's `execution-state.json`. If v1: skip this entire block.
+2. For the source task file `plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md`, read current status with the CLI:
+   ```bash
+   CURRENT=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md)
+   ```
+3. If `CURRENT == "Pendente"`, write `Planejada` atomically:
+   ```bash
+   java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       write plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md Planejada
+   ```
+   If `CURRENT == "Planejada"`: idempotent re-run, skip the write.
+4. Stage both the source task file and the plan artefact:
+   ```bash
+   git add plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md plans/epic-XXXX/plans/plan-task-TASK-XXXX-YYYY-NNN.md
+   ```
+5. Commit via `x-git-commit` (Rule 13 Pattern 1 INLINE-SKILL):
+
+       Skill(skill: "x-git-commit", args: "docs(task-TASK-XXXX-YYYY-NNN): add plan + update status to Planejada")
+
+**Fail-loud:** non-zero CLI exit → abort skill with the same exit code (RULE-046-08).
