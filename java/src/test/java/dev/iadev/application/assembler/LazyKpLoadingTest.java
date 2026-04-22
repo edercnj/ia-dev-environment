@@ -111,6 +111,17 @@ class LazyKpLoadingTest {
                     "then read its references");
         }
 
+        /**
+         * Reads the concatenated SKILL.md + references/full-protocol.md
+         * body for x-story-implement.
+         *
+         * <p>Story-0047-0002 (flipped orientation per ADR-0012)
+         * moved the detailed subagent prompts from SKILL.md to
+         * references/full-protocol.md. The lazy-KP-loading invariant
+         * (story-0030-0003) applies to the full prompt text wherever
+         * it lives; reading both files preserves the original intent
+         * of this test suite across the slim/full split.</p>
+         */
         private String generateLifecycle(Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -123,9 +134,17 @@ class LazyKpLoadingTest {
                     config,
                     new TemplateEngine(),
                     outputDir);
-            Path lifecycle = outputDir.resolve(
+            Path skillMd = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
-            return Files.readString(lifecycle);
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-implement/references/"
+                            + "full-protocol.md");
+            String body = Files.readString(skillMd);
+            if (Files.isRegularFile(fullProtocol)) {
+                body = body + "\n"
+                        + Files.readString(fullProtocol);
+            }
+            return body;
         }
     }
 
