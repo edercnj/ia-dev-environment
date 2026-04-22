@@ -27,76 +27,8 @@ class SettingsGoldenEdgeCasesTest {
     @DisplayName("assemble — golden file parity")
     class GoldenFile {
 
-        @Test
-        @DisplayName("settings.json matches golden file"
-                + " for kotlin-ktor")
-        void assemble_settings_matchesGolden(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            SettingsAssembler assembler =
-                    new SettingsAssembler();
-            ProjectConfig config =
-                    HooksAssemblerTest
-                            .buildKotlinKtorConfig();
-
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-
-            String expected = loadResource(
-                    "golden/kotlin-ktor/.claude/"
-                            + "settings.json");
-            assertThat(expected)
-                    .as("Golden file must exist")
-                    .isNotEmpty();
-
-            String actual = Files.readString(
-                    outputDir.resolve("settings.json"),
-                    StandardCharsets.UTF_8);
-            assertThat(actual)
-                    .as("settings.json must match golden"
-                            + " file byte-for-byte")
-                    .isEqualTo(expected);
-        }
-
-        @Test
-        @DisplayName("settings.local.json matches golden"
-                + " file for kotlin-ktor")
-        void assemble_settingsLocal_matchesGolden(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            SettingsAssembler assembler =
-                    new SettingsAssembler();
-            ProjectConfig config =
-                    HooksAssemblerTest
-                            .buildKotlinKtorConfig();
-
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-
-            String expected = loadResource(
-                    "golden/kotlin-ktor/.claude/"
-                            + "settings.local.json");
-            assertThat(expected)
-                    .as("Golden file must exist")
-                    .isNotEmpty();
-
-            String actual = Files.readString(
-                    outputDir.resolve(
-                            "settings.local.json"),
-                    StandardCharsets.UTF_8);
-            assertThat(actual)
-                    .as("settings.local.json must match"
-                            + " golden file byte-for-byte")
-                    .isEqualTo(expected);
-        }
+        // kotlin-ktor settings golden parity tests removed in EPIC-0048
+        // story-0007 (non-Java goldens deleted).
 
         private String loadResource(String path) {
             var url = getClass().getClassLoader()

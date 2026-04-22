@@ -200,7 +200,11 @@ public final class AssemblerFactory {
                 desc("ReadmeAssembler",
                         AssemblerTarget.CLAUDE,
                         Set.of(Platform.CLAUDE_CODE),
-                        new ReadmeAssembler()));
+                        new ReadmeAssembler()),
+                desc("ClaudeMdAssembler",
+                        AssemblerTarget.ROOT,
+                        Set.of(Platform.CLAUDE_CODE),
+                        new ClaudeMdAssembler()));
     }
 
     private static AssemblerDescriptor desc(
