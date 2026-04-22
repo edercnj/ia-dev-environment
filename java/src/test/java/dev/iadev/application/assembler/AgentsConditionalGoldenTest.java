@@ -391,23 +391,8 @@ class AgentsConditionalGoldenTest {
                     .contains("SOX");
         }
 
-        @Test
-        @DisplayName("full config generates many agents")
-        void assemble_fullFeatured_generatesMany(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            AgentsAssembler assembler =
-                    new AgentsAssembler();
-            ProjectConfig config =
-                    AgentsTestFixtures
-                            .buildGoGinConfig();
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-            assertThat(files).hasSizeGreaterThan(8);
-        }
+        // assemble_fullFeatured_generatesMany removed — used
+        // buildGoGinConfig which points to deleted go-developer.md.
     }
 
     @Nested
@@ -442,87 +427,7 @@ class AgentsConditionalGoldenTest {
         }
     }
 
-    @Nested
-    @DisplayName("assemble — golden file parity")
-    class GoldenFile {
-
-        @Test
-        @DisplayName("go-gin generates expected agents")
-        void assemble_goGin_generatesExpectedAgents(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            AgentsAssembler assembler =
-                    new AgentsAssembler();
-            ProjectConfig config =
-                    AgentsTestFixtures
-                            .buildGoGinConfig();
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-            Path agentsDir = outputDir.resolve("agents");
-            assertThat(agentsDir.resolve("architect.md"))
-                    .exists();
-            assertThat(agentsDir.resolve(
-                    "go-developer.md"))
-                    .exists();
-            assertThat(agentsDir.resolve(
-                    "api-engineer.md"))
-                    .exists();
-            assertThat(agentsDir.resolve(
-                    "appsec-engineer.md"))
-                    .exists();
-            assertThat(agentsDir.resolve(
-                    "event-engineer.md"))
-                    .exists();
-            assertThat(agentsDir.resolve(
-                    "devops-engineer.md"))
-                    .exists();
-            assertThat(agentsDir.resolve(
-                    "devsecops-engineer.md"))
-                    .exists();
-        }
-
-        @Test
-        @DisplayName("architect.md matches golden")
-        void assemble_architect_matchesGolden(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            AgentsAssembler assembler =
-                    new AgentsAssembler();
-            ProjectConfig config =
-                    AgentsTestFixtures
-                            .buildGoGinConfig();
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-            String expected = loadResource(
-                    "golden/go-gin/.claude/agents/"
-                            + "architect.md");
-            if (expected != null) {
-                String actual = Files.readString(
-                        outputDir.resolve(
-                                "agents/architect.md"),
-                        StandardCharsets.UTF_8);
-                assertThat(actual).isEqualTo(expected);
-            }
-        }
-        private String loadResource(String path) {
-            var url = getClass().getClassLoader()
-                    .getResource(path);
-            if (url == null) {
-                return null;
-            }
-            try {
-                return Files.readString(
-                        Path.of(url.getPath()),
-                        StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                return null;
-            }
-        }
-    }
+    // GoldenFile nested class removed — all tests used go-gin fixture +
+    // deleted go-gin goldens. Coverage preserved by main GoldenFileTest
+    // parametrized over 9 Java profiles.
 }
