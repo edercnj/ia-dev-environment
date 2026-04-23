@@ -27,11 +27,14 @@ import java.util.Map;
  */
 public final class ProtocolsAssembler implements Assembler {
 
-    private static final String SKILLS_DIR = "skills";
+    // EPIC-0051 (ADR-0013): protocols KP promoted to complex
+    // shape (`knowledge/protocols/index.md` + siblings).
+    // ProtocolsAssembler output now lives alongside the KP
+    // index as top-level sibling files, replacing the former
+    // `skills/protocols/references/` layout.
+    private static final String KNOWLEDGE_DIR = "knowledge";
     private static final String PROTOCOLS_SKILL_DIR =
             "protocols";
-    private static final String REFERENCES_DIR =
-            "references";
     private static final String PROTOCOLS_RES_DIR =
             "knowledge/protocols";
     private static final String CONVENTIONS_SUFFIX =
@@ -166,9 +169,8 @@ public final class ProtocolsAssembler implements Assembler {
             Map<String, List<Path>> protocolFiles,
             Path outputDir) {
         Path refsDir = outputDir
-                .resolve(SKILLS_DIR)
-                .resolve(PROTOCOLS_SKILL_DIR)
-                .resolve(REFERENCES_DIR);
+                .resolve(KNOWLEDGE_DIR)
+                .resolve(PROTOCOLS_SKILL_DIR);
         CopyHelpers.ensureDirectory(refsDir);
 
         List<String> results = new ArrayList<>();
