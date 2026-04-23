@@ -107,6 +107,7 @@ class XReviewSkillTemplateTest {
             assertThat(content)
                     .containsPattern(
                             "Skill\\(skill: \"x-review-qa\","
+                                    + "\\s+model: \"sonnet\","
                                     + "\\s+args: \"\\{STORY_ID\\}\"\\)");
         }
 
@@ -120,6 +121,7 @@ class XReviewSkillTemplateTest {
             assertThat(content)
                     .containsPattern(
                             "Skill\\(skill: \"x-review-perf\","
+                                    + "\\s+model: \"sonnet\","
                                     + "\\s+args: \"\\{STORY_ID\\}\"\\)");
         }
 
@@ -133,6 +135,7 @@ class XReviewSkillTemplateTest {
             assertThat(content)
                     .containsPattern(
                             "Skill\\(skill: \"x-review-db\","
+                                    + "\\s+model: \"sonnet\","
                                     + "\\s+args: \"\\{STORY_ID\\}\"\\)");
         }
 

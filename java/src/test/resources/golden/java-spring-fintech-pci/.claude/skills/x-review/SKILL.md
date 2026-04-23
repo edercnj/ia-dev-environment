@@ -143,15 +143,15 @@ As each specialist agent completes, update its status to "completed" via TodoWri
     TaskCreate(description: "Review: API — Story {STORY_ID}")
     TaskCreate(description: "Review: Events — Story {STORY_ID}")
 
-    Skill(skill: "x-review-qa",            args: "{STORY_ID}")
-    Skill(skill: "x-review-perf",          args: "{STORY_ID}")
-    Skill(skill: "x-review-db",            args: "{STORY_ID}")
-    Skill(skill: "x-review-obs",           args: "{STORY_ID}")
-    Skill(skill: "x-review-devops",        args: "{STORY_ID}")
-    Skill(skill: "x-review-data-modeling", args: "{STORY_ID}")
-    Skill(skill: "x-review-security",      args: "{STORY_ID}")
-    Skill(skill: "x-review-api",           args: "{STORY_ID}")
-    Skill(skill: "x-review-events",        args: "{STORY_ID}")
+    Skill(skill: "x-review-qa",            model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-perf",          model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-db",            model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-obs",           model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-devops",        model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-data-modeling", model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-security",      model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-api",           model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-events",        model: "sonnet", args: "{STORY_ID}")
 
 Record the returned TaskCreate integer IDs in an in-memory map `reviewTasks` indexed by specialist short name (e.g., `reviewTasks["qa"] = <id>`, `reviewTasks["perf"] = <id>`, ...). The mapping is used in Batch B below.
 
