@@ -1,0 +1,61 @@
+{
+  "storyId": "story-0051-0003",
+  "epicId": "0051",
+  "verifiedAt": "2026-04-23T20:00:00Z",
+  "verifier": "x-internal-story-verify (Rule 24 evidence)",
+  "passed": true,
+  "coverage": {
+    "line": null,
+    "branch": null,
+    "note": "Retrofit-only scope; no production Java code added or modified. Coverage gate applies to producer code (KnowledgeAssembler, story-0051-0001) and downstream cleanup (story-0051-0006)."
+  },
+  "testSuiteResults": {
+    "total": 4162,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "delta": {
+      "baseline": 4171,
+      "removed": 10,
+      "addedMethods": 3,
+      "note": "Net delta of -9: 10 OLD-contract @Disabled tests removed (RULE-051-07 forbids the fields they asserted), 3 new invariant methods added to SkillConsumerRetrofitInvariantTest. 1 existing KnowledgeMigrationInvariantTest unchanged."
+    }
+  },
+  "acceptanceCriteriaCheckResults": [
+    {
+      "scenario": "inventário de consumidores (baseline)",
+      "result": "PASS",
+      "evidence": "21 SKILL.md + 7 auxiliary files (README.md, references/*.md) under skills/core/ identified and retrofitted via regex script; 90+ path replacements applied"
+    },
+    {
+      "scenario": "retrofit simple KP (happy path)",
+      "result": "PASS",
+      "evidence": "Sampled retrofits verified: skills/{kp}/SKILL.md references replaced with knowledge/{kp}.md (simple) across 21 SKILL.md files. grep confirms 0 residual legacy references."
+    },
+    {
+      "scenario": "retrofit complex KP with references (boundary)",
+      "result": "PASS",
+      "evidence": "Sampled retrofits verified: skills/{kp}/references/foo.md replaced with knowledge/{kp}/foo.md (complex) or inlined to knowledge/{kp}.md (simple). x-arch-plan and x-story-plan show 19-22 new knowledge/ references each."
+    },
+    {
+      "scenario": "grep invariant (regression gate)",
+      "result": "PASS",
+      "evidence": "SkillConsumerRetrofitInvariantTest asserts via Files.walk+grep that no SKILL.md or auxiliary file under skills/core/ references the legacy skills/{kp}/SKILL.md or skills/{kp}/references/ paths. Test is green."
+    }
+  ],
+  "crossFileConsistency": {
+    "passed": true,
+    "checks": [
+      "All 21 retrofitted SKILL.md files use the knowledge/ prefix uniformly",
+      "All 7 auxiliary files (README.md + references/*.md) use the knowledge/ prefix uniformly",
+      "2 broken retrofit artifacts (.mdreferences/ malformed in x-story-plan and x-arch-plan) fixed manually pre-commit",
+      "No residual skills/{kp}/SKILL.md or skills/{kp}/references/ references anywhere under skills/core/"
+    ]
+  },
+  "smokeResult": {
+    "ran": true,
+    "passed": true,
+    "note": "mvn test: BUILD SUCCESS at 4162 tests / 0 failures / 0 errors / 0 skipped. Invariant tests KnowledgeMigrationInvariantTest and SkillConsumerRetrofitInvariantTest both green."
+  },
+  "failures": []
+}

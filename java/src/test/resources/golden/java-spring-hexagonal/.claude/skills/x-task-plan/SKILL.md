@@ -336,7 +336,7 @@ Inject a `## File Footprint` section into the plan document, immediately BEFORE 
 
 #### Knowledge Pack Reference
 
-The inference rules above are the working contract documented in the `parallelism-heuristics` knowledge pack (`skills/knowledge-packs/parallelism-heuristics/SKILL.md`). Read that KP when extending the rules (e.g., adding new regen patterns) to keep consumer tooling in sync.
+The inference rules above are the working contract documented in the `parallelism-heuristics` knowledge pack (`knowledge/parallelism-heuristics.md`). Read that KP when extending the rules (e.g., adding new regen patterns) to keep consumer tooling in sync.
 
 ### Phase 5 -- Write Plan
 
@@ -488,11 +488,11 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-p
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| testing | `skills/testing/SKILL.md` | TDD patterns, TPP levels, test naming conventions |
-| architecture | `skills/architecture/SKILL.md` | Layer definitions, package structure, dependency rules |
-| security | `skills/security/SKILL.md` | OWASP Top 10, security checklist items |
-| parallelism-heuristics | `skills/knowledge-packs/parallelism-heuristics/SKILL.md` | File Footprint semantics (write/read/regen sub-sections) consumed by Phase 4.5 |
-| coding-standards | `skills/coding-standards/SKILL.md` | {{LANGUAGE}} conventions, naming, SOLID principles |
+| testing | `knowledge/testing.md` | TDD patterns, TPP levels, test naming conventions |
+| architecture | `knowledge/architecture.md` | Layer definitions, package structure, dependency rules |
+| security | `knowledge/security/index.md` | OWASP Top 10, security checklist items |
+| parallelism-heuristics | `knowledge/parallelism-heuristics.md` | File Footprint semantics (write/read/regen sub-sections) consumed by Phase 4.5 |
+| coding-standards | `knowledge/coding-standards.md` | {{LANGUAGE}} conventions, naming, SOLID principles |
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 

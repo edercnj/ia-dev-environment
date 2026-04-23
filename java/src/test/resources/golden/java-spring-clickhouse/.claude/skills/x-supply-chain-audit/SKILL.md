@@ -250,7 +250,7 @@ risk_score = (cve_severity * 0.40)
 
 Write SARIF to `results/audits/supply-chain-audit-YYYY-MM-DD.sarif.json`:
 
-Follow the SARIF template from `skills/security/references/sarif-template.md`. Use tool name `x-supply-chain-audit` and rule IDs:
+Follow the SARIF template from `knowledge/security/sarif-template.md`. Use tool name `x-supply-chain-audit` and rule IDs:
 
 | Rule ID | Name | Category |
 |---------|------|----------|
@@ -357,7 +357,7 @@ Risk Score = (CVE Severity * 0.40) + (Depth * 0.20)
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| security | `skills/security/references/sarif-template.md` | SARIF 2.1.0 output format |
-| security | `skills/security/references/security-scoring.md` | Scoring model and grade scale |
-| security | `skills/security/references/supply-chain-hardening.md` | SLSA framework and hardening patterns |
-| security | `skills/security/references/sbom-generation-guide.md` | SBOM format reference |
+| security | `knowledge/security/sarif-template.md` | SARIF 2.1.0 output format |
+| security | `knowledge/security/security-scoring.md` | Scoring model and grade scale |
+| security | `knowledge/security/supply-chain-hardening.md` | SLSA framework and hardening patterns |
+| security | `knowledge/security/sbom-generation-guide.md` | SBOM format reference |

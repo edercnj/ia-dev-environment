@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Security |
 | **Invocation** | `/x-hardening-eval --target <url> [--scope all\|headers\|tls\|cors\|cookies\|errors\|limits\|disclosure] [--benchmark cis\|owasp] [--level L1\|L2\|L3]` |
-| **Reads** | `skills/security/references/security-principles.md`, `skills/security/references/application-security.md`, `skills/security/references/cryptography.md` |
+| **Reads** | `knowledge/security/security-principles.md`, `knowledge/security/application-security.md`, `knowledge/security/cryptography.md` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 

@@ -65,7 +65,7 @@ If severity is provided as argument, validate and use directly. If omitted, ask 
 
 ### Step 2 — Load Checklist
 
-Load the severity-specific checklist from the SRE Practices knowledge pack (`skills/sre-practices/`). Each severity level has different response requirements:
+Load the severity-specific checklist from the SRE Practices knowledge pack (`knowledge/sre-practices/`). Each severity level has different response requirements:
 
 **SEV1 — Critical Checklist:**
 
@@ -282,7 +282,7 @@ See Step 4 above for complete templates per channel (Status Page, Slack/Teams, E
 |-------|-------------|---------|
 | x-ops-troubleshoot | called-by | Escalates to this skill when an issue becomes a production incident |
 | sre-engineer (agent) | calls | Delegates reliability expertise and checklist validation via Agent tool |
-| sre-practices (KP) | reads | References `skills/sre-practices/` for incident management processes |
+| sre-practices (KP) | reads | References `knowledge/sre-practices/` for incident management processes |
 
 - Uses `_TEMPLATE-POSTMORTEM.md` for postmortem document generation. Fallback: inline postmortem with basic structure when template is absent.
 - Uses `_TEMPLATE-INCIDENT-RESPONSE.md` for severity classification reference

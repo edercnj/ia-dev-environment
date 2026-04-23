@@ -2,6 +2,7 @@ package dev.iadev.application.assembler;
 
 import dev.iadev.testutil.TestConfigBuilder;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Infrastructure (SARIF + Scoring) reference files and
  * SKILL.md registration.
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("Security SARIF + Scoring References")
 class SecuritySarifScoringTest {
 

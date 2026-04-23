@@ -295,8 +295,8 @@ Prompt content:
 > **Step 1 — Read context:**
 > - Template `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` (RULE-007); on missing, log WARNING and use inline format (RULE-012).
 > - Story file `{STORY_PATH}`.
-> - `skills/architecture/references/architecture-principles.md` (layer structure, dependency direction).
-> - `skills/layer-templates/SKILL.md` (per-layer code templates).
+> - `knowledge/architecture.md` (layer structure, dependency direction).
+> - `knowledge/layer-templates.md` (per-layer code templates).
 > - Relevant ADRs in `adr/`.
 > - Architecture plan at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (if exists).
 >
@@ -318,7 +318,7 @@ Prompt content:
 
 > **FIRST ACTION:** `TaskCreate(description: "Planning: Event Schema — Story {storyId}")` → record as `eventSchemaTaskId`.
 >
-> You are an Event Engineer. Read `skills/protocols/references/event-driven-conventions.md` and the implementation plan. Produce event schema: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts. Save to `plans/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
+> You are an Event Engineer. Read `knowledge/protocols.md` and the implementation plan. Produce event schema: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts. Save to `plans/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
 >
 > **LAST ACTION:** `TaskUpdate(id: eventSchemaTaskId, status: "completed")`.
 
@@ -336,7 +336,7 @@ Prompt content:
 
 > **FIRST ACTION:** `TaskCreate(description: "Planning: Security Assessment (fallback) — Story {storyId}")` → record as `securityFallbackTaskId`.
 >
-> You are a Security Engineer. Read template `.claude/templates/_TEMPLATE-SECURITY-ASSESSMENT.md`, `skills/security/references/application-security.md` (OWASP Top 10 + headers + dependency security), `skills/security/references/security-principles.md` (data classification, input validation, secure error handling), and the implementation plan. Produce threat model, OWASP mapping, authN/authZ review, input validation, data protection, secrets management. Save to `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`.
+> You are a Security Engineer. Read template `.claude/templates/_TEMPLATE-SECURITY-ASSESSMENT.md`, `knowledge/security/application-security.md` (OWASP Top 10 + headers + dependency security), `knowledge/security/security-principles.md` (data classification, input validation, secure error handling), and the implementation plan. Produce threat model, OWASP mapping, authN/authZ review, input validation, data protection, secrets management. Save to `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`.
 >
 > **LAST ACTION:** `TaskUpdate(id: securityFallbackTaskId, status: "completed")`.
 
@@ -354,7 +354,7 @@ Prompt content:
 
 > **FIRST ACTION:** `TaskCreate(description: "Planning: Compliance Assessment — Story {storyId}")` → record as `complianceTaskId`.
 >
-> You are a Security Engineer. Read template `.claude/templates/_TEMPLATE-COMPLIANCE-ASSESSMENT.md`, the active compliance reference under `skills/compliance/references/` (the one matching project config: `gdpr.md` / `lgpd.md` / `pci-dss.md` / `hipaa.md` / `sox.md`), `skills/security/references/security-principles.md`, and the implementation plan. Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations. Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
+> You are a Security Engineer. Read template `.claude/templates/_TEMPLATE-COMPLIANCE-ASSESSMENT.md`, the active compliance reference under `knowledge/compliance.md` (the one matching project config: `gdpr.md` / `lgpd.md` / `pci-dss.md` / `hipaa.md` / `sox.md`), `knowledge/security/security-principles.md`, and the implementation plan. Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations. Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 >
 > **LAST ACTION:** `TaskUpdate(id: complianceTaskId, status: "completed")`.
 

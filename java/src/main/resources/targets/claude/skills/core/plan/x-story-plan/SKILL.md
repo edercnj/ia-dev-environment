@@ -308,9 +308,9 @@ Launch `general-purpose` subagent with explicit `model: "opus"` (Rule 23 RULE-00
 > You are a **Senior Architect** planning the implementation of a story for {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read Knowledge Packs:**
-> - Read `skills/architecture/references/architecture-principles.md` -- layer structure, dependency direction, package conventions
-> - Read `skills/layer-templates/SKILL.md` -- code templates per architecture layer
-> - Read `skills/coding-standards/references/coding-conventions.md` -- {{LANGUAGE}} conventions
+> - Read `knowledge/architecture/architecture-principles.md` -- layer structure, dependency direction, package conventions
+> - Read `knowledge/layer-templates.md` -- code templates per architecture layer
+> - Read `knowledge/coding-standards/coding-conventions.md` -- {{LANGUAGE}} conventions
 > - Read any relevant ADRs in `adr/` directory
 >
 > **Step 2 -- Read Story Context:**
@@ -362,9 +362,9 @@ Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-
 > You are a **QA Engineer** planning tests for a story in {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read Knowledge Packs:**
-> - Read `skills/testing/references/testing-philosophy.md` -- 8 test categories, fixture patterns, data uniqueness
-> - Read `skills/testing/references/testing-conventions.md` -- {{LANGUAGE}}-specific test frameworks, naming conventions
-> - Read `skills/architecture/references/architecture-principles.md` -- layer boundaries for unit vs integration scope
+> - Read `knowledge/testing/testing-philosophy.md` -- 8 test categories, fixture patterns, data uniqueness
+> - Read `knowledge/testing/testing-conventions.md` -- {{LANGUAGE}}-specific test frameworks, naming conventions
+> - Read `knowledge/architecture/architecture-principles.md` -- layer boundaries for unit vs integration scope
 >
 > **Step 2 -- Read Story Context:**
 > {STORY_CONTENT}
@@ -415,9 +415,9 @@ Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-
 > You are a **Security Engineer** assessing security impact for a story in {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read Knowledge Packs:**
-> - Read `skills/security/references/application-security.md` -- OWASP Top 10, security headers, dependency security
-> - Read `skills/security/references/security-principles.md` -- data classification, input validation, secure error handling
-> - If compliance is enabled, read the project's active compliance reference under `skills/compliance/references/` (e.g., `gdpr.md`, `lgpd.md`, `pci-dss.md`)
+> - Read `knowledge/security/application-security.md` -- OWASP Top 10, security headers, dependency security
+> - Read `knowledge/security/security-principles.md` -- data classification, input validation, secure error handling
+> - If compliance is enabled, read the project's active compliance reference under `knowledge/compliance.md` (e.g., `gdpr.md`, `lgpd.md`, `pci-dss.md`)
 >
 > **Step 2 -- Read Story Context:**
 > {STORY_CONTENT}
@@ -458,9 +458,9 @@ Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-
 > You are a **Tech Lead** defining quality gates for a story in {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read Knowledge Packs:**
-> - Read `skills/coding-standards/references/coding-conventions.md` -- Clean Code rules, SOLID
-> - Read `skills/architecture/references/architecture-principles.md` -- layer boundaries, dependency rules
-> - Read `skills/testing/references/testing-philosophy.md` -- TDD workflow, coverage thresholds
+> - Read `knowledge/coding-standards/coding-conventions.md` -- Clean Code rules, SOLID
+> - Read `knowledge/architecture/architecture-principles.md` -- layer boundaries, dependency rules
+> - Read `knowledge/testing/testing-philosophy.md` -- TDD workflow, coverage thresholds
 >
 > **Step 2 -- Read Story Context:**
 > {STORY_CONTENT}
@@ -1113,13 +1113,13 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| architecture | `skills/architecture/references/architecture-principles.md` | Layer structure, dependency direction |
-| layer-templates | `skills/layer-templates/SKILL.md` | Code templates per layer |
-| coding-standards | `skills/coding-standards/references/coding-conventions.md` | {{LANGUAGE}} conventions, Clean Code |
-| testing | `skills/testing/references/testing-philosophy.md` | TDD workflow, 8 test categories |
-| testing | `skills/testing/references/testing-conventions.md` | {{LANGUAGE}}-specific test patterns |
-| security | `skills/security/SKILL.md` + references | OWASP, input validation, secrets |
-| compliance | `skills/compliance/SKILL.md` | Regulatory frameworks (conditional) |
+| architecture | `knowledge/architecture/architecture-principles.md` | Layer structure, dependency direction |
+| layer-templates | `knowledge/layer-templates.md` | Code templates per layer |
+| coding-standards | `knowledge/coding-standards/coding-conventions.md` | {{LANGUAGE}} conventions, Clean Code |
+| testing | `knowledge/testing/testing-philosophy.md` | TDD workflow, 8 test categories |
+| testing | `knowledge/testing/testing-conventions.md` | {{LANGUAGE}}-specific test patterns |
+| security | `knowledge/security/index.md` + references | OWASP, input validation, secrets |
+| compliance | `knowledge/compliance.md` | Regulatory frameworks (conditional) |
 | parallelism-heuristics | `skills/knowledge-packs/parallelism-heuristics/SKILL.md` | File Footprint schema + union-set aggregation rules consumed by Phase 6 |
 
 ## Integration Notes

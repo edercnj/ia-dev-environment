@@ -41,8 +41,8 @@ Phase 3 — REPORT     -> Generate audit report file (inline)
    - `rules/03-coding-standards.md` — coding rules
    - `rules/04-architecture-summary.md` — architecture layers
    - `rules/05-quality-gates.md` — coverage thresholds
-   - `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} conventions
-   - `skills/architecture/references/architecture-principles.md` — architecture principles
+   - `knowledge/coding-standards/coding-conventions.md` — {{LANGUAGE}} conventions
+   - `knowledge/architecture/architecture-principles.md` — architecture principles
 3. List all source files:
    ```bash
    find . -type f -name "*.{{LANGUAGE_EXT}}" | grep -v node_modules | grep -v target | grep -v build

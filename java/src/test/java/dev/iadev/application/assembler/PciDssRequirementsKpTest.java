@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>Covers Gherkin scenarios @GK-1 through @GK-5.</p>
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("PCI-DSS Requirements KP")
 class PciDssRequirementsKpTest {
 
@@ -390,27 +392,6 @@ class PciDssRequirementsKpTest {
     @Nested
     @DisplayName("Frontmatter and structure")
     class FrontmatterAndStructure {
-
-        @Test
-        @DisplayName("has correct frontmatter name"
-                + " and user-invocable false")
-        void render_pciDssKp_hasCorrectFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .securityFrameworks("pci-dss")
-                            .build();
-
-            new SkillsAssembler().assemble(
-                    config, new TemplateEngine(), tempDir);
-
-            String content = readSkill(tempDir,
-                    "pci-dss-requirements/SKILL.md");
-            assertThat(content)
-                    .contains("name: pci-dss-requirements")
-                    .contains("user-invocable: false");
-        }
 
         @Test
         @DisplayName("not generated when compliance"

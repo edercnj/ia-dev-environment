@@ -96,9 +96,9 @@ public final class SkillsAssembler implements Assembler {
         generated.addAll(
                 assembleConditional(
                         config, outputDir, engine, context));
-        generated.addAll(
-                assembleKnowledge(
-                        config, outputDir, engine, context));
+        // EPIC-0051 (ADR-0013): knowledge packs moved to
+        // .claude/knowledge/ under KnowledgeAssembler; no
+        // longer emitted by SkillsAssembler.
         assembleShared(outputDir)
                 .ifPresent(generated::add);
         pruneStaleSkills(outputDir, generated);
@@ -305,32 +305,6 @@ public final class SkillsAssembler implements Assembler {
                     skill, outputDir, engine, context)
                     .ifPresent(generated::add);
         }
-        return generated;
-    }
-
-    private List<String> assembleKnowledge(
-            ProjectConfig config,
-            Path outputDir,
-            TemplateEngine engine,
-            java.util.Map<String, Object> context) {
-        List<String> generated = new ArrayList<>();
-        List<String> packs =
-                SkillsSelection.selectKnowledgePacks(
-                        config);
-        for (String pack : packs) {
-            SkillsCopyHelper.copyKnowledgePack(
-                    pack, resourcesDir, outputDir,
-                    engine, context)
-                    .ifPresent(generated::add);
-        }
-        SkillsCopyHelper.copyStackPatterns(
-                config, resourcesDir, outputDir,
-                engine, context)
-                .ifPresent(generated::add);
-        generated.addAll(
-                SkillsCopyHelper.copyInfraPatterns(
-                        config, resourcesDir, outputDir,
-                        engine, context));
         return generated;
     }
 

@@ -98,7 +98,7 @@ For each existing workflow:
 
 ### Step 3 — Generate Workflows
 
-Reference the CI/CD patterns knowledge pack (`skills/ci-cd-patterns/`) for pipeline templates and best practices.
+Reference the CI/CD patterns knowledge pack (`knowledge/ci-cd-patterns/`) for pipeline templates and best practices.
 
 #### 3.1 — CI Pipeline (`ci.yml`)
 
@@ -293,4 +293,4 @@ Path detection strategy:
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| ci-cd-patterns | `skills/ci-cd-patterns/SKILL.md` | Pipeline templates and best practices |
+| ci-cd-patterns | `knowledge/ci-cd-patterns/index.md` | Pipeline templates and best practices |

@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 23 assemblers
+ * Tests for AssemblerPipeline — orchestrates 24 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -30,6 +30,7 @@ class AssemblerPipelineTest {
     private static final List<String> EXPECTED_ORDER = List.of(
             "ConstitutionAssembler",
             "RulesAssembler",
+            "KnowledgeAssembler",
             "SkillsAssembler",
             "AgentsAssembler",
             "PatternsAssembler",
@@ -57,12 +58,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 23 assembler descriptors")
+        @DisplayName("returns exactly 24 assembler descriptors")
         void assemble_whenCalled_returnsExactly23() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(23);
+            assertThat(descriptors).hasSize(24);
         }
 
         @Test
@@ -89,11 +90,11 @@ class AssemblerPipelineTest {
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(1).target())
                     .isEqualTo(AssemblerTarget.CLAUDE);
-            assertThat(descriptors.get(8).target())
+            assertThat(descriptors.get(9).target())
                     .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(17).target())
+            assertThat(descriptors.get(18).target())
                     .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(21).target())
+            assertThat(descriptors.get(22).target())
                     .isEqualTo(AssemblerTarget.CLAUDE);
         }
 

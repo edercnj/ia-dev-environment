@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Security |
 | **Invocation** | `/x-security-dashboard [--period last-7d\|last-30d\|last-90d\|all] [--format markdown\|json] [--compare-previous]` |
-| **Reads** | `skills/security/references/security-scoring.md`, `skills/security/references/security-skill-template.md` |
+| **Reads** | `knowledge/security/security-scoring.md`, `knowledge/security/security-skill-template.md` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 

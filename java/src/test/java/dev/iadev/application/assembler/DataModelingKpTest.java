@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>Covers Gherkin scenarios @GK-1 through @GK-5.</p>
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("Data Modeling Knowledge Pack")
 class DataModelingKpTest {
 
@@ -226,26 +228,6 @@ class DataModelingKpTest {
                     "data-modeling/SKILL.md");
             assertThat(content)
                     .contains("Test Data Patterns");
-        }
-
-        @Test
-        @DisplayName("SKILL.md has user-invocable false"
-                + " in frontmatter")
-        void render_skillMd_hasUserInvocableFalse(
-                @TempDir Path tempDir)
-                throws IOException {
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .database("postgresql", "16")
-                            .build();
-
-            new SkillsAssembler().assemble(
-                    config, new TemplateEngine(), tempDir);
-
-            String content = readSkill(tempDir,
-                    "data-modeling/SKILL.md");
-            assertThat(content)
-                    .contains("user-invocable: false");
         }
 
         @Test

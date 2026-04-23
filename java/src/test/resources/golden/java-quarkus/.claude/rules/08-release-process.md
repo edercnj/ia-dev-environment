@@ -1,6 +1,6 @@
 # Rule 08 — Release Process
 
-> **Full reference:** Read `skills/protocols/SKILL.md` for detailed release management procedures.
+> **Full reference:** Read `knowledge/protocols.md` for detailed release management procedures.
 > **Related:** See Rule 09 for the branching model (Git Flow), branch types, and merge direction rules.
 
 ## Semantic Versioning (Non-Negotiable)
@@ -70,4 +70,4 @@
 - Releasing directly from `main` without a release branch or tag
 - Deploying without a rollback plan
 
-> Read `skills/protocols/SKILL.md` for branching strategies, hotfix procedures, and CI/CD pipeline configuration.
+> Read `knowledge/protocols.md` for branching strategies, hotfix procedures, and CI/CD pipeline configuration.

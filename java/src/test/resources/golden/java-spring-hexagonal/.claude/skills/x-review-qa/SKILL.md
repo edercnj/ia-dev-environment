@@ -42,7 +42,7 @@ Review code changes for QA compliance: test coverage thresholds, TDD process adh
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| testing | `skills/testing/SKILL.md` | Test categories, coverage thresholds, fixture patterns, TDD workflow |
+| testing | `knowledge/testing.md` | Test categories, coverage thresholds, fixture patterns, TDD workflow |
 
 ## Checklist (20 Items, Max Score: /40 full scale; adjusted max excludes N/A items)
 
@@ -110,7 +110,7 @@ score line (see Output Template below).
 ### Step 1 -- Gather Context
 
 Read the testing knowledge pack for project test conventions:
-- `skills/testing/SKILL.md`
+- `knowledge/testing.md`
 
 ### Step 2 -- Identify Changed Files
 

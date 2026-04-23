@@ -1,0 +1,58 @@
+{
+  "storyId": "story-0051-0002",
+  "epicId": "0051",
+  "verifiedAt": "2026-04-23T19:00:00Z",
+  "verifier": "x-internal-story-verify (Rule 24 evidence)",
+  "passed": true,
+  "coverage": {
+    "line": null,
+    "branch": null,
+    "note": "This story's DoD does not require coverage deltas (migration-only scope). Invariant test KnowledgeMigrationInvariantTest validates dual-source absence; coverage gate applies to KnowledgeAssembler (story-0051-0001, already 97.8% line / 100% branch) and to KP-consuming code retrofitted in stories 0051-0003/0006."
+  },
+  "testSuiteResults": {
+    "total": 4171,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 10,
+    "skippedBreakdown": {
+      "story-0051-0003-retrofit": 11,
+      "note": "10 test methods are @Disabled with explicit story-0051-0003 reference because they assert the OLD KP frontmatter contract (user-invocable: false, allowed-tools, argument-hint) that RULE-051-07 explicitly forbids in the new knowledge format. These tests will be rewritten or removed when consumers are retrofitted."
+    }
+  },
+  "acceptanceCriteriaCheckResults": [
+    {
+      "scenario": "inventário baseline (degenerate)",
+      "result": "PASS",
+      "evidence": "plans/epic-0051/kp-inventory.txt contains 32 entries"
+    },
+    {
+      "scenario": "migração de KP sem references (happy path)",
+      "result": "PASS",
+      "evidence": "Examples verified: coding-standards.md, testing.md, architecture.md exist at new location with cleaned frontmatter; old paths removed"
+    },
+    {
+      "scenario": "migração de KP com references (boundary)",
+      "result": "PASS",
+      "evidence": "Examples verified: security/ patterns-outbox/ have index.md + sibling .md files at new location; old paths removed"
+    },
+    {
+      "scenario": "dupla-fonte detectada (error path)",
+      "result": "PASS",
+      "evidence": "KnowledgeMigrationInvariantTest.oldKnowledgePacksDir_doesNotExist enforces absence of old directory; fails with clear message if dual source detected"
+    }
+  ],
+  "crossFileConsistency": {
+    "passed": true,
+    "checks": [
+      "SkillsCopyHelper methods use consistent KNOWLEDGE_DIR constant",
+      "copyKnowledgePack / copyStackPatterns / copyInfraPatterns share copyNonIndexItems helper (fan-in DRY)",
+      "All 3 paths accept either simple (knowledge/{name}.md) or complex (knowledge/{name}/index.md) source shape"
+    ]
+  },
+  "smokeResult": {
+    "ran": true,
+    "passed": true,
+    "note": "mvn process-resources + full mvn test (BUILD SUCCESS). Ten KP profiles regenerated via GoldenFileRegenerator with no diff vs source."
+  },
+  "failures": []
+}

@@ -50,4 +50,4 @@ Sub-skills may be bypassed only with an explicit `--skip-review` / `--skip-verif
 
 ## Related Skills
 
-Project-specific skills and knowledge packs live under `.claude/skills/`. Invoke them via `/name` in Claude Code chat, or let Claude pick the right one based on context.
+Project-specific skills live under `.claude/skills/` (invocable via `/name` in Claude Code chat). Knowledge packs — reference docs for architecture, security, testing, coding standards, etc. — live under `.claude/knowledge/` and are read by skills as context (see ADR-0013).

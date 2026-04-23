@@ -307,8 +307,8 @@ Privacy threat modeling covering:
 
 | # | Knowledge Pack | Path | Purpose |
 |---|----------------|------|---------|
-| 1 | Security | `skills/security/SKILL.md` | Mitigation recommendations and OWASP references |
-| 2 | Security References | `skills/security/references/application-security.md` | Detailed security controls and patterns |
+| 1 | Security | `knowledge/security/index.md` | Mitigation recommendations and OWASP references |
+| 2 | Security References | `knowledge/security/application-security.md` | Detailed security controls and patterns |
 
 ## Integration Notes
 

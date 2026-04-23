@@ -1,6 +1,6 @@
 # Rule 04 — Architecture Summary
 
-> **Full reference:** Read `skills/architecture/SKILL.md` before designing or implementing features.
+> **Full reference:** Read `knowledge/architecture.md` before designing or implementing features.
 
 ## Architecture Style: {{ARCHITECTURE}} ({{ARCH_STYLE}})
 
@@ -59,7 +59,7 @@ Inbound adapters (CLI, REST, gRPC) MUST call application-layer use cases. Direct
 
 Inner layers first, outer layers last: domain → ports → adapters → application → inbound → tests.
 
-> Read `skills/layer-templates/SKILL.md` for code templates per layer and `skills/architecture/SKILL.md` for full patterns.
+> Read `knowledge/layer-templates.md` for code templates per layer and `knowledge/architecture.md` for full patterns.
 
 ## Deviations
 

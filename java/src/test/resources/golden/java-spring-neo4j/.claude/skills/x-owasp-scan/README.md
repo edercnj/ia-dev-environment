@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Security |
 | **Invocation** | `/x-owasp-scan [--level L1\|L2\|L3] [--category A01-A10\|all] [--report-format markdown\|sarif\|both]` |
-| **Reads** | `skills/security/`, `skills/security/references/application-security.md` |
+| **Reads** | `knowledge/security/`, `knowledge/security/application-security.md` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
