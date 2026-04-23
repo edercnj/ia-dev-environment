@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build
-        run: {BUILD_TOOL} build
+        run: gradle build
 
   test:
     needs: build
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test
-        run: {BUILD_TOOL} test
+        run: gradle test
 
   deploy:
     needs: [build, test]

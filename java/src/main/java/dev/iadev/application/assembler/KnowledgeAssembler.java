@@ -13,7 +13,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Assembles {@code .claude/knowledge/} from
@@ -34,6 +37,25 @@ public final class KnowledgeAssembler implements Assembler {
     private static final List<String> FORBIDDEN_FIELDS =
             List.of("user-invocable", "allowed-tools",
                     "argument-hint", "context-budget");
+
+    /**
+     * Per-line regex for each forbidden field. Matches a
+     * key at the start of a line (optionally indented, but
+     * anchored at the line start to avoid false positives
+     * inside string values). Built once at class load.
+     */
+    private static final Map<String, Pattern>
+            FIELD_PATTERNS = buildFieldPatterns();
+
+    private static Map<String, Pattern>
+            buildFieldPatterns() {
+        Map<String, Pattern> map = new LinkedHashMap<>();
+        for (String field : FORBIDDEN_FIELDS) {
+            map.put(field, Pattern.compile(
+                    "^" + Pattern.quote(field) + "\\s*:"));
+        }
+        return map;
+    }
 
     private final Path overrideSourceDir;
 
@@ -72,6 +94,14 @@ public final class KnowledgeAssembler implements Assembler {
         Path targetDir = outputDir.resolve("knowledge");
         List<String> generated = new ArrayList<>();
         walkAndCopy(sourceDir, targetDir, generated);
+        // RULE-051-07 / PR #609 review: resolve
+        // {{PLACEHOLDER}} tokens after verbatim copy so
+        // generated KPs carry no unresolved markers. Uses
+        // the same context builder as other assemblers.
+        CopyHelpers.replacePlaceholdersInDir(
+                targetDir, engine,
+                dev.iadev.config.ContextBuilder
+                        .buildContext(config));
         return List.copyOf(generated);
     }
 
@@ -166,26 +196,43 @@ public final class KnowledgeAssembler implements Assembler {
         }
     }
 
+    /**
+     * Validates that YAML frontmatter (if present) does not
+     * declare any {@link #FORBIDDEN_FIELDS}.
+     *
+     * <p>Parses the frontmatter block line-by-line: the
+     * opening delimiter MUST be {@code ---} as the first
+     * line; the closing delimiter is the first subsequent
+     * line that is exactly {@code ---} (after trimming),
+     * not a substring inside a value. Field detection uses
+     * a per-line regex {@code ^<field>\s*:} so that spaces,
+     * comments, and string values containing the field name
+     * cannot produce false positives (PR #609 review).</p>
+     */
     private static void validateFrontmatter(Path file)
             throws IOException {
         String content = Files.readString(
                 file, StandardCharsets.UTF_8);
-        if (!content.startsWith("---")) {
+        String[] lines = content.split("\n", -1);
+        if (lines.length == 0
+                || !"---".equals(lines[0].trim())) {
             return;
         }
-        int end = content.indexOf("---", 3);
-        if (end < 0) {
-            return;
-        }
-        String frontmatter = content.substring(3, end);
-        for (String field : FORBIDDEN_FIELDS) {
-            if (frontmatter.contains(field + ":")) {
-                throw new IllegalStateException(
-                        ("Knowledge pack %s declares"
-                                + " skill-only field %s")
-                                .formatted(
-                                        file.getFileName(),
-                                        field));
+        for (int i = 1; i < lines.length; i++) {
+            String line = lines[i];
+            if ("---".equals(line.trim())) {
+                return;
+            }
+            for (String field : FORBIDDEN_FIELDS) {
+                if (FIELD_PATTERNS.get(field)
+                        .matcher(line).find()) {
+                    throw new IllegalStateException(
+                            ("Knowledge pack %s declares"
+                                    + " skill-only field %s")
+                                    .formatted(
+                                            file.getFileName(),
+                                            field));
+                }
             }
         }
     }
