@@ -1,5 +1,6 @@
 ---
 name: x-task-implement
+model: sonnet
 description: "Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
