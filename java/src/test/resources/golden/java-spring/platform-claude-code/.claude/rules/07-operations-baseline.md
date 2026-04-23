@@ -1,6 +1,6 @@
 # Rule 07 — Operations Baseline
 
-> **Full reference:** Read `skills/observability/SKILL.md` for detailed SRE practices and monitoring patterns.
+> **Full reference:** Read `knowledge/observability/index.md` for detailed SRE practices and monitoring patterns.
 
 ## Health Checks (Non-Negotiable)
 
@@ -58,4 +58,4 @@
 - Shutdown without connection draining
 - `System.exit()` / `os.Exit()` / `process.exit()` without cleanup
 
-> Read `skills/observability/SKILL.md` for metrics, alerting, and SLO definitions.
+> Read `knowledge/observability/index.md` for metrics, alerting, and SLO definitions.

@@ -108,4 +108,4 @@ feature:       ●──●│  ●──●
 - Releasing without a `release/*` branch (see Rule 08)
 - Skipping the back-merge of `release/*` or `hotfix/*` into `develop`
 
-> Read `skills/protocols/SKILL.md` for branching strategies, hotfix procedures, and CI/CD pipeline configuration.
+> Read `knowledge/protocols.md` for branching strategies, hotfix procedures, and CI/CD pipeline configuration.
