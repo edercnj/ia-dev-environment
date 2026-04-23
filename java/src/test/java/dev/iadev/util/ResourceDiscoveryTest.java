@@ -330,4 +330,62 @@ class ResourceDiscoveryTest {
             assertThat(discovery.getResourcesDir()).isNull();
         }
     }
+
+    @Nested
+    @DisplayName("listFromFilesystem — branch coverage")
+    class ListFromFilesystem {
+
+        @Test
+        @DisplayName("skips subdirectories, keeps only"
+                + " regular files (Files.isRegularFile=false"
+                + " branch)")
+        void list_subdirectoryMixedFiles_filtersDirs(
+                @TempDir Path tempDir) throws IOException {
+            Path targetDir = tempDir.resolve("payload");
+            Files.createDirectories(targetDir);
+            Files.writeString(targetDir.resolve("a.md"),
+                    "content", StandardCharsets.UTF_8);
+            Files.createDirectories(
+                    targetDir.resolve("nested"));
+            Files.writeString(targetDir.resolve("b.md"),
+                    "content", StandardCharsets.UTF_8);
+
+            var discovery = new ResourceDiscovery(tempDir);
+            List<String> result =
+                    discovery.listResources("payload");
+
+            assertThat(result)
+                    .containsExactlyInAnyOrder("a.md",
+                            "b.md")
+                    .doesNotContain("nested");
+        }
+
+        @Test
+        @DisplayName("returns empty list when resources-dir"
+                + " does not contain the directory")
+        void list_missingDir_returnsEmpty(
+                @TempDir Path tempDir) {
+            var discovery = new ResourceDiscovery(tempDir);
+
+            List<String> result =
+                    discovery.listResources("not-a-dir");
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("returns empty list for empty"
+                + " directory (no iterations branch)")
+        void list_emptyDir_returnsEmpty(
+                @TempDir Path tempDir) throws IOException {
+            Path emptyDir = tempDir.resolve("empty");
+            Files.createDirectories(emptyDir);
+
+            var discovery = new ResourceDiscovery(tempDir);
+            List<String> result =
+                    discovery.listResources("empty");
+
+            assertThat(result).isEmpty();
+        }
+    }
 }
