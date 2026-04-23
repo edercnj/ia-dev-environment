@@ -2,8 +2,8 @@
 name: x-epic-map
 description: "Generate an Implementation Map from an Epic and its Stories with dependency matrix, phase computation, critical path analysis, ASCII phase diagrams, Mermaid dependency graphs, phase summary tables, and strategic observations."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "<EPIC_FILE>"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+argument-hint: "<EPIC_FILE> [--dry-run]"
 context-budget: medium
 ---
 
@@ -30,6 +30,7 @@ Take the Epic and all Story files and compute the implementation plan: which sto
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `<EPIC_FILE>` | Path | Yes | — | Path to the Epic file (with story index and dependency declarations) |
+| `--dry-run` | Boolean | No | false | When true, the Implementation Map is written to disk but Steps P4 / P5 (planning-commit / push) become no-ops with a `"dry-run, skipping commit"` warning (EPIC-0049 / RULE-007). |
 
 ## Prerequisites
 
@@ -43,6 +44,34 @@ Read the following files before starting:
 - All Story files (with their Blocked By / Blocks tables)
 
 ## Workflow
+
+### Step P1 — Detect Worktree Context (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-P1-Worktree-Detect`
+
+Invoke `x-git-worktree` in detect-context mode so downstream steps know whether the current checkout is already inside an epic worktree. Result is advisory only — `x-internal-epic-branch-ensure` (Step P2) owns the authoritative branch decision.
+
+    Skill(skill: "x-git-worktree", args: "detect-context")
+
+Fail-open (RULE-006): any detect-context failure is logged and Step P2 proceeds.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-P1-Worktree-Detect ok`
+
+### Step P2 — Ensure `epic/<ID>` Branch (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-P2-Epic-Branch-Ensure`
+
+Derive the epic ID from the `<EPIC_FILE>` path (`plans/epic-<XXXX>/epic-<XXXX>.md`), then ensure the `epic/<XXXX>` branch exists locally AND on origin. The ensure skill is idempotent — a no-op when the caller is already on that branch.
+
+    Skill(skill: "x-internal-epic-branch-ensure", args: "--epic-id <XXXX>")
+
+On non-zero exit, abort with `EPIC_BRANCH_ENSURE_FAILED`.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-P2-Epic-Branch-Ensure ok`
 
 ### Step 1 — Build the Dependency Matrix
 
@@ -337,6 +366,41 @@ Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories (i
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
 If task-level dependencies were computed, also report: total tasks, task phases, cross-story dependencies count.
 
+### Step P4 — Commit Implementation Map (EPIC-0049 / RULE-007)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-P4-Planning-Commit`
+
+If `--dry-run` is set, log `"dry-run, skipping commit"` and skip this step entirely.
+
+Otherwise, delegate the commit to `x-planning-commit` so the refreshed `plans/epic-XXXX/IMPLEMENTATION-MAP.md` is versioned on the canonical `epic/<ID>` branch without triggering the code pre-commit chain:
+
+    Skill(skill: "x-planning-commit",
+          args: "--scope docs --epic-id <XXXX> --paths plans/epic-<XXXX>/IMPLEMENTATION-MAP.md --subject \"update implementation map\"")
+
+Idempotency: when the map is byte-identical to the previously committed version, `x-planning-commit` returns `commitSha=null` and `noOp=true` (silent no-op). No additional diff check is required here.
+
+On `COMMIT_FAILED` (exit 4), abort with the same error code.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-P4-Planning-Commit ok`
+
+### Step P5 — Push to Origin (optional, EPIC-0049)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-P5-Push`
+
+If `--dry-run` is set, log `"dry-run, skipping push"` and skip.
+
+Otherwise, push the canonical epic branch so the updated map is observable on origin:
+
+    Skill(skill: "x-git-push", args: "--branch epic/<XXXX>")
+
+On push failure, log a WARNING and continue — the local commit is preserved; the operator re-runs manually. Do NOT abort.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-P5-Push ok`
+
 ## Error Handling
 
 | Scenario | Action |
@@ -351,6 +415,11 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 | Cycle in task dependency graph | Abort with cycle path: "Cycle detected: TASK-A -> TASK-B -> TASK-A" |
 | Stories without formal task IDs | Skip Section 8 with note; proceed with story-level map only |
 | `/x-parallel-eval` skill missing or exit code ≥ 1 (Step 8.5) | Fail-open: emit section 8.5 with "análise pulada — /x-parallel-eval não disponível" (RULE-005 / RULE-006); log WARNING; continue to Step 9 |
+| `x-internal-epic-branch-ensure` fails (Step P2) | Abort with `EPIC_BRANCH_ENSURE_FAILED`; canonical branch is required for versioning |
+| `x-planning-commit` exit 4 (Step P4) | Abort with `COMMIT_FAILED`; file written but not versioned |
+| `x-planning-commit` exit 0 + `noOp=true` (Step P4) | Silent no-op — re-execution idempotency confirmed; continue to Step P5 |
+| `x-git-push` fails (Step P5) | WARN only; local commit preserved; operator re-runs manually |
+| `--dry-run` set | Steps P4 and P5 become no-ops with log line `"dry-run, skipping commit"` / `"dry-run, skipping push"` |
 
 ## Common Mistakes
 
@@ -368,6 +437,10 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 | x-story-create | reads | Reads generated story files for dependency details |
 | x-epic-decompose | called-by | Orchestrator invokes x-epic-map in Phase D |
 | x-epic-implement | reads | Epic implementation reads the map for execution order |
+| x-git-worktree | calls (Step P1) | Detect-context (EPIC-0049 / RULE-001) |
+| x-internal-epic-branch-ensure | calls (Step P2) | Ensure `epic/<ID>` exists locally + origin (EPIC-0049 / RULE-001) |
+| x-planning-commit | calls (Step P4) | Batch-commit implementation map without code pre-commit chain (EPIC-0049 / RULE-007) |
+| x-git-push | calls (Step P5) | Push canonical epic branch to origin (optional) |
 
 ## Knowledge Pack References
 
