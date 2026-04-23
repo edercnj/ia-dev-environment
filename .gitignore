@@ -51,11 +51,11 @@ test-output-ts/
 output/
 # Re-include Java source 'output' directories (hexagonal architecture ports/adapters)
 !java/src/**/output/
-.claude/worktrees/
 
-# Telemetry (EPIC-0040) — global cache index is rebuildable; never commit.
-# The canonical per-epic NDJSON logs under plans/epic-*/telemetry/ ARE versioned.
-.claude/telemetry/index.json
+# .claude/ is generated output of ia-dev-env (source of truth lives at
+# java/src/main/resources/targets/claude/). Regenerate locally with the
+# generator; do not version the output.
+.claude/
 
 # x-release transient state files (created in Step 0, deleted in Step 12)
 /plans/release-state-*.json
