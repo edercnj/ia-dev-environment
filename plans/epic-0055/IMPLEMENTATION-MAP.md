@@ -57,7 +57,7 @@ Layer 0 — Foundation (Rules, infra)
                   │                                          ▼
        ┌──────────▼──────────────────────────┐   ┌──────────────────────────────────┐
        │ 0004: Retrofit x-story-implement    │   │ 0007: Retrofit x-review-pr       │ 6–8h
-       │ 12–16h (4 phases + 5 planejadores) │   │ (45-point + remediation loop)    │
+       │ 12–16h (4 phases + 6 planejadores) │   │ (45-point + remediation loop)    │
        └──────────┬──────────────────────────┘   └────────────┬──────────────────┘
                   │ (bloqueando 0005–0007)                   │ (bloqueando 0011)
                   │                                          │
@@ -76,7 +76,7 @@ Layer 0 — Foundation (Rules, infra)
                   │                              │   ┌────────▼──────────────────┐
                   │                              │   │ 0010: Retrofit x-pr-      │ 6–8h
                   │                              │   │ merge-train (sequential    │
-                  │                              │   │ loop + addBlocks)          │
+                  │                              │   │ loop + addBlockedBy)       │
                   │                              │   └────────┬──────────────────┘
                   │                              │            │ (bloqueando 0011)
                   │                              │            │
@@ -218,7 +218,7 @@ graph TD
 | Story | Título | Duração | Orquestrador |
 | :--- | :--- | :--- | :--- |
 | 0003 | Retrofit x-task-implement | 16–20h | Atômico (8 steps, TDD cycles) |
-| 0004 | Retrofit x-story-implement | 12–16h | História (4 phases, 5 planejadores, 9 especialistas) |
+| 0004 | Retrofit x-story-implement | 12–16h | História (4 phases, 6 planejadores, 9 especialistas) |
 | 0005 | Retrofit x-epic-implement | 12–14h | Épico (6 phases, story loop) |
 
 **Duração fase (sequencial):** 40–50h  

@@ -147,8 +147,8 @@ Anexo A (Seção 13) lista os 100 skills individualmente com coluna `tratamento-
 **Task hierárquica (Claude Code runtime):**
 
 - `TaskCreate` cria uma entry na lista visível à CLI. Retorna um ID numérico.
-- `TaskUpdate(taskId, addBlockedBy: [ids])` cria dependências entre tasks (renderiza "blocked by #N" na CLI).
-- `TaskUpdate(taskId, status: "in_progress" | "completed")` move estado.
+- `TaskUpdate(id: <int>, ...)` atualiza uma task existente; quando a ferramenta suportar dependências, elas devem ser registradas usando o campo/nome efetivamente documentado pela API para produzir o efeito de `"blocked by #N"` na CLI. Esta spec padroniza o termo **`addBlockedBy`** como nome canônico do campo, a ser resolvido durante a implementação de story-0055-0001 (contract finalization).
+- `TaskUpdate(id: <int>, status: "in_progress" | "completed")` move estado.
 - A hierarquia visual **não** é nativa (não há campo `parent`). É codificada no `subject` da task via prefixo: `"STORY-0060-0001 › Planning › Arch plan"`. A CLI atual respeita esse padrão visualmente via indentação heurística.
 
 **Phase gate:**
@@ -183,7 +183,7 @@ On exit 12 (PHASE_GATE_FAILED) abort with exit 12.
 Emit TaskCreate for this phase and record its ID in `phaseTaskId`:
 
     TaskCreate(subject: "Phase N — <Name>", description: "<...>", activeForm: "<...>")
-    TaskUpdate(taskId: phaseTaskId, status: "in_progress")
+    TaskUpdate(id: phaseTaskId, status: "in_progress")
 
 ### N.2 — Executar o trabalho
 
@@ -199,7 +199,7 @@ On exit 12 abort.
 
 ### N.4 — Finalizar tracking
 
-    TaskUpdate(taskId: phaseTaskId, status: "completed")
+    TaskUpdate(id: phaseTaskId, status: "completed")
 
 <!-- TELEMETRY: phase.end -->
 Bash: telemetry-phase.sh end <skill-name> Phase-N-<Name> ok
@@ -207,7 +207,7 @@ Bash: telemetry-phase.sh end <skill-name> Phase-N-<Name> ok
 
 ### 4.3 Pattern canônico — Wave paralela (sub-fases concorrentes)
 
-Aplicável a `x-story-implement` Phase 1 (planejamento com 5 subagentes), `x-review` (9 especialistas), `x-task-implement` Phase 2 (Red/Green/Refactor cycles).
+Aplicável a `x-story-implement` Phase 1 (planejamento com **6 subagentes** — arch, impl, test, tasks, security, compliance), `x-review` (9 especialistas), `x-task-implement` Phase 2 (Red/Green/Refactor cycles).
 
 Usa a Rule 13 Pattern `SUBAGENT-GENERAL` com **Batch A/B** atualmente estabelecida em `x-review`:
 
@@ -232,12 +232,12 @@ Record returned IDs in `planTasks` map.
 
 **Batch B — Next assistant message (after all return):**
 
-    TaskUpdate(taskId: planTasks["arch"], status: "completed")
-    TaskUpdate(taskId: planTasks["impl"], status: "completed")
-    TaskUpdate(taskId: planTasks["test"], status: "completed")
-    TaskUpdate(taskId: planTasks["tasks"], status: "completed")
-    TaskUpdate(taskId: planTasks["security"], status: "completed")
-    TaskUpdate(taskId: planTasks["compliance"], status: "completed")
+    TaskUpdate(id: planTasks["arch"], status: "completed")
+    TaskUpdate(id: planTasks["impl"], status: "completed")
+    TaskUpdate(id: planTasks["test"], status: "completed")
+    TaskUpdate(id: planTasks["tasks"], status: "completed")
+    TaskUpdate(id: planTasks["security"], status: "completed")
+    TaskUpdate(id: planTasks["compliance"], status: "completed")
 ```
 
 **Gate de wave:** após Batch B, invoca `x-internal-phase-gate --mode wave --expected-artifacts <5-files>`. Missing = abort.
@@ -249,13 +249,13 @@ Aplicável a `x-epic-implement` Phase 3 (loop por história) e `x-task-implement
 ```markdown
 For each item in <list>:
 
-  1. TaskCreate(subject: "<Parent> › Item K — <desc>", activeForm: "<...>")
-  2. TaskUpdate(taskId: previous, addBlocks: [current])  # chain as block-by
-  3. TaskUpdate(taskId: current, status: "in_progress")
+  1. currentId = TaskCreate(subject: "<Parent> › Item K — <desc>", activeForm: "<...>")
+  2. TaskUpdate(id: previous, addBlockedBy: [currentId])  # chain as block-by (canonical field: addBlockedBy)
+  3. TaskUpdate(id: currentId, status: "in_progress")
   4. Invoke sub-skill via Rule 13 Pattern 1
   5. On skill return:
-     - success → TaskUpdate(taskId: current, status: "completed")
-     - failure → TaskUpdate(taskId: current, status: "completed")
+     - success → TaskUpdate(id: currentId, status: "completed")
+     - failure → TaskUpdate(id: currentId, status: "completed")
                   + fail-fast exit with propagation to downstream dependents
 ```
 
@@ -271,7 +271,7 @@ Esta regra aplica-se a **todos** os orquestradores que hoje declaram uma ou mais
 
 1. **Todo orquestrador DEVE emitir uma `TaskCreate` ao entrar em cada Phase N** (seção 4.2, passo N.1).
 2. **Toda sub-wave paralela (Batch A/B) DEVE emitir uma `TaskCreate` por membro da wave** (seção 4.3).
-3. **Todo loop sequencial DEVE emitir uma `TaskCreate` por iteração** com `addBlocks` chaining (seção 4.4).
+3. **Todo loop sequencial DEVE emitir uma `TaskCreate` por iteração** com `addBlockedBy` chaining (seção 4.4).
 4. **Todo orquestrador DEVE invocar `x-internal-phase-gate --mode pre` ANTES e `--mode post` DEPOIS de cada Phase N** (seção 4.2, passos N.0 e N.3).
 5. **O `subject` de toda `TaskCreate` DEVE usar o separador `›`** para indicar hierarquia: `"<Root> › <Level2> › <Level3>"`. Profundidade máxima: 4 níveis (Root / Story / Phase / Wave-item).
 6. **`x-internal-*` skills NÃO emitem `TaskCreate` próprio** (são invocados; o parent é responsável pelo tracking). Exceção: `x-internal-phase-gate` pode emitir 1 task sua própria apenas em modo `--mode wave` com `--emit-tracker` ligado.
@@ -279,17 +279,18 @@ Esta regra aplica-se a **todos** os orquestradores que hoje declaram uma ou mais
 
 ### 5.3 Contract do `subject`
 
-Regex canônico:
+Regex canônico (aceita roots em formato uppercase legacy OU lowercase canônico para epic/story/task):
 
 ```
-^(?P<root>[A-Z][A-Z0-9-]+|Phase [0-9]+) (› (?P<levelN>[A-Za-z0-9_\-\.:() ]+))*$
+^(?P<root>(?:[A-Z][A-Z0-9-]+|epic-[0-9]{4}|story-[0-9]{4}-[0-9]{4}|task-[0-9]{4}-[0-9]{4}(?:-[0-9]{3})?|Phase [0-9]+))(?: › (?P<levelN>[A-Za-z0-9_\-\.:() ]+))*$
 ```
 
 Exemplos válidos:
 
 - `"EPIC-0060 › Phase 3 › story-0060-0001 › Phase 1 › Arch plan"` (5 níveis — **inválido**, profundidade máxima é 4)
-- `"story-0060-0001 › Phase 1 › Arch plan"` (3 níveis — **válido**)
-- `"TASK-0060-0001-003 › Red cycle › UT-2"` (3 níveis — **válido**)
+- `"story-0060-0001 › Phase 1 › Arch plan"` (3 níveis — **válido**, root lowercase `story-`)
+- `"task-0060-0001-003 › Red cycle › UT-2"` (3 níveis — **válido**, root lowercase `task-`)
+- `"TASK-0060-0001-003 › Red cycle › UT-2"` (3 níveis — **válido**, root uppercase `TASK-`)
 - `"Review: QA — Story story-0060-0001"` (pattern legado do `x-review` — **tolerado via Rule 19 fallback matrix durante janela de deprecação**)
 
 Exemplos inválidos:
@@ -428,7 +429,7 @@ Isso promove o enforcement da Rule 24 de "stop-hook detecta depois do fato" para
 | 0 | Args & flow detection | 1 task por fase | — | `--mode pre --phase 0 --expected-none` | `--mode post --phase 0 --expected-artifacts execution-state.json` |
 | 1 | Load epic + build DAG | 1 task | — | pre | post (`epic-execution-plan.md` exists) |
 | 2 | Ensure `epic/XXXX` branch | 1 task | — | pre | post (branch exists local + origin) |
-| 3 | Story execution loop | 1 task por story (N tasks, chained via `addBlocks`) | Cada story é um sub-flow próprio de `x-story-implement` que emite suas próprias phase tasks | pre (previous phases complete) | post (all stories `SUCCESS` + all story PRs `MERGED`) |
+| 3 | Story execution loop | 1 task por story (N tasks, chained via `addBlockedBy`) | Cada story é um sub-flow próprio de `x-story-implement` que emite suas próprias phase tasks | pre (previous phases complete) | post (all stories `SUCCESS` + all story PRs `MERGED`) |
 | 4 | Integrity gate + report | 1 task | — | pre | post (integrity-envelope + epic-execution-report) |
 | 5 | Final PR `epic/XXXX → develop` | 1 task | — | pre | post (PR URL recorded) |
 
@@ -446,7 +447,7 @@ Isso promove o enforcement da Rule 24 de "stop-hook detecta depois do fato" para
 | 0 | 0.4 Resume (condicional) | 1 task (skipped se `--resume=false`) | — |
 | 0 | 0.5 API-first contract (condicional) | 1 task | — |
 | 1 | Arch plan | 1 task | — |
-| 1 | Wave de 5 subagentes (impl/test/tasks/security/compliance) | 5 tasks em Batch A | **SIM** |
+| 1 | Wave de 6 subagentes (arch/impl/test/tasks/security/compliance) | 6 tasks em Batch A | **SIM** |
 | 1 | Parallelism eval | 1 task | — |
 | 2 | Task loop (N tasks) | 1 task por task (N tasks, chained) | Cada task = sub-flow de `x-task-implement` |
 | 2 | Story PR creation + CI-watch | 2 tasks | — |
@@ -488,7 +489,7 @@ Incluído no escopo. Refatoração análoga: cada fase de `x-release` (version b
 
 ### 7.5 `x-epic-orchestrate` (loop por história de planejamento)
 
-Loop paralelo de planejamento de stories. Cada história → 1 task; subagentes de planejamento de cada história → sub-wave de 5 (como `x-story-implement` Phase 1).
+Loop paralelo de planejamento de stories. Cada história → 1 task; subagentes de planejamento de cada história → sub-wave de 6 (como `x-story-implement` Phase 1).
 
 ### 7.6 `x-review` (mantém atual + padronização)
 
@@ -496,7 +497,7 @@ Loop paralelo de planejamento de stories. Cada história → 1 task; subagentes 
 
 ### 7.7 `x-pr-merge-train` (loop sequencial por PR)
 
-Cada PR do trem → 1 task, chained via `addBlocks`. Pattern 4.4.
+Cada PR do trem → 1 task, chained via `addBlockedBy`. Pattern 4.4.
 
 ### 7.8 `x-review-pr` (5 fases)
 
@@ -549,8 +550,8 @@ Blocks: 0003–0012.
 - Blocks: 0004, 0005 (ambos dependem de x-task-implement emitir tracking consistente para que o tracking de parent seja coerente).
 
 **STORY-0055-0004 — Retrofit `x-story-implement`**
-- Retrofit. Emite TaskCreate por phase, sub-phase, e wave (5 subagentes do planning, 9 especialistas do review).
-- Phase 2 chain de tasks via `addBlocks`.
+- Retrofit. Emite TaskCreate por phase, sub-phase, e wave (6 subagentes do planning, 9 especialistas do review).
+- Phase 2 chain de tasks via `addBlockedBy`.
 - Phase 3.2a mantém o padrão de `x-review` (já canônico).
 - Blocks: 0005, 0006.
 
@@ -574,7 +575,7 @@ Blocks: 0003–0012.
 - 10+ fases; approval gate integra naturalmente com EPIC-0043 (interactive gates).
 
 **STORY-0055-0009 — Retrofit `x-epic-orchestrate`**
-- Loop paralelo por story com wave de 5 planners.
+- Loop paralelo por story com wave de 6 planners.
 
 **STORY-0055-0010 — Retrofit `x-pr-merge-train`**
 - Loop sequencial por PR (pattern 4.4).
