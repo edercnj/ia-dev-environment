@@ -307,14 +307,14 @@ Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Ru
 > - If Skip: report "Architecture plan not needed for this change" and stop
 >
 > **Step 4 — Read knowledge packs (in order):**
-> - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
-> - `skills/architecture/references/architecture-patterns.md` — design patterns
-> - `skills/protocols/references/` — protocol conventions for the project's interfaces
-> - `skills/security/references/` — OWASP, headers, secrets
-> - `skills/observability/references/` — tracing, metrics, logging
-> - `skills/infrastructure/references/` — Docker, K8s, 12-factor
-> - `skills/resilience/references/` — circuit breaker, retry, fallback
-> - `skills/compliance/references/` — only if compliance frameworks are active
+> - `knowledge/architecture/architecture-principles.md` — layer structure, dependency direction
+> - `knowledge/architecture/architecture-patterns.md` — design patterns
+> - `knowledge/protocols.md` — protocol conventions for the project's interfaces
+> - `knowledge/security/references/` — OWASP, headers, secrets
+> - `knowledge/observability/references/` — tracing, metrics, logging
+> - `knowledge/infrastructure.md` — Docker, K8s, 12-factor
+> - `knowledge/resilience/references/` — circuit breaker, retry, fallback
+> - `knowledge/compliance.md` — only if compliance frameworks are active
 >
 > For Simplified Plan: read only Architecture KP + KPs relevant to affected sections.
 >
@@ -361,14 +361,14 @@ Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Ru
 
 | # | Knowledge Pack | Path | Purpose |
 |---|----------------|------|---------|
-| 1 | Architecture | `skills/architecture/references/architecture-principles.md` | Layer structure, dependency direction, package conventions |
-| 2 | Architecture Patterns | `skills/architecture/references/architecture-patterns.md` | Design patterns, CQRS, event sourcing, saga |
-| 3 | Protocols | `skills/protocols/references/` | REST, gRPC, GraphQL, WebSocket, event-driven conventions |
-| 4 | Security | `skills/security/references/` | OWASP Top 10, security headers, secrets management |
-| 5 | Observability | `skills/observability/references/` | Tracing, metrics, logging, health checks |
-| 6 | Infrastructure | `skills/infrastructure/references/` | Docker, Kubernetes, 12-factor app |
-| 7 | Resilience | `skills/resilience/references/` | Circuit breaker, retry, fallback, bulkhead |
-| 8 | Compliance | `skills/compliance/references/` | GDPR, HIPAA, LGPD (if compliance is active) |
+| 1 | Architecture | `knowledge/architecture/architecture-principles.md` | Layer structure, dependency direction, package conventions |
+| 2 | Architecture Patterns | `knowledge/architecture/architecture-patterns.md` | Design patterns, CQRS, event sourcing, saga |
+| 3 | Protocols | `knowledge/protocols.md` | REST, gRPC, GraphQL, WebSocket, event-driven conventions |
+| 4 | Security | `knowledge/security/references/` | OWASP Top 10, security headers, secrets management |
+| 5 | Observability | `knowledge/observability/references/` | Tracing, metrics, logging, health checks |
+| 6 | Infrastructure | `knowledge/infrastructure.md` | Docker, Kubernetes, 12-factor app |
+| 7 | Resilience | `knowledge/resilience/references/` | Circuit breaker, retry, fallback, bulkhead |
+| 8 | Compliance | `knowledge/compliance.md` | GDPR, HIPAA, LGPD (if compliance is active) |
 
 **Minimum KPs for Full Plan:** 7 (all except Compliance, which is conditional).
 **Minimum KPs for Simplified Plan:** 1 (Architecture only; add others as relevant).
@@ -395,12 +395,12 @@ Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Ru
 ## Detailed References
 
 For in-depth guidance on architecture patterns, consult:
-- `skills/architecture/SKILL.md` — full architecture reference
-- `skills/protocols/SKILL.md` — protocol conventions
-- `skills/security/SKILL.md` — security standards
-- `skills/observability/SKILL.md` — observability patterns
-- `skills/resilience/SKILL.md` — resilience patterns
-- `skills/infrastructure/SKILL.md` — infrastructure patterns
+- `knowledge/architecture.md` — full architecture reference
+- `knowledge/protocols.md` — protocol conventions
+- `knowledge/security/index.md` — security standards
+- `knowledge/observability/index.md` — observability patterns
+- `knowledge/resilience/index.md` — resilience patterns
+- `knowledge/infrastructure.md` — infrastructure patterns
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 

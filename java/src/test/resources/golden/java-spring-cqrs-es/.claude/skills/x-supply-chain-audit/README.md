@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Security |
 | **Invocation** | `/x-supply-chain-audit [--depth shallow\|deep] [--include-dev-deps] [--risk-threshold 0-100] [--focus all\|maintainer\|typosquatting\|phantom\|age\|epss\|slsa]` |
-| **Reads** | `skills/security/references/sarif-template.md`, `skills/security/references/security-scoring.md`, `skills/security/references/supply-chain-hardening.md`, `skills/security/references/sbom-generation-guide.md` |
+| **Reads** | `knowledge/security/sarif-template.md`, `knowledge/security/security-scoring.md`, `knowledge/security/supply-chain-hardening.md`, `knowledge/security/sbom-generation-guide.md` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 

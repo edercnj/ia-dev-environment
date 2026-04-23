@@ -89,10 +89,10 @@ git diff [BASE_BRANCH] --name-only
 ### Step 2 — Gather Context
 
 Read knowledge packs to calibrate the review:
-- `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
-- `skills/architecture/references/architecture-principles.md` — layer boundaries, dependency direction
+- `knowledge/coding-standards/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
+- `knowledge/architecture/architecture-principles.md` — layer boundaries, dependency direction
 - `rules/05-quality-gates.md` — coverage thresholds, merge checklist
-- `skills/testing/references/testing-philosophy.md` — TDD workflow, Double-Loop TDD, TPP ordering
+- `knowledge/testing/testing-philosophy.md` — TDD workflow, Double-Loop TDD, TPP ordering
 
 Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from story ID):
 - Specialist review reports (`plans/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)

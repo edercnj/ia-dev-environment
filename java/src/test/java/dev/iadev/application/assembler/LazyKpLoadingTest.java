@@ -48,7 +48,7 @@ class LazyKpLoadingTest {
             String content = generateLifecycle(tempDir);
 
             assertThat(content).doesNotContain(
-                    "skills/security/SKILL.md` -> "
+                    "knowledge/security/index.md` -> "
                             + "then read its references");
         }
 
@@ -60,7 +60,7 @@ class LazyKpLoadingTest {
             String content = generateLifecycle(tempDir);
 
             assertThat(content).contains(
-                    "skills/security/references/"
+                    "knowledge/security/"
                             + "application-security.md");
         }
 
@@ -72,7 +72,7 @@ class LazyKpLoadingTest {
             String content = generateLifecycle(tempDir);
 
             assertThat(content).contains(
-                    "skills/security/references/"
+                    "knowledge/security/"
                             + "security-principles.md");
         }
 
@@ -85,7 +85,7 @@ class LazyKpLoadingTest {
             String content = generateLifecycle(tempDir);
 
             assertThat(content).doesNotContain(
-                    "skills/compliance/SKILL.md` -> "
+                    "knowledge/compliance.md` -> "
                             + "then read its references");
         }
 
@@ -97,7 +97,7 @@ class LazyKpLoadingTest {
             String content = generateLifecycle(tempDir);
 
             assertThat(content).contains(
-                    "skills/compliance/references/");
+                    "knowledge/compliance.md");
         }
 
         @Test
@@ -160,7 +160,7 @@ class LazyKpLoadingTest {
             String content = generateStoryPlan(tempDir);
 
             assertThat(content).doesNotContain(
-                    "skills/security/SKILL.md` "
+                    "knowledge/security/index.md` "
                             + "then read its references");
         }
 
@@ -172,10 +172,10 @@ class LazyKpLoadingTest {
             String content = generateStoryPlan(tempDir);
 
             assertThat(content).contains(
-                    "skills/security/references/"
+                    "knowledge/security/"
                             + "application-security.md");
             assertThat(content).contains(
-                    "skills/security/references/"
+                    "knowledge/security/"
                             + "security-principles.md");
         }
 
@@ -187,7 +187,7 @@ class LazyKpLoadingTest {
             String content = generateStoryPlan(tempDir);
 
             assertThat(content).contains(
-                    "skills/compliance/references/");
+                    "knowledge/compliance.md");
         }
 
         @Test

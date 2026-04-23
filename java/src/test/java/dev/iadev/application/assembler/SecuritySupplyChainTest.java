@@ -3,7 +3,6 @@ package dev.iadev.application.assembler;
 import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.template.TemplateEngine;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -323,19 +322,6 @@ class SecuritySupplyChainTest {
                     .contains("pentest-readiness.md");
         }
 
-        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
-        @Test
-        @DisplayName("existing content preserved:"
-                + " frontmatter")
-        void assemble_securityKp_preservesFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content = generateSecurityKpContent(
-                    tempDir);
-            assertThat(content)
-                    .contains("name: security")
-                    .contains("allowed-tools:");
-        }
     }
 
     @Nested

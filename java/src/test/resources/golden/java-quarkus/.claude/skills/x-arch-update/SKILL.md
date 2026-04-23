@@ -165,4 +165,4 @@ Launch a **single** `general-purpose` subagent:
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| architecture | `skills/architecture/SKILL.md` | Architecture principles and patterns |
+| architecture | `knowledge/architecture.md` | Architecture principles and patterns |

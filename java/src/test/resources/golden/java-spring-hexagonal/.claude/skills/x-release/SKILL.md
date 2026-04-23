@@ -2798,7 +2798,7 @@ Aborts the active release, cleaning up all associated resources.
 | `x-release-changelog` | calls | Delegates changelog generation via Agent tool |
 | `x-git-push` | reads | Uses same Conventional Commits format for release commit |
 
-- **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`
+- **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `knowledge/release-management/index.md`
 - **Release Checklist**: Validates against `_TEMPLATE-RELEASE-CHECKLIST.md` for completeness
 - **Rule 09 (Branching Model)**: Follows Git Flow branch types and merge direction rules
 

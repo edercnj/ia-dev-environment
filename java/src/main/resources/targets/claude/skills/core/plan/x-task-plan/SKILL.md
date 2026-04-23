@@ -487,11 +487,11 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-p
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| testing | `skills/testing/SKILL.md` | TDD patterns, TPP levels, test naming conventions |
-| architecture | `skills/architecture/SKILL.md` | Layer definitions, package structure, dependency rules |
-| security | `skills/security/SKILL.md` | OWASP Top 10, security checklist items |
+| testing | `knowledge/testing.md` | TDD patterns, TPP levels, test naming conventions |
+| architecture | `knowledge/architecture.md` | Layer definitions, package structure, dependency rules |
+| security | `knowledge/security/index.md` | OWASP Top 10, security checklist items |
 | parallelism-heuristics | `skills/knowledge-packs/parallelism-heuristics/SKILL.md` | File Footprint semantics (write/read/regen sub-sections) consumed by Phase 4.5 |
-| coding-standards | `skills/coding-standards/SKILL.md` | {{LANGUAGE}} conventions, naming, SOLID principles |
+| coding-standards | `knowledge/coding-standards.md` | {{LANGUAGE}} conventions, naming, SOLID principles |
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 

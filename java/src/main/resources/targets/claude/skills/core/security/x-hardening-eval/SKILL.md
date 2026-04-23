@@ -399,6 +399,6 @@ hardening-eval:
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| security | `skills/security/references/security-principles.md` | Data classification, input validation, fail-secure patterns |
-| security | `skills/security/references/application-security.md` | OWASP Top 10, security headers, secrets management |
-| security | `skills/security/references/cryptography.md` | TLS requirements, cipher suites, certificate management |
+| security | `knowledge/security/security-principles.md` | Data classification, input validation, fail-secure patterns |
+| security | `knowledge/security/application-security.md` | OWASP Top 10, security headers, secrets management |
+| security | `knowledge/security/cryptography.md` | TLS requirements, cipher suites, certificate management |

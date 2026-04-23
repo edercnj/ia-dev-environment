@@ -74,12 +74,12 @@ Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Ru
 > - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012 — graceful fallback for projects without templates).
 >
 > **Read these knowledge packs:**
-> - `skills/testing/references/testing-philosophy.md` — 8 test categories, fixture patterns, data uniqueness, async handling, real vs in-memory DB decisions
-> - `skills/testing/references/testing-conventions.md` — {{LANGUAGE}}-specific test frameworks, naming conventions, directory structure, assertion libraries
-> - `skills/architecture/references/architecture-principles.md` — exception hierarchy, layer boundaries (unit vs integration), dependency direction
+> - `knowledge/testing/testing-philosophy.md` — 8 test categories, fixture patterns, data uniqueness, async handling, real vs in-memory DB decisions
+> - `knowledge/testing/testing-conventions.md` — {{LANGUAGE}}-specific test frameworks, naming conventions, directory structure, assertion libraries
+> - `knowledge/architecture/architecture-principles.md` — exception hierarchy, layer boundaries (unit vs integration), dependency direction
 >
 > **Read testing knowledge pack for {{LANGUAGE}}-specific patterns:**
-> - Read `skills/testing/SKILL.md` for {{LANGUAGE}}-specific test frameworks, conventions, and patterns
+> - Read `knowledge/testing.md` for {{LANGUAGE}}-specific test frameworks, conventions, and patterns
 >
 > **Read the story:** `{STORY_PATH}`
 > Extract: acceptance criteria, sub-tasks, business rules, dependencies.
@@ -323,10 +323,10 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| testing | `skills/testing/references/testing-philosophy.md` | 8 test categories, fixture patterns, data uniqueness |
-| testing | `skills/testing/references/testing-conventions.md` | {{LANGUAGE}}-specific test frameworks, naming, assertions |
-| testing | `skills/testing/SKILL.md` | {{LANGUAGE}}-specific test patterns |
-| architecture | `skills/architecture/references/architecture-principles.md` | Exception hierarchy, layer boundaries |
+| testing | `knowledge/testing/testing-philosophy.md` | 8 test categories, fixture patterns, data uniqueness |
+| testing | `knowledge/testing/testing-conventions.md` | {{LANGUAGE}}-specific test frameworks, naming, assertions |
+| testing | `knowledge/testing.md` | {{LANGUAGE}}-specific test patterns |
+| architecture | `knowledge/architecture/architecture-principles.md` | Exception hierarchy, layer boundaries |
 
 ## Integration Notes
 
