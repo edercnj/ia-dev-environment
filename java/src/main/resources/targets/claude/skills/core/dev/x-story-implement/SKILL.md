@@ -204,7 +204,7 @@ Read tasks from `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (Section 8 fall
 
 4. **PR creation:** invoke with OO-propagated flags (RULE-009):
 
-        Skill(skill: "x-pr-create", args: "<TASK-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID> [--auto-approve-pr]")
+        Skill(skill: "x-pr-create", model: "haiku", args: "<TASK-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID> [--auto-approve-pr]")
 
    When `--auto-approve-pr`, the effective task-PR target is the parent story branch (`feat/story-...`); otherwise the propagated `--target-branch`. Consume `{prUrl, prNumber, prMergeStatus}`.
 
@@ -218,7 +218,7 @@ Each `x-task-implement` dispatch returns `{status, taskId, commitSha, branchName
 
 When `--auto-approve-pr` was set, every task PR targeted the parent story branch `feat/story-XXXX-YYYY-...`. After all tasks succeed, push the parent branch and create the story-level PR with OO-propagated flags:
 
-    Skill(skill: "x-pr-create", args: "--story-id <STORY-ID> --head feat/story-<STORY-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID>")
+    Skill(skill: "x-pr-create", model: "haiku", args: "--story-id <STORY-ID> --head feat/story-<STORY-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID>")
 
 Without `--auto-approve-pr`, each task PR is the unit of delivery — no story-level PR is created. On `x-pr-create` non-zero exit → `PR_CREATE_FAILED`. Fallback G1-G7 (no test plan / no formal tasks) lives in `references/full-protocol.md` §4.
 

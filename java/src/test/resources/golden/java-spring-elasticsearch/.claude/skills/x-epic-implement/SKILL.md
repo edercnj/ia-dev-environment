@@ -344,7 +344,7 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic
 
 Ensure `epic/<EPIC-ID>` is up-to-date with `develop` before opening the final PR (otherwise GitHub will show divergence):
 
-    Skill(skill: "x-git-merge", args: "--source develop --target epic/<EPIC-ID> --strategy merge")
+    Skill(skill: "x-git-merge", model: "haiku", args: "--source develop --target epic/<EPIC-ID> --strategy merge")
 
 On conflict (sub-skill returns non-zero with conflict envelope) → exit with code `FINAL_PR_CONFLICTS`. Conflict resolution is human-driven: the orchestrator prints a remediation block and terminates. Re-run with `--resume` after the operator resolves locally and pushes.
 
@@ -352,7 +352,7 @@ On conflict (sub-skill returns non-zero with conflict envelope) → exit with co
 
 Invoke via the extension added in story-0049-0016:
 
-    Skill(skill: "x-pr-create", args: "--epic-id <EPIC-ID> --head epic/<EPIC-ID> --target-branch develop --auto-merge none --label epic-integration --title \"feat(epic-<EPIC-ID>): integrate all stories\" --description \"Consolidated integration PR for EPIC-<EPIC-ID>. See plans/epic-<EPIC-ID>/reports/epic-execution-report-<EPIC-ID>.md for story breakdown.\"")
+    Skill(skill: "x-pr-create", model: "haiku", args: "--epic-id <EPIC-ID> --head epic/<EPIC-ID> --target-branch develop --auto-merge none --label epic-integration --title \"feat(epic-<EPIC-ID>): integrate all stories\" --description \"Consolidated integration PR for EPIC-<EPIC-ID>. See plans/epic-<EPIC-ID>/reports/epic-execution-report-<EPIC-ID>.md for story breakdown.\"")
 
 Consume `{prUrl, prNumber}`. Record in the final envelope. **Do NOT auto-merge** (manual gate per RULE-004 — the epic PR is the last human review point before `develop` receives the full epic).
 
