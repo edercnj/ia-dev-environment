@@ -132,8 +132,52 @@ class SkillsAssemblerTest {
                 .isGreaterThanOrEqualTo(2);
     }
 
+    @Test
+    @DisplayName("x-story-implement SKILL.md contains "
+            + "PROTOCOL_VIOLATION and REVIEW_SKIPPED_WITHOUT_FLAG "
+            + "error codes (EPIC-0053)")
+    void xStoryImplement_containsProtocolViolationErrorCodes(
+            @TempDir Path tempDir) throws IOException {
+        Path outputDir = tempDir.resolve("output");
+        Files.createDirectories(outputDir);
+
+        new SkillsAssembler().assemble(
+                TestConfigBuilder.minimal(),
+                new TemplateEngine(),
+                outputDir);
+
+        String content = Files.readString(
+                outputDir.resolve(
+                        "skills/x-story-implement/SKILL.md"));
+
+        assertThat(content)
+                .as("Generated x-story-implement/SKILL.md "
+                        + "must contain '"
+                        + REVIEW_SKIPPED_ERROR_CODE
+                        + "' error code (EPIC-0053 Review Policy)")
+                .contains(REVIEW_SKIPPED_ERROR_CODE);
+
+        int violationCount = countOccurrences(
+                content, PROTOCOL_VIOLATION_CODE);
+
+        assertThat(violationCount)
+                .as("Expected >= 2 '"
+                        + PROTOCOL_VIOLATION_CODE
+                        + "' error codes in generated "
+                        + "x-story-implement/SKILL.md "
+                        + "(one per review step), found: "
+                        + violationCount)
+                .isGreaterThanOrEqualTo(2);
+    }
+
     private static final String MANDATORY_MARKER =
             "MANDATORY — NON-NEGOTIABLE";
+
+    private static final String REVIEW_SKIPPED_ERROR_CODE =
+            "REVIEW_SKIPPED_WITHOUT_FLAG";
+
+    private static final String PROTOCOL_VIOLATION_CODE =
+            "PROTOCOL_VIOLATION";
 
     private static int countOccurrences(
             String text, String pattern) {
