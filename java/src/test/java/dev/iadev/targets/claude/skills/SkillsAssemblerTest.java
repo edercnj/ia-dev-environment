@@ -77,4 +77,30 @@ class SkillsAssemblerTest {
                         + "exists")
                 .exists();
     }
+
+    @Test
+    @DisplayName("x-story-implement SKILL.md contains "
+            + "## Review Policy section (EPIC-0053)")
+    void xStoryImplement_containsReviewPolicySection(
+            @TempDir Path tempDir) throws IOException {
+        Path outputDir = tempDir.resolve("output");
+        Files.createDirectories(outputDir);
+
+        new SkillsAssembler().assemble(
+                TestConfigBuilder.minimal(),
+                new TemplateEngine(),
+                outputDir);
+
+        String content = Files.readString(
+                outputDir.resolve(
+                        "skills/x-story-implement/SKILL.md"));
+
+        assertThat(content)
+                .as("Generated x-story-implement/SKILL.md "
+                        + "must contain '## Review Policy' "
+                        + "section (EPIC-0053 enforcement — "
+                        + "source: targets/claude/skills/core/"
+                        + "dev/x-story-implement/SKILL.md)")
+                .contains("## Review Policy");
+    }
 }
