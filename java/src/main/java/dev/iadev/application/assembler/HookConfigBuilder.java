@@ -69,8 +69,7 @@ public final class HookConfigBuilder {
         if (telemetryEnabled) {
             appendTelemetryEvent(sb, "SubagentStop",
                     "telemetry-subagent.sh", false, false);
-            appendTelemetryEvent(sb, "Stop",
-                    "telemetry-stop.sh", false, true);
+            appendStopEventWithEie(sb);
         }
         sb.append(JsonHelpers.indent(1)).append("}\n");
     }
@@ -147,6 +146,52 @@ public final class HookConfigBuilder {
         sb.append(JsonHelpers.indent(5)).append("}\n");
         sb.append(JsonHelpers.indent(4)).append("]\n");
         sb.append(JsonHelpers.indent(3)).append("}\n");
+    }
+
+    /**
+     * Emits the {@code Stop} event with TWO hook entries:
+     * the telemetry session-end emitter AND the EIE
+     * (Execution Integrity Enforcement) Camada 2 hook
+     * {@code verify-story-completion.sh} (Rule 24).
+     *
+     * <p>The two commands run sequentially; {@code
+     * verify-story-completion.sh} exits 2 when a story
+     * commit is detected but mandatory evidence artifacts
+     * are missing, which Claude Code surfaces to the LLM
+     * as a blocking notification.</p>
+     */
+    private static void appendStopEventWithEie(
+            StringBuilder sb) {
+        sb.append(JsonHelpers.indent(2))
+                .append("\"Stop\": [\n");
+        sb.append(JsonHelpers.indent(3)).append("{\n");
+        sb.append(JsonHelpers.indent(4))
+                .append("\"hooks\": [\n");
+        appendStopHookEntry(sb, "telemetry-stop.sh", true);
+        appendStopHookEntry(sb,
+                "verify-story-completion.sh", false);
+        sb.append(JsonHelpers.indent(4)).append("]\n");
+        sb.append(JsonHelpers.indent(3)).append("}\n");
+        sb.append(JsonHelpers.indent(2)).append("]\n");
+    }
+
+    private static void appendStopHookEntry(
+            StringBuilder sb,
+            String scriptName,
+            boolean hasSibling) {
+        sb.append(JsonHelpers.indent(5)).append("{\n");
+        sb.append(JsonHelpers.indent(6))
+                .append("\"type\": \"command\",\n");
+        sb.append(JsonHelpers.indent(6))
+                .append("\"command\": ")
+                .append(CLAUDE_PROJECT_DIR_PREFIX)
+                .append(scriptName).append("\",\n");
+        sb.append(JsonHelpers.indent(6))
+                .append("\"timeout\": ")
+                .append(TELEMETRY_TIMEOUT)
+                .append("\n");
+        sb.append(JsonHelpers.indent(5)).append("}")
+                .append(hasSibling ? ",\n" : "\n");
     }
 
     private static void appendTelemetryEvent(
