@@ -1,11 +1,6 @@
 ---
 name: k8s-deployment
 description: "Kubernetes deployment patterns: workload types, pod specifications, resource sizing, probes, autoscaling, network policies, and security contexts."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Pattern: Kubernetes Deployment Patterns

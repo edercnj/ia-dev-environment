@@ -1,11 +1,6 @@
 ---
 name: security
 description: "Complete security reference: OWASP Top 10, security headers, secrets management, input validation, cryptography (TLS, hashing, key management), and pentest readiness checklist. Read during security reviews or when implementing security-sensitive features."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Knowledge Pack: Security

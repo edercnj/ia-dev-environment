@@ -1,11 +1,6 @@
 ---
 name: iac-terraform
 description: "Terraform patterns: module structure, remote state, naming conventions, CI/CD workflows, drift detection, and common infrastructure modules."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Pattern: Terraform Patterns

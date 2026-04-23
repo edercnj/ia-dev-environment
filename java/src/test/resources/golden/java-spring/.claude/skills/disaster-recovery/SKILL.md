@@ -1,11 +1,6 @@
 ---
 name: disaster-recovery
 description: "Disaster recovery patterns: DR strategies, RPO/RTO, failover automation, DR testing, multi-region patterns, and recovery procedures"
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Knowledge Pack: Disaster Recovery

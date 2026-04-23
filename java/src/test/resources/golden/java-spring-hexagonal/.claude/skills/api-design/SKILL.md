@@ -1,11 +1,6 @@
 ---
 name: api-design
 description: "API design principles: {{LANGUAGE}}-specific patterns for REST/gRPC/GraphQL. URL structure, status codes, RFC 7807 errors, pagination, content negotiation, validation, request/response shaping, versioning strategies, and protocol conventions."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Knowledge Pack: API Design

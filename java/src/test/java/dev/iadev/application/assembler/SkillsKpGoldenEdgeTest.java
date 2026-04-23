@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -206,6 +207,7 @@ class SkillsKpGoldenEdgeTest {
                     .exists();
         }
 
+        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
         @Test
         @DisplayName("ci-cd-patterns SKILL.md has valid"
                 + " frontmatter")
@@ -261,6 +263,7 @@ class SkillsKpGoldenEdgeTest {
     @DisplayName("assemble — release-management KP")
     class ReleaseManagementKp {
 
+        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
         @Test
         @DisplayName("release-management has valid"
                 + " frontmatter")
@@ -375,6 +378,7 @@ class SkillsKpGoldenEdgeTest {
     @DisplayName("assemble — performance-engineering KP")
     class PerformanceEngineeringKp {
 
+        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
         @Test
         @DisplayName("performance-engineering has valid"
                 + " frontmatter")
@@ -494,6 +498,7 @@ class SkillsKpGoldenEdgeTest {
     @DisplayName("assemble — sre-practices KP")
     class SrePracticesKp {
 
+        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
         @Test
         @DisplayName("sre-practices has user-invocable false")
         void assemble_srePractices_frontmatterCorrect(
@@ -706,6 +711,7 @@ class SkillsKpGoldenEdgeTest {
                             + " per Component");
         }
 
+        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
         @Test
         @DisplayName("disaster-recovery SKILL.md has"
                 + " valid frontmatter")

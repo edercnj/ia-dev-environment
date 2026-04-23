@@ -1,11 +1,6 @@
 ---
 name: performance-engineering
 description: "Performance engineering patterns: profiling, benchmarking, optimization, regression detection, and memory management for {{LANGUAGE}} {{FRAMEWORK}} projects using {{BUILD_TOOL}}."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Knowledge Pack: Performance Engineering

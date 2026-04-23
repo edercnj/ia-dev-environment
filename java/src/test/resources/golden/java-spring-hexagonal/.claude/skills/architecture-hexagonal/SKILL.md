@@ -1,11 +1,6 @@
 ---
 name: architecture-hexagonal
 description: "Hexagonal architecture reference: canonical package structure, dependency rules with violation examples, compilable Port/Adapter patterns, and ArchUnit boundary validation suite. Read before implementing hexagonal-style projects."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Knowledge Pack: Hexagonal Architecture

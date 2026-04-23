@@ -1,11 +1,6 @@
 ---
 name: spring-patterns
 description: "Spring Boot patterns: DI, @ConfigurationProperties, Spring Data JPA, @RestController, @ControllerAdvice, Spring AOT, and health checks."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Pattern: Spring Boot Patterns

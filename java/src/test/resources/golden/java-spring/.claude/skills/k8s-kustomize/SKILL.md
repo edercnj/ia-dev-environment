@@ -1,11 +1,6 @@
 ---
 name: k8s-kustomize
 description: "Kustomize patterns: directory structure, patches, components, secret management, generators, and patch types for environment management."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Pattern: Kustomize Patterns
