@@ -84,8 +84,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 21 | `21-epic-branch-model.md` | epic branch model |
 | 22 | `22-skill-visibility.md` | skill visibility |
 | 23 | `23-model-selection.md` | model selection |
+| 24 | `24-execution-integrity.md` | execution integrity |
 
-**Total: 17 rules**
+**Total: 18 rules**
 
 ### Numbering
 
@@ -332,11 +333,11 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 17 |
+| Rules (.claude) | 18 |
 | Skills (.claude) | 66 |
 | Knowledge Packs (.claude) | 32 |
 | Agents (.claude) | 11 |
-| Hooks (.claude) | 9 |
+| Hooks (.claude) | 10 |
 | Settings (.claude) | 2 |
 | Plan Templates (.claude) | 22 |
 

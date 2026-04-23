@@ -232,21 +232,21 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-3-Verify`
 
-**Skipped only under `--skip-verification`** (recovery-only — see Rule 22). The skip is flagged by `LifecycleIntegrityAuditTest` outside a `## Recovery` block.
+**Skipped only under `--skip-verification`** (recovery-only — see Rule 22). Every `Skill(...)` below is a **MANDATORY TOOL CALL** (Rule 24); inlining is a violation and the CI audit (`scripts/audit-execution-integrity.sh`) fails merges lacking evidence artifacts.
 
 ### 3.1 Verify gate
 
-Invoke:
+MANDATORY TOOL CALL — emit before proceeding to 3.2:
 
     Skill(skill: "x-internal-story-verify", args: "--story-id <STORY-ID> --epic-id <EPIC-ID> [--coverage-threshold-line 95] [--coverage-threshold-branch 90]")
 
-The sub-skill identifies files touched by the story, runs the scoped test suite + coverage, performs cross-file consistency checks (constructor / return-type uniformity per role), runs smoke (unless `--skip-smoke`), and validates every Section 7 Gherkin scenario has a matching acceptance test.
+The sub-skill identifies files touched by the story, runs the scoped test suite + coverage, performs cross-file consistency checks (constructor / return-type uniformity per role), runs smoke (unless `--skip-smoke`), validates every Section 7 Gherkin scenario has a matching acceptance test, and MUST persist its envelope to `plans/epic-XXXX/reports/verify-envelope-STORY-ID.json`.
 
 Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverageBranch}`. On `passed=false` → exit with code `VERIFY_FAILED` and include `failures[0]` in the message.
 
 ### 3.2 Specialist + Tech-Lead reviews (unless `--skip-review`)
 
-Invoke in sequence:
+MANDATORY TOOL CALLS — emit both in sequence; each MUST persist its evidence file (checked by CI audit):
 
     Skill(skill: "x-review", model: "sonnet", args: "<STORY-ID>")
     Skill(skill: "x-review-pr", model: "sonnet", args: "<STORY-ID>")
@@ -255,7 +255,7 @@ On Tech-Lead GO, optionally run PR-comment remediation via `Skill(skill: "x-pr-f
 
 ### 3.3 Final report
 
-Invoke:
+MANDATORY TOOL CALL — emit before Status finalize:
 
     Skill(skill: "x-internal-story-report", args: "--story-id <STORY-ID> --epic-id <EPIC-ID> --output plans/epic-XXXX/reports/story-completion-report-STORY-ID.md")
 
