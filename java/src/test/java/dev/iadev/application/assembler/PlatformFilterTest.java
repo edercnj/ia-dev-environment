@@ -32,7 +32,7 @@ class PlatformFilterTest {
                     PlatformFilter.filter(
                             all, Set.of());
 
-            assertThat(result).hasSize(23);
+            assertThat(result).hasSize(24);
             assertThat(result).isEqualTo(all);
         }
 
@@ -47,7 +47,7 @@ class PlatformFilterTest {
                     PlatformFilter.filter(all,
                             Set.of(Platform.CLAUDE_CODE));
 
-            assertThat(result).hasSize(23);
+            assertThat(result).hasSize(24);
             assertThat(result).isEqualTo(all);
         }
     }
@@ -57,8 +57,8 @@ class PlatformFilterTest {
     class SinglePlatform {
 
         @Test
-        @DisplayName("CLAUDE_CODE returns 23 assemblers "
-                + "(8 claude + 14 shared)")
+        @DisplayName("CLAUDE_CODE returns 24 assemblers "
+                + "(10 claude + 14 shared)")
         void filter_claudeCode_returns23() {
             List<AssemblerDescriptor> all =
                     AssemblerFactory.buildAssemblers();
@@ -67,7 +67,7 @@ class PlatformFilterTest {
                     PlatformFilter.filter(all,
                             Set.of(Platform.CLAUDE_CODE));
 
-            assertThat(result).hasSize(23);
+            assertThat(result).hasSize(24);
             assertThat(result).allSatisfy(d ->
                     assertThat(
                             d.platforms().contains(
@@ -196,28 +196,28 @@ class PlatformFilterTest {
                     AssemblerFactory.buildAssemblers(
                             options);
 
-            assertThat(result).hasSize(23);
+            assertThat(result).hasSize(24);
         }
 
         @Test
         @DisplayName("buildAssemblers with default "
-                + "options returns all 23")
+                + "options returns all 24")
         void buildAssemblers_defaults_returnsAll() {
             List<AssemblerDescriptor> result =
                     AssemblerFactory.buildAssemblers(
                             PipelineOptions.defaults());
 
-            assertThat(result).hasSize(23);
+            assertThat(result).hasSize(24);
         }
 
         @Test
         @DisplayName("buildAssemblers no-arg returns "
-                + "all 23")
+                + "all 24")
         void buildAssemblers_noArg_returnsAll() {
             List<AssemblerDescriptor> result =
                     AssemblerFactory.buildAssemblers();
 
-            assertThat(result).hasSize(23);
+            assertThat(result).hasSize(24);
         }
     }
 
