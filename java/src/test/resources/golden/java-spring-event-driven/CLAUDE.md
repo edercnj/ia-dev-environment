@@ -10,6 +10,19 @@
 
 This repository follows a standardized layout produced by the `ia-dev-env` generator. Claude Code loads this `CLAUDE.md` automatically on every conversation, so everything Claude needs to work effectively on this codebase should appear here.
 
+## EXECUTION INTEGRITY — NÃO NEGOCIÁVEL
+
+Every `Skill(skill: "...", args: "...")` block inside a SKILL.md is a **TOOL CALL**, never prose. The LLM executing a skill MUST emit the declared tool calls — inlining, summarizing, or "simulating" sub-skills is a violation of **Rule 24 — Execution Integrity** (`.claude/rules/24-execution-integrity.md`).
+
+Sub-skills may be bypassed only with an explicit `--skip-review` / `--skip-verification` / `--skip-smoke` flag. Merged stories without mandatory evidence artifacts fail CI via `scripts/audit-execution-integrity.sh` with exit code `EIE_EVIDENCE_MISSING`.
+
+| Sub-skill | Evidence required | Enforced by |
+| :--- | :--- | :--- |
+| `x-review` | `plans/epic-XXXX/plans/review-story-STORY-ID.md` | CI audit + Stop hook |
+| `x-review-pr` | `plans/epic-XXXX/plans/techlead-review-story-STORY-ID.md` | CI audit + Stop hook |
+| `x-internal-story-verify` | `plans/epic-XXXX/reports/verify-envelope-STORY-ID.json` | CI audit |
+| `x-internal-story-report` | `plans/epic-XXXX/reports/story-completion-report-STORY-ID.md` | CI audit |
+
 ## Build
 
 ```bash

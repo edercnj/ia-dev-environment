@@ -233,30 +233,36 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-3-Verify`
 
+> 🔒 **EXECUTION INTEGRITY (Rule 24) — NON-NEGOTIABLE**
+>
+> Phases 3.1, 3.2, and 3.3 declare **MANDATORY TOOL CALLS**. Each `Skill(...)` block below MUST be emitted as a real tool call — inlining, simulating, or summarizing the sub-skill's output is a Rule 24 violation. Every sub-skill produces an evidence artifact checked by `scripts/audit-execution-integrity.sh` in CI. Merged stories without evidence fail CI with `EIE_EVIDENCE_MISSING`. The only legitimate bypass is an explicit `--skip-review` / `--skip-verification` flag passed to this skill by its caller.
+
 **Skipped only under `--skip-verification`** (recovery-only — see Rule 22). The skip is flagged by `LifecycleIntegrityAuditTest` outside a `## Recovery` block.
 
 ### 3.1 Verify gate
 
-Invoke:
+**MANDATORY TOOL CALL** — emit before proceeding to 3.2:
 
     Skill(skill: "x-internal-story-verify", args: "--story-id <STORY-ID> --epic-id <EPIC-ID> [--coverage-threshold-line 95] [--coverage-threshold-branch 90]")
 
-The sub-skill identifies files touched by the story, runs the scoped test suite + coverage, performs cross-file consistency checks (constructor / return-type uniformity per role), runs smoke (unless `--skip-smoke`), and validates every Section 7 Gherkin scenario has a matching acceptance test.
+The sub-skill identifies files touched by the story, runs the scoped test suite + coverage, performs cross-file consistency checks (constructor / return-type uniformity per role), runs smoke (unless `--skip-smoke`), and validates every Section 7 Gherkin scenario has a matching acceptance test. It MUST persist its envelope to `plans/epic-XXXX/reports/verify-envelope-STORY-ID.json` — absence of this file is a Rule 24 violation caught by CI audit.
 
 Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverageBranch}`. On `passed=false` → exit with code `VERIFY_FAILED` and include `failures[0]` in the message.
 
 ### 3.2 Specialist + Tech-Lead reviews (unless `--skip-review`)
 
-Invoke in sequence:
+**MANDATORY TOOL CALLS** — emit both in sequence before proceeding to 3.3. Inlining either is a Rule 24 violation:
 
     Skill(skill: "x-review", model: "sonnet", args: "<STORY-ID>")
     Skill(skill: "x-review-pr", model: "sonnet", args: "<STORY-ID>")
+
+`x-review` MUST persist `plans/epic-XXXX/plans/review-story-STORY-ID.md`; `x-review-pr` MUST persist `plans/epic-XXXX/plans/techlead-review-story-STORY-ID.md`. Both are checked by the CI audit — absence fails the build with `EIE_EVIDENCE_MISSING`.
 
 On Tech-Lead GO, optionally run PR-comment remediation via `Skill(skill: "x-pr-fix", args: "<prNumber>")` unless `--no-auto-remediation`. On NO-GO, fix-and-review up to 2 cycles; persistent NO-GO keeps `verifyPassed=true` but flags the story with a WARNING in the final report (human gate downstream).
 
 ### 3.3 Final report
 
-Invoke:
+**MANDATORY TOOL CALL** — emit before Status finalize:
 
     Skill(skill: "x-internal-story-report", args: "--story-id <STORY-ID> --epic-id <EPIC-ID> --output plans/epic-XXXX/reports/story-completion-report-STORY-ID.md")
 
