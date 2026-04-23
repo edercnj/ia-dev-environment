@@ -1,5 +1,6 @@
 ---
 name: x-git-worktree
+model: haiku
 description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup, detect-context. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
 user-invocable: true
 allowed-tools: Bash, Read

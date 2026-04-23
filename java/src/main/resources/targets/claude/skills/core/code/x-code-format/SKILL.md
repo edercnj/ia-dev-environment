@@ -1,5 +1,6 @@
 ---
 name: x-code-format
+model: haiku
 description: "Formats source code using the appropriate formatter for {{LANGUAGE}}. First step of the pre-commit chain (format -> lint -> compile -> commit). Supports --check (dry-run) and --changed-only modes."
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob

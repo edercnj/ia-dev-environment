@@ -1,5 +1,6 @@
 ---
 name: x-code-lint
+model: haiku
 description: "Analyzes source code with the appropriate linter for {{LANGUAGE}}. Second step in the pre-commit chain (RULE-007: format -> lint -> compile -> commit). Supports --fix, --changed-only, and --strict modes."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
