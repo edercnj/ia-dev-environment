@@ -80,8 +80,11 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
 | 13 | `13-skill-invocation-protocol.md` | skill invocation protocol |
 | 14 | `14-project-scope.md` | project scope |
+| 19 | `19-backward-compatibility.md` | backward compatibility |
+| 21 | `21-epic-branch-model.md` | epic branch model |
+| 22 | `22-skill-visibility.md` | skill visibility |
 
-**Total: 13 rules**
+**Total: 16 rules**
 
 ### Numbering
 
@@ -330,7 +333,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 13 |
+| Rules (.claude) | 16 |
 | Skills (.claude) | 72 |
 | Knowledge Packs (.claude) | 25 |
 | Agents (.claude) | 14 |

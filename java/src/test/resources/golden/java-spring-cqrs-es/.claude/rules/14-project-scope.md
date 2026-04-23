@@ -54,3 +54,23 @@ Before adding a new package or class, ask:
 3. Would removing it break the generation pipeline?
 
 If the answer to all three is NO, the code does not belong in this project.
+
+## Worktree Lifecycle (EPIC-0049)
+
+Git worktrees enable parallel task / story / epic execution by creating additional working trees for the same repository. They live under `.claude/worktrees/{identifier}/` and are managed exclusively by the `x-git-worktree` skill.
+
+### Directory Pattern
+
+| Scope | Pattern | Base Branch |
+| :--- | :--- | :--- |
+| Task (within a story) | `.claude/worktrees/task-XXXX-YYYY-NNN/` | Parent story branch |
+| Story (within an epic) | `.claude/worktrees/story-XXXX-YYYY/` | `epic/XXXX` (not `develop` — see Rule 21) |
+| Epic integration | `.claude/worktrees/epic-XXXX/` | `develop` |
+
+### Invariants
+
+- **Creator-owned removal.** The skill that created a worktree is the only one allowed to remove it. Nested invocations reuse the existing worktree without creating a new one (ADR-0004 §D2).
+- **Epic-base for parallel stories.** In `--parallel` mode, story worktrees MUST be created from `epic/XXXX`, never from `develop`. This keeps story PRs targetable at the epic branch (Rule 21, RULE-002 of EPIC-0049).
+- **Failure preservation.** A worktree MUST be preserved on failure for diagnosis. Removal happens only on success, or via explicit `x-git-worktree cleanup` by the user.
+- **One worktree per identifier.** Attempts to create a second worktree with the same identifier are no-ops that return the existing path.
+
