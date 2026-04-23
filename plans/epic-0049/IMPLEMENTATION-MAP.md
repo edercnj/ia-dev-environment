@@ -8,28 +8,28 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0049-0001 | x-git-branch | — | — | story-0049-0008 | Pendente |
-| story-0049-0002 | x-git-merge | — | — | story-0049-0018 | Pendente |
-| story-0049-0003 | x-pr-merge | — | — | story-0049-0016, story-0049-0018 | Pendente |
-| story-0049-0004 | x-planning-commit | — | — | story-0049-0021, story-0049-0022 | Pendente |
-| story-0049-0005 | x-internal-status-update (PILOTO da convenção) | — | — | story-0049-0013, story-0049-0018, story-0049-0019 | Pendente |
-| story-0049-0006 | x-internal-report-write | — | — | story-0049-0009, story-0049-0010, story-0049-0015 | Pendente |
-| story-0049-0007 | x-internal-args-normalize | — | — | story-0049-0018, story-0049-0019 | Pendente |
-| story-0049-0008 | x-internal-epic-branch-ensure | — | story-0049-0001 | story-0049-0018, story-0049-0021, story-0049-0022 | Pendente |
-| story-0049-0009 | x-internal-epic-build-plan | — | story-0049-0006 | story-0049-0018 | Pendente |
-| story-0049-0010 | x-internal-epic-integrity-gate | — | story-0049-0006 | story-0049-0018 | Pendente |
-| story-0049-0011 | x-internal-story-load-context | — | — | story-0049-0019 | Pendente |
-| story-0049-0012 | x-internal-story-build-plan | — | — | story-0049-0019 | Pendente |
-| story-0049-0013 | x-internal-story-resume | — | story-0049-0005 | story-0049-0019 | Pendente |
-| story-0049-0014 | x-internal-story-verify | — | — | story-0049-0019 | Pendente |
-| story-0049-0015 | x-internal-story-report | — | story-0049-0006 | story-0049-0019 | Pendente |
-| story-0049-0016 | Extensão x-pr-create | — | story-0049-0003 | story-0049-0018, story-0049-0019 | Pendente |
-| story-0049-0017 | Extensão x-task-plan (--no-commit) | — | — | story-0049-0022 | Pendente |
-| story-0049-0018 | Refator x-epic-implement (CRÍTICA) | — | story-0049-0005, story-0049-0007, story-0049-0008, story-0049-0009, story-0049-0010, story-0049-0016 | — | Pendente |
-| story-0049-0019 | Refator x-story-implement (CRÍTICA) | — | story-0049-0005, story-0049-0007, story-0049-0011, story-0049-0012, story-0049-0013, story-0049-0014, story-0049-0015, story-0049-0016 | — | Pendente |
-| story-0049-0020 | Atualizar Rules 09/14/19 + criar Rules 21/22 | — | — | — | Pendente |
-| story-0049-0021 | Versionamento x-epic-create / -decompose / -map | — | story-0049-0004, story-0049-0008 | — | Pendente |
-| story-0049-0022 | Versionamento x-epic-orchestrate / -story-create / -story-plan / -task-plan | — | story-0049-0004, story-0049-0008, story-0049-0017 | — | Pendente |
+| story-0049-0001 | x-git-branch | — | — | story-0049-0008 | Concluída |
+| story-0049-0002 | x-git-merge | — | — | story-0049-0018 | Concluída |
+| story-0049-0003 | x-pr-merge | — | — | story-0049-0016, story-0049-0018 | Concluída |
+| story-0049-0004 | x-planning-commit | — | — | story-0049-0021, story-0049-0022 | Concluída |
+| story-0049-0005 | x-internal-status-update (PILOTO da convenção) | — | — | story-0049-0013, story-0049-0018, story-0049-0019 | Concluída |
+| story-0049-0006 | x-internal-report-write | — | — | story-0049-0009, story-0049-0010, story-0049-0015 | Concluída |
+| story-0049-0007 | x-internal-args-normalize | — | — | story-0049-0018, story-0049-0019 | Concluída |
+| story-0049-0008 | x-internal-epic-branch-ensure | — | story-0049-0001 | story-0049-0018, story-0049-0021, story-0049-0022 | Concluída |
+| story-0049-0009 | x-internal-epic-build-plan | — | story-0049-0006 | story-0049-0018 | Concluída |
+| story-0049-0010 | x-internal-epic-integrity-gate | — | story-0049-0006 | story-0049-0018 | Concluída |
+| story-0049-0011 | x-internal-story-load-context | — | — | story-0049-0019 | Concluída |
+| story-0049-0012 | x-internal-story-build-plan | — | — | story-0049-0019 | Concluída |
+| story-0049-0013 | x-internal-story-resume | — | story-0049-0005 | story-0049-0019 | Concluída |
+| story-0049-0014 | x-internal-story-verify | — | — | story-0049-0019 | Concluída |
+| story-0049-0015 | x-internal-story-report | — | story-0049-0006 | story-0049-0019 | Concluída |
+| story-0049-0016 | Extensão x-pr-create | — | story-0049-0003 | story-0049-0018, story-0049-0019 | Concluída |
+| story-0049-0017 | Extensão x-task-plan (--no-commit) | — | — | story-0049-0022 | Concluída |
+| story-0049-0018 | Refator x-epic-implement (CRÍTICA) | — | story-0049-0005, story-0049-0007, story-0049-0008, story-0049-0009, story-0049-0010, story-0049-0016 | — | Concluída |
+| story-0049-0019 | Refator x-story-implement (CRÍTICA) | — | story-0049-0005, story-0049-0007, story-0049-0011, story-0049-0012, story-0049-0013, story-0049-0014, story-0049-0015, story-0049-0016 | — | Concluída |
+| story-0049-0020 | Atualizar Rules 09/14/19 + criar Rules 21/22 | — | — | — | Concluída |
+| story-0049-0021 | Versionamento x-epic-create / -decompose / -map | — | story-0049-0004, story-0049-0008 | — | Concluída |
+| story-0049-0022 | Versionamento x-epic-orchestrate / -story-create / -story-plan / -task-plan | — | story-0049-0004, story-0049-0008, story-0049-0017 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
