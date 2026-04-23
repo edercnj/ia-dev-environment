@@ -1,0 +1,91 @@
+{
+  "storyId": "story-0051-0005",
+  "epicId": "0051",
+  "verifiedAt": "2026-04-23T22:00:00Z",
+  "verifier": "x-internal-story-verify (Rule 24 evidence)",
+  "passed": true,
+  "coverage": {
+    "line": null,
+    "branch": null,
+    "note": "This story regenerates goldens and adds an end-to-end smoke test; no production Java added or modified. Coverage gate applies to producer code (KnowledgeAssembler, story-0051-0001) and the upcoming cleanup (story-0051-0006). The 1 new smoke class is a structural invariant over the generated .claude/ tree — not a subject of line/branch coverage."
+  },
+  "testSuiteResults": {
+    "total": 4163,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "delta": {
+      "baseline": 4163,
+      "added": 5,
+      "removed": 5,
+      "note": "Net delta zero: +5 new KnowledgePackMigrationSmokeTest methods; -5 obsolete per-KP skill-golden assertions retired by the golden regeneration (RULE-051-08 single atomic sweep). Total stable at 4163/0/0/0."
+    },
+    "smokeSuiteIsolated": {
+      "command": "mvn -Dtest=KnowledgePackMigrationSmokeTest test",
+      "total": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "5/5 PASS"
+    }
+  },
+  "acceptanceCriteriaCheckResults": [
+    {
+      "scenario": "knowledge/ populated with >= 30 KPs",
+      "result": "PASS",
+      "evidence": "KnowledgePackMigrationSmokeTest#knowledgePopulation_listsAtLeast30Packs walks .claude/knowledge/ and asserts count >= 30. Actual count matches kp-inventory.txt (~32 entries)."
+    },
+    {
+      "scenario": "no forbidden frontmatter fields in knowledge/*",
+      "result": "PASS",
+      "evidence": "KnowledgePackMigrationSmokeTest#knowledgeFrontmatter_hasNoForbiddenFields parses frontmatter of every .claude/knowledge/*.md (and index.md) and asserts zero occurrences of user-invocable, allowed-tools, etc. per RULE-051-07."
+    },
+    {
+      "scenario": "sampled skill consumers do not reference old skills/{kp}/SKILL.md paths",
+      "result": "PASS",
+      "evidence": "KnowledgePackMigrationSmokeTest#sampledSkillConsumers_doNotReferenceOldPaths samples x-arch-plan, x-review-pr, x-story-plan under .claude/skills/ and asserts zero matches against the legacy path regex."
+    },
+    {
+      "scenario": "generated rules do not reference old skills/{kp}/SKILL.md paths",
+      "result": "PASS",
+      "evidence": "KnowledgePackMigrationSmokeTest#rules_doNotReferenceOldPaths walks .claude/rules/ and asserts every KP reference uses the knowledge/ prefix."
+    },
+    {
+      "scenario": "sampled KPs exist at new knowledge/ location",
+      "result": "PASS",
+      "evidence": "KnowledgePackMigrationSmokeTest#sampledKps_existAtNewLocation asserts architecture, coding-standards, testing, security, observability each resolve to either .claude/knowledge/{kp}.md or .claude/knowledge/{kp}/index.md."
+    }
+  ],
+  "goldenRegeneration": {
+    "ran": true,
+    "command": "mvn process-resources && mvn -Dtest=GoldenFileRegenerator test",
+    "atomic": true,
+    "rule": "RULE-051-08 (goldens regenerated in a single story)",
+    "diffSummary": {
+      "deleted": ".claude/skills/{kp}/SKILL.md (~32 files, obsolete per-KP skill goldens)",
+      "created": ".claude/knowledge/{kp}.md OR .claude/knowledge/{kp}/index.md (~32 files)",
+      "modified": ".claude/skills/core/**/SKILL.md (story-0051-0003 retrofit deltas), .claude/rules/0[3-9]-*.md (story-0051-0004 retrofit deltas), .claude/README.md (Knowledge Packs section)",
+      "reviewable": true
+    }
+  },
+  "crossFileConsistency": {
+    "passed": true,
+    "checks": [
+      "KnowledgePackMigrationSmokeTest aligns with SkillConsumerRetrofitInvariantTest (skills/core/) and RuleKpRetrofitInvariantTest (rules/) — layered defence, no contradictions.",
+      "Golden diff is a single atomic sweep — no intermediate partial state landed on develop.",
+      "Constants in the smoke test (KNOWLEDGE_DIR, SKILLS_DIR, FORBIDDEN_FRONTMATTER_FIELDS, SAMPLED_CONSUMERS, SAMPLED_KPS) extracted for reuse.",
+      "No new residual skills/{kp}/SKILL.md references anywhere in .claude/ tree."
+    ]
+  },
+  "legacyAudits": {
+    "interactiveGates": "PASS (scripts/audit-interactive-gates.sh --baseline)",
+    "rule20Telemetry": "PASS (scripts/audit-rule-20.sh)",
+    "rule13SkillInvocation": "PASS (grep command from 13-skill-invocation-protocol.md Audit Command section — 0 matches)"
+  },
+  "smokeResult": {
+    "ran": true,
+    "passed": true,
+    "detail": "KnowledgePackMigrationSmokeTest: 5/5 PASS. Full mvn test: BUILD SUCCESS at 4163/0/0/0."
+  },
+  "failures": []
+}
