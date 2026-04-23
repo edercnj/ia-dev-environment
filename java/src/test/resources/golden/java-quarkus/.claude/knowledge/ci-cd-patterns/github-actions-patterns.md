@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build
-        run: {BUILD_TOOL} build
+        run: maven build
 
   test:
     needs: build
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test
-        run: {BUILD_TOOL} test
+        run: maven test
 
   deploy:
     needs: [build, test]

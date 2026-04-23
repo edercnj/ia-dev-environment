@@ -11,7 +11,7 @@ Provides protocol-specific design and implementation patterns for {{LANGUAGE}} {
 
 ## Quick Reference (always in context)
 
-See `skills/api-design/references/api-design-principles.md` for universal API design principles (error handling, pagination, validation). Protocol-specific conventions are in this knowledge pack's `references/` directory.
+See `knowledge/api-design/api-design-principles.md` for universal API design principles (error handling, pagination, validation). Protocol-specific conventions are in this knowledge pack's `references/` directory.
 
 ## Detailed References
 
@@ -30,6 +30,6 @@ Read these files for comprehensive protocol guidance:
 
 ## Related Knowledge Packs
 
-- `skills/api-design/` — universal API design principles, deprecation strategy, and versioning patterns
-- `skills/architecture/` — architecture layer rules for protocol adapter placement
-- `skills/resilience/` — timeout, retry, and circuit breaker patterns for protocol integrations
+- `knowledge/api-design/index.md` — universal API design principles, deprecation strategy, and versioning patterns
+- `knowledge/architecture.md` — architecture layer rules for protocol adapter placement
+- `knowledge/resilience/index.md` — timeout, retry, and circuit breaker patterns for protocol integrations

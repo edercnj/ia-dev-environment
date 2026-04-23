@@ -23,6 +23,6 @@ See `rules/05-quality-gates.md` for coverage thresholds, test categories, merge 
 
 ## Related Knowledge Packs
 
-- `skills/coding-standards/` — coding conventions and Clean Code rules that tests must follow
-- `skills/architecture/` — architecture layer rules that determine test boundaries
-- `skills/security/` — security test scenarios and pentest readiness
+- `knowledge/coding-standards.md` — coding conventions and Clean Code rules that tests must follow
+- `knowledge/architecture.md` — architecture layer rules that determine test boundaries
+- `knowledge/security/index.md` — security test scenarios and pentest readiness

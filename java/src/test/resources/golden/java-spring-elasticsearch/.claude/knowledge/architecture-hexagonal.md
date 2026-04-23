@@ -9,14 +9,14 @@ description: "Hexagonal architecture reference: canonical package structure, dep
 
 Provides specialized hexagonal architecture guidance for projects with `architecture.style: hexagonal`. Includes canonical package structure, dependency rules with violation examples, compilable Port/Adapter code patterns, and an ArchUnit test suite for CI boundary validation.
 
-> **Base package:** `{BASE_PACKAGE}`
+> **Base package:** ``
 
 ---
 
 ## Section 1 -- Canonical Package Structure
 
 ```
-{BASE_PACKAGE}/
+/
 +-- domain/
 |   +-- model/           # Entities, value objects, enums, aggregates
 |   +-- port/
@@ -69,9 +69,9 @@ Provides specialized hexagonal architecture guidance for projects with `architec
 
 ```java
 // FORBIDDEN: domain depends on adapter
-package {BASE_PACKAGE}.domain.engine;
+package .domain.engine;
 
-import {BASE_PACKAGE}.adapter.outbound.persistence.UserEntity; // VIOLATION
+import .adapter.outbound.persistence.UserEntity; // VIOLATION
 ```
 
 **Expected error:** `ArchUnit: domain classes should not depend on adapter classes`
@@ -80,7 +80,7 @@ import {BASE_PACKAGE}.adapter.outbound.persistence.UserEntity; // VIOLATION
 
 ```java
 // FORBIDDEN: domain depends on framework
-package {BASE_PACKAGE}.domain.model;
+package .domain.model;
 
 import org.springframework.data.annotation.Id; // VIOLATION
 import jakarta.persistence.Entity;              // VIOLATION
@@ -92,9 +92,9 @@ import jakarta.persistence.Entity;              // VIOLATION
 
 ```java
 // FORBIDDEN: inbound adapter depends on outbound adapter
-package {BASE_PACKAGE}.adapter.inbound.rest;
+package .adapter.inbound.rest;
 
-import {BASE_PACKAGE}.adapter.outbound.persistence.UserRepository; // VIOLATION
+import .adapter.outbound.persistence.UserRepository; // VIOLATION
 ```
 
 **Expected error:** `ArchUnit: inbound adapter should not depend on outbound adapter`
@@ -106,9 +106,9 @@ import {BASE_PACKAGE}.adapter.outbound.persistence.UserRepository; // VIOLATION
 ### Inbound Port (Driving Port)
 
 ```java
-package {BASE_PACKAGE}.domain.port.inbound;
+package .domain.port.inbound;
 
-import {BASE_PACKAGE}.domain.model.Order;
+import .domain.model.Order;
 import java.util.Optional;
 
 /**
@@ -125,9 +125,9 @@ public interface ManageOrderUseCase {
 ### Outbound Port (Driven Port)
 
 ```java
-package {BASE_PACKAGE}.domain.port.outbound;
+package .domain.port.outbound;
 
-import {BASE_PACKAGE}.domain.model.Order;
+import .domain.model.Order;
 import java.util.Optional;
 
 /**
@@ -144,11 +144,11 @@ public interface OrderRepository {
 ### Use Case (Application Layer)
 
 ```java
-package {BASE_PACKAGE}.application.usecase;
+package .application.usecase;
 
-import {BASE_PACKAGE}.domain.model.Order;
-import {BASE_PACKAGE}.domain.port.inbound.ManageOrderUseCase;
-import {BASE_PACKAGE}.domain.port.outbound.OrderRepository;
+import .domain.model.Order;
+import .domain.port.inbound.ManageOrderUseCase;
+import .domain.port.outbound.OrderRepository;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -188,10 +188,10 @@ public final class ManageOrderService
 ### Outbound Adapter (Persistence)
 
 ```java
-package {BASE_PACKAGE}.adapter.outbound.persistence;
+package .adapter.outbound.persistence;
 
-import {BASE_PACKAGE}.domain.model.Order;
-import {BASE_PACKAGE}.domain.port.outbound.OrderRepository;
+import .domain.model.Order;
+import .domain.port.outbound.OrderRepository;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -226,7 +226,7 @@ public final class InMemoryOrderRepository
 The following ArchUnit test class validates hexagonal boundaries in CI. Generate this class when `architecture.validateWithArchUnit: true`.
 
 ```java
-package {BASE_PACKAGE};
+package ;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -236,7 +236,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(
-        packages = "{BASE_PACKAGE}",
+        packages = "",
         importOptions = ImportOption.DoNotIncludeTests.class)
 public class HexagonalArchitectureTest {
 

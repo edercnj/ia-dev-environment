@@ -20,7 +20,7 @@ Supplements `infrastructure` knowledge pack with container registry management p
 ### Primary Pattern
 
 ```
-{registry}/{namespace}/{service}:{semver}-{git-sha-short}
+none/{namespace}/{service}:{semver}-{git-sha-short}
 ```
 
 ### Tag Types
@@ -53,14 +53,14 @@ SHA_SHORT="$(git rev-parse --short=7 HEAD)"
 # Release build (on tag push)
 if [[ "${GITHUB_REF}" =~ ^refs/tags/v ]]; then
   VERSION="${GITHUB_REF#refs/tags/v}"
-  IMAGE="${REGISTRY}/${SERVICE}:${VERSION}-${SHA_SHORT}"
+  IMAGE="$none/${SERVICE}:${VERSION}-${SHA_SHORT}"
   docker tag "${SERVICE}:build" "${IMAGE}"
   docker push "${IMAGE}"
 fi
 
 # Branch build (on push to main)
 if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-  IMAGE="${REGISTRY}/${SERVICE}:main-${SHA_SHORT}"
+  IMAGE="$none/${SERVICE}:main-${SHA_SHORT}"
   docker tag "${SERVICE}:build" "${IMAGE}"
   docker push "${IMAGE}"
 fi
@@ -69,7 +69,7 @@ fi
 if [[ "${GITHUB_REF}" =~ ^refs/pull/ ]]; then
   PR_NUMBER="${GITHUB_REF#refs/pull/}"
   PR_NUMBER="${PR_NUMBER%/merge}"
-  IMAGE="${REGISTRY}/${SERVICE}:pr-${PR_NUMBER}-${SHA_SHORT}"
+  IMAGE="$none/${SERVICE}:pr-${PR_NUMBER}-${SHA_SHORT}"
   docker tag "${SERVICE}:build" "${IMAGE}"
   docker push "${IMAGE}"
 fi
