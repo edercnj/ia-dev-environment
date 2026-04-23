@@ -397,6 +397,20 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "GITHUB_RELEASE_URL",
                 "*_TAG", "*_VERSION",
                 "PLANNING_STATUS",
+                // Template-grammar docs in
+                // x-internal-report-write / story-report
+                "KEY", "key", "field", "id", "title",
+                "status", "newField", "undefined_key",
+                // JSON-payload sample fields documented in
+                // x-internal-report-write / story-report
+                "epicId", "prNumber",
+                // _TEMPLATE-EPIC-EXECUTION-PLAN runtime
+                // fields documented in
+                // x-internal-epic-build-plan
+                "MODE", "PHASE_COUNT", "STORY_COUNT",
+                "PHASES_TABLE", "CRITICAL_PATH",
+                "OVERLAP_MATRIX", "OVERLAP_SEVERITY",
+                "RENDERED_AT",
                 ".", "...");
 
         private static final Pattern PEBBLE =
@@ -434,7 +448,26 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                                 "hashFiles\\(.*\\)"),
                         Pattern.compile(
                                 ".*\\|\\s*default"
-                                        + "\\(.*\\)"));
+                                        + "\\(.*\\)"),
+                        // Handlebars/Pebble control flow
+                        // documented in internal template
+                        // skills (x-internal-report-write,
+                        // x-internal-story-report)
+                        Pattern.compile(
+                                "#each(\\s+.*)?"),
+                        Pattern.compile("/each"),
+                        // Meta-syntax placeholders used in
+                        // the template-grammar docs
+                        // ({{<collection>}}, {{<dot-path>}},
+                        // {{<expr>}})
+                        Pattern.compile("<[a-z_-]+>"),
+                        // Dot-path examples for nested
+                        // lookups (e.g. {{a.b.c}},
+                        // {{stories.0.id}},
+                        // {{stories.story-0049-0001.status}})
+                        Pattern.compile(
+                                "[A-Za-z_][A-Za-z0-9_-]*"
+                                        + "(\\.[A-Za-z0-9_-]+)+"));
 
         private static final Pattern DATA =
                 Pattern.compile(

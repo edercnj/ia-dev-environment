@@ -13,10 +13,17 @@ import java.util.List;
  * category subfolders (e.g. {@code core/plan/x-epic-create/})
  * but their emitted output path is always
  * {@code .claude/skills/{name}/}. Nested categories beyond one
- * level are not scanned. The {@code lib/} subtree is the one
- * exception and retains its {@code lib/} prefix in the emitted
- * name. A directory qualifies as a skill directory iff it
- * contains a {@code SKILL.md} file.</p>
+ * level are not scanned. Two subtrees are special-cased:
+ * <ul>
+ *   <li>{@code lib/} — children retain the {@code lib/} prefix
+ *       in their emitted name.</li>
+ *   <li>{@code internal/} — two levels of nesting
+ *       ({@code internal/{group}/x-internal-foo/}) are
+ *       traversed and emitted flat as {@code x-internal-foo}
+ *       per Rule 22.</li>
+ * </ul>
+ * A directory qualifies as a skill directory iff it contains
+ * a {@code SKILL.md} file.</p>
  *
  * @see SkillsAssembler
  */
@@ -24,6 +31,7 @@ final class SkillsHierarchyResolver {
 
     private static final String SKILL_MD = "SKILL.md";
     private static final String LIB_DIR = "lib";
+    private static final String INTERNAL_DIR = "internal";
 
     private SkillsHierarchyResolver() {
         // utility class
@@ -69,6 +77,8 @@ final class SkillsHierarchyResolver {
             String name = entry.getFileName().toString();
             if (LIB_DIR.equals(name)) {
                 addLibSkills(entry, skills);
+            } else if (INTERNAL_DIR.equals(name)) {
+                addInternalSkills(entry, skills);
             } else if (isSkillDirectory(entry)) {
                 skills.add(name);
             } else {
@@ -87,6 +97,21 @@ final class SkillsHierarchyResolver {
             }
             skills.add(LIB_DIR + "/"
                     + sub.getFileName().toString());
+        }
+    }
+
+    /**
+     * Adds skills nested two levels deep under
+     * {@code internal/{group}/{skill}/}. Output is flat —
+     * neither {@code internal/} nor the group prefix is
+     * preserved in the emitted name (Rule 22).
+     */
+    private static void addInternalSkills(
+            Path internalDir, List<String> skills) {
+        for (Path group :
+                SkillsCopyHelper.listDirsSorted(
+                        internalDir)) {
+            addCategorySkills(group, skills);
         }
     }
 
@@ -130,8 +155,16 @@ final class SkillsHierarchyResolver {
         }
         for (Path category :
                 SkillsCopyHelper.listDirsSorted(rootDir)) {
-            if (LIB_DIR.equals(
-                    category.getFileName().toString())) {
+            String name = category.getFileName().toString();
+            if (LIB_DIR.equals(name)) {
+                continue;
+            }
+            if (INTERNAL_DIR.equals(name)) {
+                Path match = resolveInInternal(
+                        category, skillName);
+                if (match != null) {
+                    return match;
+                }
                 continue;
             }
             Path candidate = category.resolve(skillName);
@@ -140,5 +173,18 @@ final class SkillsHierarchyResolver {
             }
         }
         return flat;
+    }
+
+    private static Path resolveInInternal(
+            Path internalDir, String skillName) {
+        for (Path group :
+                SkillsCopyHelper.listDirsSorted(
+                        internalDir)) {
+            Path candidate = group.resolve(skillName);
+            if (isSkillDirectory(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 }
