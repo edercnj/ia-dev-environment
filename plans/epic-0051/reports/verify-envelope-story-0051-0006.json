@@ -1,0 +1,44 @@
+{
+  "storyId": "story-0051-0006",
+  "epicId": "EPIC-0051",
+  "passed": true,
+  "final": true,
+  "flowVersion": "2",
+  "testSuite": {
+    "total": 3887,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 14,
+    "skipReason": "class-level @Disabled on 14 obsolete tests inspecting old .claude/skills/{kp}/ layout; coverage preserved by KnowledgePackMigrationSmokeTest and KnowledgeAssemblerTest on new .claude/knowledge/ layout"
+  },
+  "coverage": {
+    "line": { "value": 95.4, "threshold": 95.0, "passed": true },
+    "branch": { "value": 90.3, "threshold": 90.0, "passed": true }
+  },
+  "dodChecklist": [
+    { "id": "adr-created", "description": "ADR-0013 published at adr/ADR-0013-knowledge-packs-dedicated-directory.md", "passed": true },
+    { "id": "changelog-entry", "description": "CHANGELOG.md Unreleased 'Changed' entry documents EPIC-0051 refactor as MINOR bump", "passed": true },
+    { "id": "java-cleanup", "description": "SkillsCopyHelper reduced 323 -> 114 lines; dual-output retrofit removed; assembleKnowledge() call removed from SkillsAssembler pipeline", "passed": true },
+    { "id": "rule-003-size-cap", "description": "SkillsCopyHelper back under 250-line class cap", "passed": true },
+    { "id": "disabled-tests-tracked", "description": "14 obsolete tests @Disabled at class level with migration-pointer justification", "passed": true },
+    { "id": "claude-md-template-updated", "description": "Root CLAUDE.md template Related Skills paragraph references .claude/knowledge/ as separate from .claude/skills/", "passed": true },
+    { "id": "golden-files-clean", "description": "Goldens regenerated clean, no drift", "passed": true },
+    { "id": "invariant-tests-active", "description": "KnowledgePackMigrationSmokeTest + SkillsAssemblerNoKnowledgeEmissionTest + KnowledgeAssemblerTest all passing and CI-blocking", "passed": true }
+  ],
+  "epicClosure": {
+    "storiesMerged": [
+      { "id": "story-0051-0001", "pr": 602, "rule24": false, "note": "baseline, pre-Rule-24" },
+      { "id": "story-0051-0002", "pr": 604, "rule24": true },
+      { "id": "story-0051-0003", "pr": 605, "rule24": true },
+      { "id": "story-0051-0004", "pr": 606, "rule24": true },
+      { "id": "story-0051-0005", "pr": 607, "rule24": true },
+      { "id": "story-0051-0006", "pr": null, "rule24": true, "note": "this story" }
+    ],
+    "rulesSatisfied": [
+      "RULE-051-01", "RULE-051-02", "RULE-051-03", "RULE-051-04",
+      "RULE-051-05", "RULE-051-06", "RULE-051-07", "RULE-051-08"
+    ]
+  },
+  "failures": [],
+  "decision": "GO"
+}
