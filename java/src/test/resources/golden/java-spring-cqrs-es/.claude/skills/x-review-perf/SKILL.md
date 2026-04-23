@@ -42,7 +42,7 @@ Review code changes for performance best practices: N+1 query detection, connect
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| resilience | `skills/resilience/SKILL.md` | Circuit breaker, rate limiting, timeout, retry, bulkhead patterns |
+| resilience | `knowledge/resilience/index.md` | Circuit breaker, rate limiting, timeout, retry, bulkhead patterns |
 
 ## Checklist (13 Items, Max Score: /26)
 
@@ -91,7 +91,7 @@ Each item scores 0 (missing), 1 (partial), or 2 (fully compliant).
 ### Step 1 -- Gather Context
 
 Read the resilience knowledge pack:
-- `skills/resilience/SKILL.md`
+- `knowledge/resilience/index.md`
 
 ### Step 2 -- Identify Changed Files
 

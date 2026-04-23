@@ -69,8 +69,8 @@ Validate CLI arguments:
 Read the OWASP ASVS knowledge pack to load verification items per chapter and level:
 
 ```
-Read skills/security/SKILL.md
-Read skills/security/references/application-security.md
+Read knowledge/security/index.md
+Read knowledge/security/application-security.md
 ```
 
 Each verification item has:
@@ -463,8 +463,8 @@ When run in CI mode, the skill:
 
 | # | Knowledge Pack | Path | Purpose |
 |---|----------------|------|---------|
-| 1 | Security | `skills/security/SKILL.md` | OWASP ASVS verification items |
-| 2 | Security References | `skills/security/references/application-security.md` | Detailed ASVS chapter mappings |
+| 1 | Security | `knowledge/security/index.md` | OWASP ASVS verification items |
+| 2 | Security References | `knowledge/security/application-security.md` | Detailed ASVS chapter mappings |
 
 ## Integration Notes
 

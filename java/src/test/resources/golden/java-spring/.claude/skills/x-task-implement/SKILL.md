@@ -220,10 +220,10 @@ Launch a **single** `general-purpose` subagent:
 > - If NO test plan found: emit WARNING and suggest running `/x-test-plan` first, then continue with fallback mode (implement without strict TPP ordering)
 >
 > **Step 3 — Read project conventions:**
-> - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
-> - `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} coding conventions
-> - `skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms
-> - `skills/layer-templates/SKILL.md` — code templates per architecture layer (defines implementation order)
+> - `knowledge/architecture/architecture-principles.md` — layer structure, dependency direction
+> - `knowledge/coding-standards/coding-conventions.md` — {{LANGUAGE}} coding conventions
+> - `knowledge/coding-standards/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms
+> - `knowledge/layer-templates.md` — code templates per architecture layer (defines implementation order)
 >
 > **Step 3.5 — Read template for implementation plan format (RULE-007):**
 > - Read template at `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` for required output format
@@ -584,11 +584,11 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Pack | Files | Purpose |
 |------|-------|---------|
-| architecture | `skills/architecture/references/architecture-principles.md` | Layer structure, dependency direction |
-| coding-standards | `skills/coding-standards/references/coding-conventions.md` | {{LANGUAGE}} coding conventions |
-| coding-standards | `skills/coding-standards/references/version-features.md` | {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms |
-| layer-templates | `skills/layer-templates/SKILL.md` | Code templates per architecture layer |
-| testing | `skills/testing/SKILL.md` | Test frameworks and TDD patterns |
+| architecture | `knowledge/architecture/architecture-principles.md` | Layer structure, dependency direction |
+| coding-standards | `knowledge/coding-standards/coding-conventions.md` | {{LANGUAGE}} coding conventions |
+| coding-standards | `knowledge/coding-standards/version-features.md` | {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms |
+| layer-templates | `knowledge/layer-templates.md` | Code templates per architecture layer |
+| testing | `knowledge/testing.md` | Test frameworks and TDD patterns |
 
 ## Integration Notes
 

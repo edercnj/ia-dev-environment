@@ -505,7 +505,7 @@ class HardeningEvalSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("skills/security/");
+                    .contains("knowledge/security/");
         }
     }
 
