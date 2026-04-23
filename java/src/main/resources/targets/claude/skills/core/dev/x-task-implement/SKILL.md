@@ -1,5 +1,6 @@
 ---
 name: x-task-implement
+model: sonnet
 description: "Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
@@ -116,7 +117,7 @@ Branch creation in `x-task-implement` follows the **worktree-first policy** defi
 
 **Step 0.5a — Detect worktree context (Rule 14 §3 — Non-Nesting Invariant).** Invoke the `x-git-worktree` skill via the Skill tool to classify the current execution context (Rule 13 Pattern 1 — INLINE-SKILL):
 
-    Skill(skill: "x-git-worktree", args: "detect-context")
+    Skill(skill: "x-git-worktree", model: "haiku", args: "detect-context")
 
 The skill returns a JSON envelope of the form:
 
@@ -150,7 +151,7 @@ Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following
 
 - **Mode 2 (CREATE — standalone opt-in).** Invoke `x-git-worktree` via the Skill tool to provision the worktree (Rule 13 Pattern 1 — INLINE-SKILL). The `--base` argument is the value resolved in Step 0.5f (NOT hardcoded `develop`):
 
-      Skill(skill: "x-git-worktree", args: "create --branch feat/task-XXXX-YYYY-NNN-description --base {RESOLVED_BASE} --id task-XXXX-YYYY-NNN")
+      Skill(skill: "x-git-worktree", model: "haiku", args: "create --branch feat/task-XXXX-YYYY-NNN-description --base {RESOLVED_BASE} --id task-XXXX-YYYY-NNN")
 
   where `{RESOLVED_BASE}` is the value computed in Step 0.5f (the current story branch when HEAD is on `feat/story-XXXX-YYYY-...`, otherwise `develop`).
 
@@ -541,7 +542,7 @@ Executed after all TDD cycles, validations, and commits for the task are complet
 - **Mode 2 (CREATE — standalone opt-in) AND the task completed successfully (all Definition of Done criteria in Step 3 satisfied):**
   1. Remove the worktree first via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
 
-         Skill(skill: "x-git-worktree", args: "remove --id task-XXXX-YYYY-NNN")
+         Skill(skill: "x-git-worktree", model: "haiku", args: "remove --id task-XXXX-YYYY-NNN")
 
   2. After removal, switch execution context back to `mainRepoPath` (captured at Step 0.5a) and run:
 

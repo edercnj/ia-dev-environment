@@ -1,5 +1,6 @@
 ---
 name: architecture-patterns
+model: haiku
 description: "Architecture pattern references: microservice, resilience, data, integration, and architectural patterns (saga, outbox, circuit breaker, CQRS, event sourcing, and more)."
 user-invocable: false
 allowed-tools:

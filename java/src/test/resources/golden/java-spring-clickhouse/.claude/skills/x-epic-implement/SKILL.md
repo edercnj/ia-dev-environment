@@ -1,5 +1,6 @@
 ---
 name: x-epic-implement
+model: sonnet
 description: "Thin orchestrator (~460 lines — story-0049-0018 refactor) that drives an epic end-to-end via 6 delegated phases: Phase 0 (args via x-internal-args-normalize), Phase 1 (load+plan via x-internal-epic-build-plan), Phase 2 (epic branch via x-internal-epic-branch-ensure), Phase 3 (sequential-by-default story loop via x-story-implement), Phase 4 (integrity gate + report via x-internal-epic-integrity-gate + x-internal-report-write), Phase 5 (final PR epic/XXXX → develop via x-git-merge + x-pr-create). Defaults flipped by EPIC-0049: sequential execution (opt-in parallel via --parallel), auto-merge of story PRs into epic/XXXX (target changed from develop). Legacy EPIC-0042 behavior preserved under --legacy-flow (auto-detected via execution-state.json flowVersion=1). Zero inline git/gh/jq/mvn calls — orchestrator uses only Read/Glob + Skill."
 user-invocable: true
 allowed-tools: Read, Write, Glob, Skill, Agent, AskUserQuestion
@@ -245,7 +246,7 @@ Iterate the phase-ordered story array from Phase 1. Within each phase batch, eit
 
 For each story, invoke `x-story-implement` with the following argument surface:
 
-    Skill(skill: "x-story-implement", args: "<STORY-ID> --target-branch <epicBranch> --auto-merge-strategy <strategy> [--skip-review] [--non-interactive] [--auto-approve-pr]")
+    Skill(skill: "x-story-implement", model: "sonnet", args: "<STORY-ID> --target-branch <epicBranch> --auto-merge-strategy <strategy> [--skip-review] [--non-interactive] [--auto-approve-pr]")
 
 Where:
 
@@ -343,7 +344,7 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic
 
 Ensure `epic/<EPIC-ID>` is up-to-date with `develop` before opening the final PR (otherwise GitHub will show divergence):
 
-    Skill(skill: "x-git-merge", args: "--source develop --target epic/<EPIC-ID> --strategy merge")
+    Skill(skill: "x-git-merge", model: "haiku", args: "--source develop --target epic/<EPIC-ID> --strategy merge")
 
 On conflict (sub-skill returns non-zero with conflict envelope) → exit with code `FINAL_PR_CONFLICTS`. Conflict resolution is human-driven: the orchestrator prints a remediation block and terminates. Re-run with `--resume` after the operator resolves locally and pushes.
 
@@ -351,7 +352,7 @@ On conflict (sub-skill returns non-zero with conflict envelope) → exit with co
 
 Invoke via the extension added in story-0049-0016:
 
-    Skill(skill: "x-pr-create", args: "--epic-id <EPIC-ID> --head epic/<EPIC-ID> --target-branch develop --auto-merge none --label epic-integration --title \"feat(epic-<EPIC-ID>): integrate all stories\" --description \"Consolidated integration PR for EPIC-<EPIC-ID>. See plans/epic-<EPIC-ID>/reports/epic-execution-report-<EPIC-ID>.md for story breakdown.\"")
+    Skill(skill: "x-pr-create", model: "haiku", args: "--epic-id <EPIC-ID> --head epic/<EPIC-ID> --target-branch develop --auto-merge none --label epic-integration --title \"feat(epic-<EPIC-ID>): integrate all stories\" --description \"Consolidated integration PR for EPIC-<EPIC-ID>. See plans/epic-<EPIC-ID>/reports/epic-execution-report-<EPIC-ID>.md for story breakdown.\"")
 
 Consume `{prUrl, prNumber}`. Record in the final envelope. **Do NOT auto-merge** (manual gate per RULE-004 — the epic PR is the last human review point before `develop` receives the full epic).
 

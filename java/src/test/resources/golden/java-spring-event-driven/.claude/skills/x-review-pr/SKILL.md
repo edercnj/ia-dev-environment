@@ -135,6 +135,7 @@ The Tech Lead review covers:
    ```
    - If line coverage < 95% or branch coverage < 90%: record as CRITICAL finding in report
    - Include coverage percentages in the **Test Execution Results** section
+   - **Absolute-gate note (Rule 05 RULE-005-01):** the gate fires regardless of whether the deficit was caused by this PR or was pre-existing on the base branch. The Tech Lead MUST NOT override NO-GO with a "pre-existing" justification. The only permitted escape paths are: (a) close the gap in this PR, (b) close it in a predecessor PR, or (c) merge an approved ADR that temporarily lowers the gate for a specific package (with sunset date).
 8. **Execute smoke tests** (CONDITIONAL — EPIC-0042, only when `testing.smoke_tests == true`):
    ```bash
    {{SMOKE_COMMAND}}
@@ -167,7 +168,7 @@ The Tech Lead review covers:
 | >= 45/53 + zero issues | GO              |
 | < 45/53 OR any issue   | NO-GO           |
 | ANY test failure (unit, integration, or smoke) | NO-GO (automatic, overrides score) |
-| Coverage below 95% line OR 90% branch  | NO-GO (automatic, overrides score) |
+| Coverage below 95% line OR 90% branch  | NO-GO (automatic, overrides score — **absolute gate per Rule 05 RULE-005-01; pre-existing deficits are NOT an excuse**) |
 
 ### Step 5 — Update Consolidated Dashboard
 

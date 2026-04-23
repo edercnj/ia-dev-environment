@@ -1,5 +1,6 @@
 ---
 name: x-story-implement
+model: sonnet
 description: "Thin orchestrator (~320 lines — story-0049-0019 refactor) that drives a story end-to-end via 4 delegated phases: Phase 0 (args via x-internal-args-normalize + context via x-internal-story-load-context + resume via x-internal-story-resume), Phase 1 (parallel planning via x-internal-story-build-plan), Phase 2 (task execution loop via x-task-implement per task, then final story PR via x-pr-create), Phase 3 (verify via x-internal-story-verify + report via x-internal-story-report + optional worktree cleanup via x-git-worktree). New EPIC-0049 flags --target-branch / --auto-merge / --epic-id propagate OO-style to x-task-implement and x-pr-create. Backward compatible: absent flags preserve legacy EPIC-0048 behavior (target=develop, auto-merge=none)."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate, AskUserQuestion
@@ -191,7 +192,7 @@ Read tasks from `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (Section 8 fall
 1. Check dependencies against `execution-state.json`; unresolved → mark `BLOCKED` via `x-internal-status-update` and skip.
 2. **Dispatch TDD:** invoke per Rule 13 Pattern 1:
 
-        Skill(skill: "x-task-implement", args: "<TASK-ID> --orchestrated --target-branch <targetBranch> [--auto-merge <strategy>] [--epic-id <EPIC-ID>] [--auto-approve-pr] [--non-interactive]")
+        Skill(skill: "x-task-implement", model: "sonnet", args: "<TASK-ID> --orchestrated --target-branch <targetBranch> [--auto-merge <strategy>] [--epic-id <EPIC-ID>] [--auto-approve-pr] [--non-interactive]")
 
    The child runs RED → GREEN → REFACTOR, commits atomically via `x-git-commit`, and pushes the task branch `feat/task-XXXX-YYYY-NNN-desc`. It returns `{status, taskId, commitSha, branchName, coverageLine, coverageBranch}`.
 
@@ -203,7 +204,7 @@ Read tasks from `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (Section 8 fall
 
 4. **PR creation:** invoke with OO-propagated flags (RULE-009):
 
-        Skill(skill: "x-pr-create", args: "<TASK-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID> [--auto-approve-pr]")
+        Skill(skill: "x-pr-create", model: "haiku", args: "<TASK-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID> [--auto-approve-pr]")
 
    When `--auto-approve-pr`, the effective task-PR target is the parent story branch (`feat/story-...`); otherwise the propagated `--target-branch`. Consume `{prUrl, prNumber, prMergeStatus}`.
 
@@ -217,7 +218,7 @@ Each `x-task-implement` dispatch returns `{status, taskId, commitSha, branchName
 
 When `--auto-approve-pr` was set, every task PR targeted the parent story branch `feat/story-XXXX-YYYY-...`. After all tasks succeed, push the parent branch and create the story-level PR with OO-propagated flags:
 
-    Skill(skill: "x-pr-create", args: "--story-id <STORY-ID> --head feat/story-<STORY-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID>")
+    Skill(skill: "x-pr-create", model: "haiku", args: "--story-id <STORY-ID> --head feat/story-<STORY-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID>")
 
 Without `--auto-approve-pr`, each task PR is the unit of delivery — no story-level PR is created. On `x-pr-create` non-zero exit → `PR_CREATE_FAILED`. Fallback G1-G7 (no test plan / no formal tasks) lives in `references/full-protocol.md` §4.
 
@@ -247,8 +248,8 @@ Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverag
 
 Invoke in sequence:
 
-    Skill(skill: "x-review", args: "<STORY-ID>")
-    Skill(skill: "x-review-pr", args: "<STORY-ID>")
+    Skill(skill: "x-review", model: "sonnet", args: "<STORY-ID>")
+    Skill(skill: "x-review-pr", model: "sonnet", args: "<STORY-ID>")
 
 On Tech-Lead GO, optionally run PR-comment remediation via `Skill(skill: "x-pr-fix", args: "<prNumber>")` unless `--no-auto-remediation`. On NO-GO, fix-and-review up to 2 cycles; persistent NO-GO keeps `verifyPassed=true` but flags the story with a WARNING in the final report (human gate downstream).
 

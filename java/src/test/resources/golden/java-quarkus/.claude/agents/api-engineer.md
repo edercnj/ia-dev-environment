@@ -15,7 +15,7 @@ Senior API Architect with expertise in RESTful design, contract-first developmen
 **Active when:** interfaces contain any of: `rest`, `grpc`, `graphql`, `websocket`
 
 ## Recommended Model
-**Adaptive** — Sonnet for standard CRUD endpoint reviews and single-protocol reviews. Opus for complex API design decisions, breaking change analysis, or multi-protocol interactions.
+**Sonnet** — API review against REST/gRPC/GraphQL protocol + versioning + error-format checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

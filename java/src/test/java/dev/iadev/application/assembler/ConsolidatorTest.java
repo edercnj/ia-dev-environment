@@ -329,4 +329,45 @@ class ConsolidatorTest {
             assertThat(first).isEqualTo(second);
         }
     }
+
+    @Nested
+    @DisplayName("filterExistingFiles — branch coverage")
+    class FilterExistingBranch {
+
+        @Test
+        @DisplayName("skips directory paths — keeps only"
+                + " regular files (Files.isRegularFile=false"
+                + " branch)")
+        void consolidate_inputContainsDirectory_skipsDir(
+                @TempDir Path tempDir) throws IOException {
+            Path regular = tempDir.resolve("a.md");
+            Files.writeString(regular, "# A\n");
+            Path dir = tempDir.resolve("nested-dir");
+            Files.createDirectories(dir);
+            Path output = tempDir.resolve("consolidated.md");
+
+            Consolidator.consolidateFiles(output,
+                    List.of(regular, dir));
+
+            assertThat(Files.exists(output)).isTrue();
+            assertThat(Files.readString(output))
+                    .contains("# A");
+        }
+
+        @Test
+        @DisplayName("skips non-existent paths — keeps only"
+                + " regular files (Files.exists=false branch)")
+        void consolidate_inputMissingPath_noOp(
+                @TempDir Path tempDir) throws IOException {
+            Path ghost = tempDir.resolve("does-not-exist.md");
+            Path output = tempDir.resolve("merged.md");
+
+            Consolidator.consolidateFiles(output,
+                    List.of(ghost));
+
+            // filterExistingFiles returns empty list ->
+            // consolidateFiles returns early without writing.
+            assertThat(Files.exists(output)).isFalse();
+        }
+    }
 }

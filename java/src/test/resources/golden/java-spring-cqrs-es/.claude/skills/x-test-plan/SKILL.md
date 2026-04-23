@@ -59,7 +59,14 @@ Before generating a test plan, verify whether a valid plan already exists:
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-test-plan Phase-1-KP-Read`
 
-Launch a **single** `general-purpose` subagent with `model: opus`:
+Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Rule 23 RULE-002 — deep test planning quality for Double-Loop TDD + TPP):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "opus",
+      description: "Test Planning Assistant gathers context for test plan generation",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **Test Planning Assistant** gathering context for test plan generation.
 >
@@ -331,7 +338,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed
 - Template reference (RULE-007) ensures consistent 8-section output format when available
-- Subagent uses `model: opus` (RULE-009) for deep test planning quality
+- Subagent uses explicit `model: "opus"` (Rule 23 RULE-002) for deep test planning quality
 - Output uses Double-Loop TDD format with TPP-ordered scenarios
 - Output consumed by Phase 2 (developers) and Phase 3 (QA engineer validates coverage)
 - Can be used standalone before any implementation task

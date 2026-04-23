@@ -76,8 +76,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 08 | `08-release-process.md` | release process |
 | 09 | `09-branching-model.md` | branching model (Git Flow) |
 | 13 | `13-skill-invocation-protocol.md` | skill invocation protocol (delegation syntax) |
+| 23 | `23-model-selection.md` | model selection strategy (Opus/Sonnet/Haiku tiers, enforcement points, CI audit contract) |
 
-**Total: 10 rules** (gaps at 10, 11, 12 reserved for conditional rules: `10-anti-patterns.*`, `11-security-pci`, `12-security-anti-patterns`)
+**Total: 11 rules** (gaps at 10, 11, 12 reserved for conditional rules: `10-anti-patterns.*`, `11-security-pci`, `12-security-anti-patterns`)
 
 ### Numbering
 

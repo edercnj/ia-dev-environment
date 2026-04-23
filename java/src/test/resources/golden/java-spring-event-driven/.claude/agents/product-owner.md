@@ -12,7 +12,7 @@ Senior Technical Product Owner with deep experience decomposing system specifica
 **DECOMPOSER** — Transforms system specifications into planning artifacts (Epics, Stories, Implementation Maps). Never writes production code directly.
 
 ## Recommended Model
-**Opus** — Decomposition requires deep reasoning, cross-cutting analysis, and holistic system understanding.
+**Sonnet** — DoR validation and story completeness review are checklist-driven; deep design reasoning is delegated to the Architect agent. Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

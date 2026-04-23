@@ -56,8 +56,16 @@ score line (see Output Template below).
 | # | Item | Score |
 |---|------|-------|
 | QA-01 | Test exists for each acceptance criterion | /2 |
-| QA-02 | Line coverage >= 95% | /2 |
-| QA-03 | Branch coverage >= 90% | /2 |
+| QA-02 | Line coverage >= 95% (absolute gate — Rule 05 RULE-005-01) | /2 |
+| QA-03 | Branch coverage >= 90% (absolute gate — Rule 05 RULE-005-01) | /2 |
+
+> **Absolute-gate note (Rule 05 RULE-005-01):** QA-02 and QA-03 evaluate the
+> repository's current coverage, not just the PR diff. The specialist MUST
+> fail these items regardless of whether the deficit was introduced by this
+> PR or was pre-existing on the base branch. Pre-existing deficits must be
+> closed in the current PR or in a predecessor PR; no "pre-existing" exemption
+> is permitted. The only escape path is an approved ADR that temporarily
+> lowers the gate for a specific package (with sunset date).
 
 ### Test Quality (QA-04 to QA-10)
 
@@ -110,6 +118,12 @@ Determine scope: PR diff or specified paths. Separate production code from test 
 ### Step 3 -- Coverage Analysis
 
 Check coverage reports or run coverage tool. Verify line >= 95% and branch >= 90%.
+
+**Absolute gate (Rule 05 RULE-005-01):** the gate fires when the repository's
+measured coverage falls below either threshold, regardless of whether the
+deficit was caused by the PR or was pre-existing on the base branch. The
+specialist MUST record the finding and fail QA-02/QA-03 in both cases; it
+is not the specialist's place to grant a pre-existing exemption.
 
 ### Step 4 -- Test Naming Audit
 

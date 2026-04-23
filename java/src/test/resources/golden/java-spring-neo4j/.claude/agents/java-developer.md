@@ -12,10 +12,7 @@ Senior Java Developer with 10+ years of experience building production systems. 
 **IMPLEMENTER** — Writes production code, tests, and configurations following the architect's plan.
 
 ## Recommended Model
-**Adaptive** — Model selection based on task complexity:
-- **Haiku**: Boilerplate code, simple DTOs, getters/setters, straightforward tests
-- **Sonnet**: Standard feature implementation, CRUD endpoints, service layer logic
-- **Opus**: Complex domain logic, concurrency patterns, native build troubleshooting
+**Sonnet** — Feature implementation following the Architect's plan is structured procedural work; Sonnet-appropriate (Rule 23 RULE-004). For TDD inner-loop iterations and CRUD endpoints Sonnet preserves quality at a lower cost than Opus; Haiku-eligibility applies only to utility skills (x-git-commit, x-code-format, etc.), not to the developer agent itself.
 
 ## Responsibilities
 
@@ -67,9 +64,12 @@ Senior Java Developer with 10+ years of experience building production systems. 
 - Every new configuration property documented with default value
 - Every database change includes migration file
 
-## Adaptive Model Assignment
-| Task Type | Model | Examples |
-|-----------|-------|---------|
-| Boilerplate | Haiku | Records, entity classes, mapper methods |
-| Standard | Sonnet | Service implementation, REST endpoints, repository methods |
-| Complex | Opus | Decision engines, concurrency, event-driven flows, debugging |
+## Per-Task Tier Guidance
+
+The agent itself runs on Sonnet (see "Recommended Model" above). The table below guides tier selection for **Skill delegations** this agent performs (via `Skill(skill: "...", model: "...", args: "...")` per Rule 23 RULE-003) — not for invocations of this agent.
+
+| Delegation type | Skill tier | Examples |
+|---|---|---|
+| Utility | Haiku | `x-git-commit`, `x-git-worktree`, `x-code-format`, `x-code-lint` — Rule 23 RULE-005 |
+| Standard implementation | Sonnet | `x-task-implement`, `x-test-tdd` — inherited from this agent's Sonnet tier |
+| Deep reasoning | Opus | Delegate to the Architect agent (`Agent(subagent_type: "general-purpose", model: "opus", ...)`) when complex design reasoning is required |
