@@ -164,7 +164,14 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-arch-p
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-arch-plan Phase-3-Sequence-Diagrams`
 
-Launch a **single** `general-purpose` subagent with `model: opus` for deep architectural reasoning (RULE-009). Generate ALL mandatory sections.
+Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Rule 23 RULE-002 — deep architectural reasoning justifies Opus). Generate ALL mandatory sections.
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "opus",
+      description: "Architect generates mandatory sections for architecture plan",
+      prompt: "Generate all mandatory sections of the architecture plan per the template loaded above"
+    )
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-arch-plan Phase-3-Sequence-Diagrams ok`
@@ -275,7 +282,14 @@ Each architectural decision is documented inline using this simplified format:
 
 ## Subagent Prompt
 
-Launch a **single** `general-purpose` subagent with `model: opus` for deep architectural reasoning (RULE-009):
+Launch a **single** `general-purpose` subagent with explicit `model: "opus"` (Rule 23 RULE-002 — deep architectural reasoning justifies Opus):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "opus",
+      description: "Senior Architect generates architecture plan for project",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **Senior Architect** generating a comprehensive architecture plan for {{PROJECT_NAME}}.
 >
