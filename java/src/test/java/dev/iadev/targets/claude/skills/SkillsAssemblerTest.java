@@ -103,4 +103,46 @@ class SkillsAssemblerTest {
                         + "dev/x-story-implement/SKILL.md)")
                 .contains("## Review Policy");
     }
+
+    @Test
+    @DisplayName("x-story-implement SKILL.md contains "
+            + ">= 2 MANDATORY — NON-NEGOTIABLE markers (EPIC-0053)")
+    void xStoryImplement_containsMandatoryMarkersOnBothReviewSteps(
+            @TempDir Path tempDir) throws IOException {
+        Path outputDir = tempDir.resolve("output");
+        Files.createDirectories(outputDir);
+
+        new SkillsAssembler().assemble(
+                TestConfigBuilder.minimal(),
+                new TemplateEngine(),
+                outputDir);
+
+        String content = Files.readString(
+                outputDir.resolve(
+                        "skills/x-story-implement/SKILL.md"));
+
+        int count = countOccurrences(
+                content, MANDATORY_MARKER);
+
+        assertThat(count)
+                .as("Expected >= 2 MANDATORY — NON-NEGOTIABLE "
+                        + "markers in generated x-story-implement/"
+                        + "SKILL.md (one per review step: x-review "
+                        + "and x-review-pr), found: " + count)
+                .isGreaterThanOrEqualTo(2);
+    }
+
+    private static final String MANDATORY_MARKER =
+            "MANDATORY — NON-NEGOTIABLE";
+
+    private static int countOccurrences(
+            String text, String pattern) {
+        int count = 0;
+        int idx = 0;
+        while ((idx = text.indexOf(pattern, idx)) != -1) {
+            count++;
+            idx += pattern.length();
+        }
+        return count;
+    }
 }
