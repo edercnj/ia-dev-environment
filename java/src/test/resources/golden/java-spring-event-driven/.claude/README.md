@@ -83,8 +83,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 19 | `19-backward-compatibility.md` | backward compatibility |
 | 21 | `21-epic-branch-model.md` | epic branch model |
 | 22 | `22-skill-visibility.md` | skill visibility |
+| 23 | `23-model-selection.md` | model selection |
 
-**Total: 16 rules**
+**Total: 17 rules**
 
 ### Numbering
 
@@ -333,7 +334,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 16 |
+| Rules (.claude) | 17 |
 | Skills (.claude) | 67 |
 | Knowledge Packs (.claude) | 32 |
 | Agents (.claude) | 12 |
