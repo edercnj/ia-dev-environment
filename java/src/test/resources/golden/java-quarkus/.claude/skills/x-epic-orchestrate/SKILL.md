@@ -2,8 +2,8 @@
 name: x-epic-orchestrate
 description: "Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support."
 user-invocable: true
-allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion"
-argument-hint: "[EPIC-ID] [--resume] [--story story-XXXX-YYYY]"
+allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion, Skill"
+argument-hint: "[EPIC-ID] [--resume] [--story story-XXXX-YYYY] [--dry-run]"
 context-budget: heavy
 ---
 
@@ -61,12 +61,47 @@ ERROR: Epic ID is required. Usage: /x-epic-orchestrate [EPIC-ID] [--resume] [--s
 |------|------|---------|-------------|
 | `--resume` | boolean | `false` | Continue from last checkpoint (skip stories with `planningStatus == "READY"`) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Plan only a specific story by ID |
+| `--dry-run` | boolean | `false` | Artifacts written to disk but Steps P1 / P2 / P4 / P5 become no-ops (EPIC-0049 / RULE-007) |
 
 **Mutual exclusivity:** `--resume` and `--story` are mutually exclusive. If both are provided, abort:
 
 ```
 ERROR: --resume and --story are mutually exclusive. Use only one.
 ```
+
+---
+
+## Step P1 — Detect Worktree Context (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-P1-Worktree-Detect`
+
+Invoke `x-git-worktree` in detect-context mode. Result is advisory only — `x-internal-epic-branch-ensure` (Step P2) makes the authoritative decision.
+
+    Skill(skill: "x-git-worktree", args: "detect-context")
+
+Continue on any detect-context failure (fail-open, RULE-006).
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-P1-Worktree-Detect ok`
+
+## Step P2 — Ensure `epic/<ID>` Branch (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-P2-Epic-Branch-Ensure`
+
+Use the resolved `EPIC-ID` argument (`XXXX`).
+
+Invoke `x-internal-epic-branch-ensure` so the canonical `epic/<ID>` branch exists locally AND on origin (idempotent):
+
+    Skill(skill: "x-internal-epic-branch-ensure", args: "--epic-id <XXXX>")
+
+On failure (non-zero exit), abort with `EPIC_BRANCH_ENSURE_FAILED`. When `--dry-run` is set, skip this step.
+
+This step runs ONCE at orchestrator entry. Child `/x-story-plan` invocations in Phase 2 receive `--no-commit` so they do not re-ensure the branch nor issue per-story commits — the wave-level Step P4 below aggregates commits per wave.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-P2-Epic-Branch-Ensure ok`
 
 ---
 
@@ -313,8 +348,10 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-sta
 **Skill invocation:**
 
 ```
-Skill(skill: "x-story-plan", args: "{storyId}")
+Skill(skill: "x-story-plan", args: "{storyId} --no-commit")
 ```
+
+`--no-commit` is always propagated (EPIC-0049 / RULE-007 batch-commit contract). Each child `x-story-plan` writes artifacts to disk but SKIPS its own P4 commit. The wave-level **Step P4 — Commit Wave Artifacts** (below, added to Phase 2.5) aggregates every story's artifacts + `execution-state.json` + reports into a single commit per wave.
 
 <!-- TELEMETRY: subagent.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end x-epic-orchestrate {storyId} ok`
@@ -323,7 +360,7 @@ The skill executes all 6 phases of `/x-story-plan` (Input Resolution, Context Ga
 
 If `/x-story-plan` is unavailable via the Skill tool, fall back to the Agent tool:
 ```
-Agent(prompt: "/x-story-plan {storyId}")
+Agent(prompt: "/x-story-plan {storyId} --no-commit")
 ```
 
 **Parallel dispatch within a phase:**
@@ -384,6 +421,41 @@ Phase {N} planning complete:
   story-XXXX-0002: NOT_READY (3 blockers)
   Phase {N} result: {passed}/{total} stories READY
 ```
+
+### 2.5b Step P4 — Commit Wave Planning Artifacts (EPIC-0049 / RULE-007)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-P4-Wave-Commit`
+
+If `--dry-run` is set, log `"dry-run, skipping commit"` and skip this step.
+
+After all stories in the current wave (phase) have completed planning and `execution-state.json` has been updated, issue a **single consolidated commit** covering:
+
+1. `execution-state.json` (wave-level checkpoint update)
+2. Every story file touched during the wave (Section 8 updates via status flip)
+3. Every planning artifact produced by the wave's stories:
+   - `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+   - `plans/epic-XXXX/plans/planning-report-story-XXXX-YYYY.md`
+   - `plans/epic-XXXX/plans/dor-story-XXXX-YYYY.md`
+   - `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (if present)
+   - `plans/epic-XXXX/plans/task-TASK-*.md` (v2)
+   - `plans/epic-XXXX/plans/plan-task-TASK-*.md` (v2)
+   - `plans/epic-XXXX/plans/task-implementation-map-STORY-*.md` (v2)
+4. Any reports written during the wave (`plans/epic-XXXX/reports/**` — added in Phase 3 but may accumulate incrementally).
+
+Delegate to `x-planning-commit`:
+
+    Skill(skill: "x-planning-commit",
+          args: "--scope chore --epic-id <XXXX> --paths plans/epic-<XXXX>/execution-state.json plans/epic-<XXXX>/story-<XXXX>-*.md plans/epic-<XXXX>/plans/ plans/epic-<XXXX>/reports/ --subject \"planning orchestration cycle (wave <N>)\"")
+
+Where `<N>` is the current phase number (0-based per Phase 1 — or the wave sequence number when a multi-wave orchestration runs phase-by-phase).
+
+Cenario enforced (story-0049-0022): `"1 commit 'chore(epic-<XXXX>): planning orchestration cycle (wave <N>)' é criado"` per completed wave.
+
+Idempotency: re-executing with identical inputs produces `commitSha=null` (silent no-op). On `COMMIT_FAILED` (exit 4), abort with the same code.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-P4-Wave-Commit ok`
 
 ### 2.6 Error Handling
 
@@ -525,6 +597,22 @@ EPIC-{epicId}: {overall_status}
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-3-Consolidation ok`
 
+## Step P5 — Push Epic Branch to Origin (optional, EPIC-0049)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-P5-Push`
+
+If `--dry-run` is set, log `"dry-run, skipping push"` and skip.
+
+Delegate the push of the canonical `epic/<XXXX>` branch to origin:
+
+    Skill(skill: "x-git-push", args: "--branch epic/<XXXX>")
+
+On push failure (remote rejection, no connectivity), log a WARNING and continue — wave commits are preserved locally. Do NOT abort.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-P5-Push ok`
+
 >>> Phase 3/3 completed. Epic planning complete.
 
 ---
@@ -609,6 +697,11 @@ All output files follow the flat naming convention under `{epicDir}/plans/`:
 | Dependencies not satisfied (`--story`) | Abort with error message | Plan dependencies first |
 | Subagent fails for a story | Mark `NOT_READY`, continue | Fix issues, re-run with `--resume` |
 | DoR verdict cannot be extracted | Mark `NOT_READY`, log warning | Check subagent output manually |
+| `x-internal-epic-branch-ensure` fails (Step P2) | Abort with `EPIC_BRANCH_ENSURE_FAILED` | Repair remote state; re-run |
+| `x-planning-commit` exit 4 (Step P4 wave commit) | Abort wave with `COMMIT_FAILED` | Inspect conflict; re-run with `--resume` |
+| `x-planning-commit` exit 0 + `noOp=true` (Step P4) | Silent no-op — continue to next wave | — |
+| `x-git-push` fails (Step P5) | WARN only; local commits preserved | Operator `git push` manually |
+| `--dry-run` set | Steps P1 / P2 / P4 / P5 become no-ops | Re-run without `--dry-run` to version |
 
 ---
 
@@ -630,14 +723,19 @@ Both fields coexist on the same story entry in `storyEntries`. `/x-epic-implemen
 ```
 /x-epic-orchestrate (this skill)
   |
+  |-- Step P1: x-git-worktree detect-context          (advisory)
+  |-- Step P2: x-internal-epic-branch-ensure           (canonical branch)
   |-- reads: IMPLEMENTATION-MAP.md (phase/dependency graph)
   |-- reads: EPIC-XXXX.md (epic context)
   |-- reads: story-XXXX-*.md (story files)
   |-- reads/writes: execution-state.json (checkpoint)
   |
-  +-- per story (subagent): /x-story-plan
-        |
-        +-- 5 parallel subagents: Architect, QA, Security, Tech Lead, PO
+  +-- per story (subagent): /x-story-plan --no-commit
+  |     |
+  |     +-- 5 parallel subagents: Architect, QA, Security, Tech Lead, PO
+  |
+  |-- Step P4 (per wave): x-planning-commit            (batch commit per wave)
+  +-- Step P5 (end):      x-git-push                   (push epic branch)
 ```
 
 ---

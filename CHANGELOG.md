@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **EPIC-0049 / story-0049-0022 (FINAL STORY of the epic):** P1-P5 versioning
+  lifecycle extended to the 4 remaining planning skills (`x-story-create`,
+  `x-task-plan`, `x-story-plan`, `x-epic-orchestrate`), closing the 7-skill
+  planning-versioning cycle alongside stories 0049-0021 (epic planners) and
+  0049-0017 (task-plan `--no-commit`). Each of the 4 skills now runs the
+  canonical P1 (detect-context) → P2 (`x-internal-epic-branch-ensure`) →
+  existing phases → P4 (`x-planning-commit`) → P5 (`x-git-push`) sequence.
+  `--dry-run` makes P1/P2/P4/P5 no-ops with a logged warning; `--no-commit`
+  propagates from orchestrators (`x-epic-orchestrate` → `x-story-plan`
+  → `x-task-plan`) so each wave yields a single batched commit rather than
+  N+1 per story. `x-story-plan` aggregates every story-level artifact
+  (tasks, planning-report, dor, plan-story, per-task files, task map) into
+  ONE `x-planning-commit` call per story; `x-epic-orchestrate` commits
+  `execution-state.json` + reports + wave artifacts in one commit per wave
+  (`chore(epic-XXXX): planning orchestration cycle (wave N)`).
+  `allowed-tools` frontmatter extended with `Skill` on all four skills so
+  the Rule 13 INLINE-SKILL invocations are runtime-permitted.
+
 - **EPIC-0049 / story-0049-0015:** new internal skill `x-internal-story-report`
   under `skills/core/internal/plan/x-internal-story-report/` (eighth
   `x-internal-*` skill, fifth under `internal/plan/`). Closes the
