@@ -56,9 +56,9 @@ Four defense-in-depth layers. A violation caught by any layer fails the lifecycl
 ### Camada 2 — Runtime Stop hook
 
 - `.claude/hooks/verify-story-completion.sh` fires on every `Stop` event (end of LLM turn).
-- Detects recent PR-creation / story-completion activity via telemetry NDJSON or `gh` output.
-- Checks that required sub-skills appear in `plans/epic-*/telemetry/events.ndjson` for the active story.
-- On missing skill, emits a visible WARNING on stderr and exits with code 1, which Claude Code surfaces to the LLM as a blocking notification.
+- Detects recent PR-creation / story-completion activity for the active story (via telemetry NDJSON `gh pr create` events AND the current branch / latest commit message).
+- Checks that the required evidence artifacts for mandatory sub-skills exist on disk (under `plans/epic-XXXX/plans/` and `plans/epic-XXXX/reports/`) for that story, rather than relying on telemetry entries.
+- On missing evidence, emits a visible WARNING on stderr and exits with code 2, which Claude Code surfaces to the LLM as a blocking notification.
 
 ### Camada 3 — CI audit
 

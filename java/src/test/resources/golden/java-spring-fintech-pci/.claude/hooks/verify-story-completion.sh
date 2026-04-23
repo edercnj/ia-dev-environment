@@ -6,7 +6,7 @@
 # sub-skills produced their evidence artifacts in plans/epic-*/plans/ and
 # plans/epic-*/reports/.
 #
-# On missing evidence, exits with code 1 and emits a visible warning on stderr
+# On missing evidence, exits with code 2 and emits a visible warning on stderr
 # — Claude Code surfaces this to the LLM as a blocking notification that MUST
 # be addressed before the next turn.
 #
