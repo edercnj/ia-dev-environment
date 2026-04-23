@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Knowledge Pack with L1/L2/L3 levels,
  * cross-reference tables, and 14 chapters (V1-V14).
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("OWASP ASVS Knowledge Pack")
 class OwaspAsvsKpTest {
 
