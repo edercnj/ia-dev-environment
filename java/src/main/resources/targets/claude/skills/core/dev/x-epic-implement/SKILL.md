@@ -295,6 +295,10 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-i
 
 >>> Phase 3 completed. Proceeding to Phase 4 (Integrity Gate)...
 
+> 🔒 **EXECUTION INTEGRITY (Rule 24) — NON-NEGOTIABLE**
+>
+> Every `Skill(...)` block in Phases 3, 4, and 5 is a **MANDATORY TOOL CALL**. The orchestrator MUST dispatch `x-story-implement` per story (Phase 3), `x-internal-epic-integrity-gate` (Phase 4.1), `x-internal-report-write` (Phase 4.2), `x-git-merge` and `x-pr-create` (Phase 5) as real tool calls. Inlining or skipping any of them without the matching `--skip-*` flag violates Rule 24 and fails CI via `scripts/audit-execution-integrity.sh`. See `.claude/rules/24-execution-integrity.md`.
+
 ## Phase 4 — Integrity Gate + Report
 
 <!-- TELEMETRY: phase.start -->

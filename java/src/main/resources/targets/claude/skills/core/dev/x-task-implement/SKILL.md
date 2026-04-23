@@ -15,6 +15,8 @@ argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description
 
 # Skill: Implement Story
 
+> 🔒 **EXECUTION INTEGRITY (Rule 24)** — Every `Skill(...)` block in this SKILL.md is a **MANDATORY TOOL CALL**. TDD cycles (`x-test-tdd`), atomic commits (`x-git-commit`), CI watch (`x-pr-watch-ci`), and PR creation (`x-pr-create`) MUST be invoked as real tool calls, not inlined. The commit must be test-first (RED → GREEN → REFACTOR pattern visible in git log). See `.claude/rules/24-execution-integrity.md`.
+
 ## Purpose
 
 Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{PROJECT_NAME}}. Delegates preparation to a subagent that reads architecture, coding, and test plan knowledge packs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle.
