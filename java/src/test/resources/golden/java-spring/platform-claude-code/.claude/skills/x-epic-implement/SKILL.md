@@ -246,7 +246,7 @@ Iterate the phase-ordered story array from Phase 1. Within each phase batch, eit
 
 For each story, invoke `x-story-implement` with the following argument surface:
 
-    Skill(skill: "x-story-implement", args: "<STORY-ID> --target-branch <epicBranch> --auto-merge-strategy <strategy> [--skip-review] [--non-interactive] [--auto-approve-pr]")
+    Skill(skill: "x-story-implement", model: "sonnet", args: "<STORY-ID> --target-branch <epicBranch> --auto-merge-strategy <strategy> [--skip-review] [--non-interactive] [--auto-approve-pr]")
 
 Where:
 

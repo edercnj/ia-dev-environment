@@ -192,7 +192,7 @@ Read tasks from `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (Section 8 fall
 1. Check dependencies against `execution-state.json`; unresolved → mark `BLOCKED` via `x-internal-status-update` and skip.
 2. **Dispatch TDD:** invoke per Rule 13 Pattern 1:
 
-        Skill(skill: "x-task-implement", args: "<TASK-ID> --orchestrated --target-branch <targetBranch> [--auto-merge <strategy>] [--epic-id <EPIC-ID>] [--auto-approve-pr] [--non-interactive]")
+        Skill(skill: "x-task-implement", model: "sonnet", args: "<TASK-ID> --orchestrated --target-branch <targetBranch> [--auto-merge <strategy>] [--epic-id <EPIC-ID>] [--auto-approve-pr] [--non-interactive]")
 
    The child runs RED → GREEN → REFACTOR, commits atomically via `x-git-commit`, and pushes the task branch `feat/task-XXXX-YYYY-NNN-desc`. It returns `{status, taskId, commitSha, branchName, coverageLine, coverageBranch}`.
 
@@ -248,8 +248,8 @@ Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverag
 
 Invoke in sequence:
 
-    Skill(skill: "x-review", args: "<STORY-ID>")
-    Skill(skill: "x-review-pr", args: "<STORY-ID>")
+    Skill(skill: "x-review", model: "sonnet", args: "<STORY-ID>")
+    Skill(skill: "x-review-pr", model: "sonnet", args: "<STORY-ID>")
 
 On Tech-Lead GO, optionally run PR-comment remediation via `Skill(skill: "x-pr-fix", args: "<prNumber>")` unless `--no-auto-remediation`. On NO-GO, fix-and-review up to 2 cycles; persistent NO-GO keeps `verifyPassed=true` but flags the story with a WARNING in the final report (human gate downstream).
 
