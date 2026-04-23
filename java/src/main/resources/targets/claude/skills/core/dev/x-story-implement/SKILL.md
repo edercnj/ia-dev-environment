@@ -65,6 +65,7 @@ When all three flags are absent, behavior is identical to EPIC-0048 (backward co
 | `--task` | String | — | Execute only `TASK-XXXX-YYYY-NNN`. |
 | `--resume` | Boolean | `false` | Delegates resume-point detection to `x-internal-story-resume`. |
 | `--skip-verification` | Boolean | `false` | **Recovery-only.** Skips Phase 3; flagged outside `## Recovery` blocks. |
+| `--skip-review` | Boolean | false | **RESERVED — not yet implemented.** Use `--skip-verification` to bypass all of Phase 3. There is no supported path to skip only reviews while keeping other Phase 3 steps active. |
 | `--skip-smoke`, `--skip-review` | Boolean | `false` | Bypass smoke gate / specialist + TL reviews. |
 | `--full-lifecycle`, `--worktree`, `--non-interactive` | Boolean | `false` | Full execution / standalone worktree / CI mode. |
 | `--no-auto-remediation`, `--no-ci-watch` | Boolean | `false` | Skip Step 3.5 remediation / Rule 21 CI-watch. |
