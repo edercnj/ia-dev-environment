@@ -28,7 +28,7 @@
 
 ## Technology Stack
 
-Populated at setup time. See `skills/coding-standards/` for language-specific conventions and `skills/architecture/` for architecture patterns.
+Populated at setup time. See `knowledge/coding-standards.md` for language-specific conventions and `knowledge/architecture.md` for architecture patterns.
 
 ## Domain
 

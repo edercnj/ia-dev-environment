@@ -1,6 +1,6 @@
 # Rule 05 — Quality Gates
 
-> **Full reference:** Read `skills/testing/SKILL.md` for test patterns and conventions.
+> **Full reference:** Read `knowledge/testing.md` for test patterns and conventions.
 
 ## Coverage Thresholds (Non-Negotiable — Absolute Gate)
 
