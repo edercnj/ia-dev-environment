@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke test validating that all 23 assemblers execute
+ * Smoke test validating that all 24 assemblers execute
  * and contribute output for every registered profile.
  *
  * <p>Detects assembler regressions:</p>
@@ -52,11 +52,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AssemblerRegressionSmokeTest")
 class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
-    static final int EXPECTED_ASSEMBLER_COUNT = 23;
+    static final int EXPECTED_ASSEMBLER_COUNT = 24;
 
     static final List<String> EXPECTED_ORDER = List.of(
             "ConstitutionAssembler",
             "RulesAssembler",
+            "KnowledgeAssembler",
             "SkillsAssembler",
             "AgentsAssembler",
             "PatternsAssembler",
@@ -118,7 +119,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
     class AssemblerRegistration {
 
         @Test
-        @DisplayName("factory returns exactly 23 "
+        @DisplayName("factory returns exactly 24 "
                 + "assemblers")
         void buildAssemblers_returnsExactCount() {
             List<AssemblerDescriptor> descriptors =

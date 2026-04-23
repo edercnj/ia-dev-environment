@@ -84,7 +84,10 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                                 Path file,
                                 BasicFileAttributes a)
                                 throws IOException {
-                            if (isTemplateFile(file)) {
+                            if (isTemplateFile(file)
+                                    || isKnowledgePack(
+                                            file,
+                                            outputDir)) {
                                 return FileVisitResult
                                         .CONTINUE;
                             }
@@ -290,6 +293,24 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
     private static boolean isTemplateFile(Path file) {
         return file.getFileName().toString()
                 .startsWith(TEMPLATE_FILE_PREFIX);
+    }
+
+    /**
+     * Knowledge pack files live under {@code .claude/knowledge/}
+     * and contain generic reference content (including
+     * intentional runtime markers like {@code {{LANGUAGE}}},
+     * {@code {{CACHE_TYPE}}}, Helm template syntax, Terraform
+     * HCL examples). They are consumed as-is by skills and
+     * the AI agent resolves context at runtime — scanning them
+     * for unresolved Pebble placeholders is not meaningful
+     * (EPIC-0051 / ADR-0013).
+     */
+    private static boolean isKnowledgePack(
+            Path file, Path outputDir) {
+        String rel = SmokeTestValidators
+                .relativizePosix(outputDir, file);
+        return rel.startsWith(".claude/knowledge/")
+                || rel.contains("/.claude/knowledge/");
     }
 
     private static boolean isRulesFile(

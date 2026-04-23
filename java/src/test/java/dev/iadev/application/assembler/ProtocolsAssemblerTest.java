@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for ProtocolsAssembler — the fifth assembler in
- * the pipeline, generating .claude/skills/protocols/
+ * the pipeline, generating .claude/knowledge/protocols/
  * references with concatenated protocol convention files.
  */
 @DisplayName("ProtocolsAssembler")
@@ -67,7 +67,7 @@ class ProtocolsAssemblerTest {
 
             assertThat(files).isNotEmpty();
             Path refsDir = outputDir.resolve(
-                    "skills/protocols/references");
+                    "knowledge/protocols");
             assertThat(refsDir.resolve(
                     "rest-conventions.md"))
                     .exists();
@@ -95,7 +95,7 @@ class ProtocolsAssemblerTest {
 
             String content = Files.readString(
                     outputDir.resolve(
-                            "skills/protocols/references/"
+                            "knowledge/protocols/"
                                     + "rest-conventions.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
@@ -130,7 +130,7 @@ class ProtocolsAssemblerTest {
 
             assertThat(files).isNotEmpty();
             Path refsDir = outputDir.resolve(
-                    "skills/protocols/references");
+                    "knowledge/protocols");
             assertThat(refsDir.resolve(
                     "grpc-conventions.md"))
                     .exists();
@@ -158,7 +158,7 @@ class ProtocolsAssemblerTest {
 
             String content = Files.readString(
                     outputDir.resolve(
-                            "skills/protocols/references/"
+                            "knowledge/protocols/"
                                     + "grpc-conventions.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
@@ -214,7 +214,7 @@ class ProtocolsAssemblerTest {
                     config, new TemplateEngine(), outputDir);
 
             Path refsDir = outputDir.resolve(
-                    "skills/protocols/references");
+                    "knowledge/protocols");
             assertThat(refsDir).doesNotExist();
         }
     }
@@ -247,7 +247,7 @@ class ProtocolsAssemblerTest {
                     config, new TemplateEngine(), outputDir);
 
             Path refsDir = outputDir.resolve(
-                    "skills/protocols/references");
+                    "knowledge/protocols");
             assertThat(refsDir.resolve(
                     "messaging-conventions.md"))
                     .exists();
@@ -294,7 +294,7 @@ class ProtocolsAssemblerTest {
                 if (expected != null) {
                     String actual = Files.readString(
                             outputDir.resolve(
-                                    "skills/protocols/"
+                                    "knowledge/protocols/"
                                             + "references/"
                                             + file),
                             StandardCharsets.UTF_8);
