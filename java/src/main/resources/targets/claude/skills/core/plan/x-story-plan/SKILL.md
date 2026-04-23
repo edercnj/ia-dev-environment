@@ -2,8 +2,8 @@
 name: x-story-plan
 description: "Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation. Schema-aware: v1 (legacy) runs the original 6-phase flow; v2 (task-first, EPIC-0038) adds Phases 4a-4c that emit task-TASK-NNN.md + plan-task-TASK-NNN.md per task and a task-implementation-map-STORY-*.md, wiring every task through x-task-plan in parallel."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[STORY-ID] [--force] [--skip-dor]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+argument-hint: "[STORY-ID] [--force] [--skip-dor] [--dry-run] [--no-commit]"
 ---
 
 ## Global Output Policy
@@ -67,6 +67,40 @@ If missing, abort: `ERROR: Story ID is required. Usage: /x-story-plan [STORY-ID]
 |------|------|---------|-------------|
 | `--force` | boolean | `false` | Regenerate all artifacts even if fresh |
 | `--skip-dor` | boolean | `false` | Skip Phase 5 (DoR validation) |
+| `--dry-run` | boolean | `false` | Artifacts written to disk but Steps P1 / P2 / P4 / P5 become no-ops (EPIC-0049 / RULE-007) |
+| `--no-commit` | boolean | `false` | Skip Step P4 (batch commit) and P5 — used by orchestrators (e.g., `x-epic-orchestrate`) that batch-commit at the parent level |
+
+---
+
+## Step P1 — Detect Worktree Context (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-P1-Worktree-Detect`
+
+Invoke `x-git-worktree` in detect-context mode. Result is advisory only — `x-internal-epic-branch-ensure` (Step P2) makes the authoritative decision.
+
+    Skill(skill: "x-git-worktree", args: "detect-context")
+
+Continue on any detect-context failure (fail-open, RULE-006). When `--no-commit` is set (orchestrated mode), skip.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-P1-Worktree-Detect ok`
+
+## Step P2 — Ensure `epic/<ID>` Branch (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-P2-Epic-Branch-Ensure`
+
+Extract epic ID `XXXX` from the `STORY-ID` argument (`story-XXXX-YYYY` → `XXXX`).
+
+Invoke `x-internal-epic-branch-ensure` so the canonical `epic/<ID>` branch exists locally AND on origin (idempotent). The skill is a no-op when the current checkout is already on `epic/<ID>` or a worktree rooted at that branch.
+
+    Skill(skill: "x-internal-epic-branch-ensure", args: "--epic-id <XXXX>")
+
+On failure (non-zero exit), abort with `EPIC_BRANCH_ENSURE_FAILED`. When `--no-commit` or `--dry-run` is set, skip this step.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-P2-Epic-Branch-Ensure ok`
 
 ---
 
@@ -1011,6 +1045,12 @@ Artifacts:
 | Template not found (RULE-012) | Log warning, use inline format, continue |
 | Less than 4 tasks after consolidation | DoR verdict is NOT_READY (check #4 fails) |
 | Fewer than 4 Gherkin scenarios | DoR verdict is NOT_READY (check #7 fails) |
+| `x-internal-epic-branch-ensure` fails (Step P2) | Abort with `EPIC_BRANCH_ENSURE_FAILED` |
+| `x-planning-commit` exit 4 (Step P4) | Abort with `COMMIT_FAILED` |
+| `x-planning-commit` exit 0 + `noOp=true` (Step P4) | Silent no-op — re-execution idempotency confirmed; continue to Step P5 |
+| `x-git-push` fails (Step P5) | WARN only; local commit preserved |
+| `--dry-run` set | Steps P1 / P2 / P4 / P5 become no-ops |
+| `--no-commit` set | Steps P1 / P2 / P4 / P5 become no-ops — orchestrator owns branch + commit lifecycle |
 
 ## Template Fallback (RULE-012)
 
@@ -1057,6 +1097,11 @@ This ensures backward compatibility with projects that have not yet adopted temp
 | `x-task-implement` | downstream | Consumes task breakdown as implementation roadmap |
 | `x-story-create` | upstream | Story files are the input to this skill |
 | `x-epic-map` | upstream | Implementation map provides dependency context |
+| `x-git-worktree` | calls (Step P1) | Detect-context (EPIC-0049 / RULE-001) |
+| `x-internal-epic-branch-ensure` | calls (Step P2) | Ensure `epic/<ID>` exists locally + origin (EPIC-0049 / RULE-001) |
+| `x-task-plan` | calls (Phase 4b, with `--no-commit`) | Per-task plan generation in batch mode (EPIC-0049 / RULE-007) |
+| `x-planning-commit` | calls (Step P4) | Single batch commit covering all story-level planning artifacts (EPIC-0049 / RULE-007) |
+| `x-git-push` | calls (Step P5) | Push canonical epic branch to origin (optional) |
 
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed
 - Template reference (RULE-007) ensures consistent output format when templates are available
@@ -1111,11 +1156,14 @@ After Phase 4 writes the consolidated `tasks-story-XXXX-YYYY.md`:
 
 For each `task-TASK-XXXX-YYYY-NNN.md` produced by 4a:
 
-1. Invoke `x-task-plan --task-file plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md`
-   via the Skill tool.
+1. Invoke `x-task-plan --task-file plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md --no-commit`
+   via the Skill tool. **`--no-commit` is always set** when invoked by this orchestrator
+   (EPIC-0049 / RULE-007 batch-commit contract — the story-level Step P4 below aggregates
+   all task plans into a single commit, preventing N+1 commits per story plan).
 2. Parallelism: fire invocations in batches of up to 4 concurrent subagents (single
    assistant message with sibling Skill calls, per Rule 13 — INLINE-SKILL pattern).
-3. Each invocation writes `plan-task-TASK-XXXX-YYYY-NNN.md` next to the task file.
+3. Each invocation writes `plan-task-TASK-XXXX-YYYY-NNN.md` next to the task file and
+   returns `commitSha: null` (batch mode).
 4. A non-zero exit from any invocation aborts the story planning; collect every
    failed task-id and emit a single consolidated error report.
 
@@ -1192,8 +1240,45 @@ After writing every plan artefact produced by this skill (Implementation Plan, T
    git add plans/epic-XXXX/story-XXXX-YYYY.md plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md
    ```
 
-5. Invoke `x-git-commit` via the Skill tool (Rule 13 Pattern 1 INLINE-SKILL) with both files already staged:
+5. **Invoke per-task planning in batch mode (v2 only).** When schema is v2, after Phase 4c completes, re-invoke `x-task-plan` for each task WITH `--no-commit` so task plans are written without individual commits:
 
-       Skill(skill: "x-git-commit", args: "docs(story-XXXX-YYYY): add plan + update status to Planejada")
+   For each `TASK-XXXX-YYYY-NNN`:
+
+       Skill(skill: "x-task-plan", args: "--task-file plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md --no-commit")
+
+   > Task plans are already generated by Phase 4b; re-invocation with `--no-commit` is a no-op via staleness check. This explicit enumeration is documented here solely to make the batch-commit contract auditable from one place. Implementations MAY skip the re-invocation when Phase 4b already ran with `--no-commit=true` set globally.
+
+6. **Step P4 — Batch planning commit (EPIC-0049 / RULE-007).** Delegate the consolidated commit to `x-planning-commit`. Aggregate **all** story-level planning artifacts (consolidated agent file, planning report, DoR checklist, tasks file, story file with status flip, plan-story, plus v2 artifacts: task-TASK-NNN.md × N + plan-task-TASK-NNN.md × N + task-implementation-map) in a single batch:
+
+   If `--dry-run` or `--no-commit` is set, log `"dry-run, skipping commit"` / `"orchestrated mode, skipping commit"` and skip.
+
+   Otherwise:
+
+       Skill(skill: "x-planning-commit",
+             args: "--scope docs --story-id <XXXX-YYYY> --paths plans/epic-<XXXX>/story-<XXXX-YYYY>.md plans/epic-<XXXX>/plans/tasks-story-<XXXX-YYYY>.md plans/epic-<XXXX>/plans/planning-report-story-<XXXX-YYYY>.md plans/epic-<XXXX>/plans/dor-story-<XXXX-YYYY>.md plans/epic-<XXXX>/plans/plan-story-<XXXX-YYYY>.md plans/epic-<XXXX>/plans/task-TASK-<XXXX-YYYY>-*.md plans/epic-<XXXX>/plans/plan-task-TASK-<XXXX-YYYY>-*.md plans/epic-<XXXX>/plans/task-implementation-map-STORY-<XXXX-YYYY>.md --subject \"add planning artifacts (<N> tasks)\"")
+
+   Where `<N>` is the total number of tasks produced in Phase 4a (use `1` when v1 and no per-task files exist).
+
+   The single batch commit replaces the previous per-artifact commits, yielding **one audit-trail entry per story plan** rather than N+2 (RULE-007, Cenario "x-story-plan commit batch (1 commit, não N+1)" of story-0049-0022).
+
+   Idempotency: re-executing the skill with identical inputs produces `commitSha=null` (silent no-op). Enforced by `x-planning-commit`.
+
+   On `COMMIT_FAILED` (exit 4), abort with the same code.
 
 **Fail-loud:** any non-zero exit from `StatusFieldParserCli` aborts the skill with the same exit code (RULE-046-08). Do NOT commit the plan without the status update.
+
+### Step P5 — Push to Origin (optional, EPIC-0049)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-P5-Push`
+
+If `--dry-run` or `--no-commit` is set, log `"dry-run, skipping push"` / `"orchestrated mode, skipping push"` and skip.
+
+Delegate the push to `x-git-push` so the canonical `epic/<ID>` branch is synchronized with origin:
+
+    Skill(skill: "x-git-push", args: "--branch epic/<XXXX>")
+
+On push failure (remote rejection, no connectivity), log a WARNING and continue — the local commit is preserved. Do NOT abort.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-P5-Push ok`
