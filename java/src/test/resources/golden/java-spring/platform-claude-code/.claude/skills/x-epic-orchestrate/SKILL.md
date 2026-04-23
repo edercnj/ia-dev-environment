@@ -1,5 +1,6 @@
 ---
 name: x-epic-orchestrate
+model: sonnet
 description: "Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support."
 user-invocable: true
 allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion, Skill"
