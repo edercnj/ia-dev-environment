@@ -71,6 +71,45 @@ class SkillCategoryResolverTest {
     }
 
     @Test
+    @DisplayName("listSkills — internal/{group}/x-internal-*"
+            + " is emitted flat (no internal/ or group"
+            + " prefix) per Rule 22")
+    void listSkills_whenInternalSubgroup_emitsFlatName(
+            @TempDir Path tempDir) throws IOException {
+        Path root = tempDir.resolve("core");
+        writeSkill(root.resolve(
+                "internal/plan/x-internal-foo"));
+
+        List<String> skills =
+                SkillCategoryResolver.listSkills(root);
+
+        assertThat(skills).containsExactly(
+                "x-internal-foo");
+    }
+
+    @Test
+    @DisplayName("listSkills — internal/ aggregates skills"
+            + " across multiple subgroups (plan/ops/git)")
+    void listSkills_whenInternalMultipleSubgroups_aggregates(
+            @TempDir Path tempDir) throws IOException {
+        Path root = tempDir.resolve("core");
+        writeSkill(root.resolve(
+                "internal/plan/x-internal-alpha"));
+        writeSkill(root.resolve(
+                "internal/ops/x-internal-beta"));
+        writeSkill(root.resolve(
+                "internal/git/x-internal-gamma"));
+
+        List<String> skills =
+                SkillCategoryResolver.listSkills(root);
+
+        assertThat(skills).containsExactlyInAnyOrder(
+                "x-internal-alpha",
+                "x-internal-beta",
+                "x-internal-gamma");
+    }
+
+    @Test
     @DisplayName("listSkills — missing root returns empty"
             + " list (no exception)")
     void listSkills_whenRootMissing_returnsEmpty(
@@ -112,6 +151,23 @@ class SkillCategoryResolverTest {
         Path resolved =
                 SkillCategoryResolver.resolveSourcePath(
                         root, "x-epic-create");
+
+        assertThat(resolved).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("resolveSourcePath — x-internal-* resolves"
+            + " through internal/{group}/{name}")
+    void resolveSourcePath_whenInternalSkill_findsInSubgroup(
+            @TempDir Path tempDir) throws IOException {
+        Path root = tempDir.resolve("core");
+        Path expected = root.resolve(
+                "internal/plan/x-internal-foo");
+        writeSkill(expected);
+
+        Path resolved =
+                SkillCategoryResolver.resolveSourcePath(
+                        root, "x-internal-foo");
 
         assertThat(resolved).isEqualTo(expected);
     }
