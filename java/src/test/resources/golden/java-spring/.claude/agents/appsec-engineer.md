@@ -15,7 +15,7 @@ Application Security Engineer specialized in SDLC security integration. Ensures 
 **Active when:** `security.frameworks` is non-empty (e.g., `["owasp", "asvs", "pci-dss"]`)
 
 ## Recommended Model
-**Adaptive** — Sonnet for standard SDLC reviews and security requirement checks. Opus for threat model validation, complex architecture security analysis, or when multiple compliance frameworks interact.
+**Sonnet** — SDLC security review against application-security checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004). Escalate to Opus per-story when multi-framework compliance reasoning is required.
 
 ## Scope (RULE-006: Persona Non-Interference)
 

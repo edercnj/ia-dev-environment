@@ -12,7 +12,7 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 **APPROVER** — Reviews consolidated PR diffs and issues a GO/NO-GO decision.
 
 ## Recommended Model
-**Adaptive** — Sonnet for straightforward PRs, Opus for large or cross-cutting changes.
+**Sonnet** — Quality-gate validation against a fixed 45-point checklist is structured review, not deep design; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 
