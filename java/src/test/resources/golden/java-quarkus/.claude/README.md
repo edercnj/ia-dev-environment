@@ -100,7 +100,12 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 
 | Skill | Path | Description |
 |-------|------|-------------|
+| **dockerfile** | `/dockerfile` | Dockerfile patterns: multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels per language. |
+| **iac-terraform** | `/iac-terraform` | Terraform patterns: module structure, remote state, naming conventions, CI/CD workflows, drift detection, and common infrastructure modules. |
+| **k8s-deployment** | `/k8s-deployment` | Kubernetes deployment patterns: workload types, pod specifications, resource sizing, probes, autoscaling, network policies, and security contexts. |
+| **k8s-kustomize** | `/k8s-kustomize` | Kustomize patterns: directory structure, patches, components, secret management, generators, and patch types for environment management. |
 | **patterns** | `/patterns` |  |
+| **quarkus-patterns** | `/quarkus-patterns` | Quarkus patterns: CDI, @ConfigMapping, Panache Repository, RESTEasy Reactive, native build constraints, and @RegisterForReflection. |
 | **x-adr-generate** | `/x-adr-generate` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
 | **x-arch-plan** | `/x-arch-plan` | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
 | **x-arch-update** | `/x-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
@@ -201,17 +206,12 @@ to inject domain knowledge. Configured with `user-invocable: false`.
 | `compliance` | Referenced internally by agents |
 | `data-management` | Referenced internally by agents |
 | `disaster-recovery` | Referenced internally by agents |
-| `dockerfile` | Referenced internally by agents |
 | `feature-flags` | Referenced internally by agents |
-| `iac-terraform` | Referenced internally by agents |
 | `infrastructure` | Referenced internally by agents |
-| `k8s-deployment` | Referenced internally by agents |
-| `k8s-kustomize` | Referenced internally by agents |
 | `layer-templates` | Referenced internally by agents |
 | `observability` | Referenced internally by agents |
 | `performance-engineering` | Referenced internally by agents |
 | `protocols` | Referenced internally by agents |
-| `quarkus-patterns` | Referenced internally by agents |
 | `release-management` | Referenced internally by agents |
 | `resilience` | Referenced internally by agents |
 | `security` | Referenced internally by agents |
@@ -346,8 +346,8 @@ See the files directly for current configuration.
 | Component | Count |
 |-----------|-------|
 | Rules (.claude) | 18 |
-| Skills (.claude) | 72 |
-| Knowledge Packs (.claude) | 35 |
+| Skills (.claude) | 77 |
+| Knowledge Packs (.claude) | 30 |
 | Agents (.claude) | 14 |
 | Hooks (.claude) | 10 |
 | Settings (.claude) | 2 |

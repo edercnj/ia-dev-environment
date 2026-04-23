@@ -100,7 +100,9 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 
 | Skill | Path | Description |
 |-------|------|-------------|
+| **dockerfile** | `/dockerfile` | Dockerfile patterns: multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels per language. |
 | **patterns** | `/patterns` |  |
+| **spring-patterns** | `/spring-patterns` | Spring Boot patterns: DI, @ConfigurationProperties, Spring Data JPA, @RestController, @ControllerAdvice, Spring AOT, and health checks. |
 | **x-adr-generate** | `/x-adr-generate` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
 | **x-arch-plan** | `/x-arch-plan` | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
 | **x-arch-update** | `/x-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
@@ -197,7 +199,6 @@ to inject domain knowledge. Configured with `user-invocable: false`.
 | `data-management` | Referenced internally by agents |
 | `ddd-strategic` | Referenced internally by agents |
 | `disaster-recovery` | Referenced internally by agents |
-| `dockerfile` | Referenced internally by agents |
 | `feature-flags` | Referenced internally by agents |
 | `infrastructure` | Referenced internally by agents |
 | `layer-templates` | Referenced internally by agents |
@@ -207,7 +208,6 @@ to inject domain knowledge. Configured with `user-invocable: false`.
 | `release-management` | Referenced internally by agents |
 | `resilience` | Referenced internally by agents |
 | `security` | Referenced internally by agents |
-| `spring-patterns` | Referenced internally by agents |
 | `sre-practices` | Referenced internally by agents |
 | `story-planning` | Referenced internally by agents |
 | `testing` | Referenced internally by agents |
@@ -336,8 +336,8 @@ See the files directly for current configuration.
 | Component | Count |
 |-----------|-------|
 | Rules (.claude) | 18 |
-| Skills (.claude) | 66 |
-| Knowledge Packs (.claude) | 34 |
+| Skills (.claude) | 68 |
+| Knowledge Packs (.claude) | 32 |
 | Agents (.claude) | 11 |
 | Hooks (.claude) | 10 |
 | Settings (.claude) | 2 |

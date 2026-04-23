@@ -1,11 +1,6 @@
 ---
 name: data-management
 description: "Data management lifecycle patterns: zero-downtime migrations, expand/contract pattern, schema versioning, data governance, backup/restore strategies, partitioning, CDC, and data quality validation for {{DATABASE_TYPE}} with {{MIGRATION_TOOL}}."
-user-invocable: false
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
 ---
 
 # Knowledge Pack: Data Management

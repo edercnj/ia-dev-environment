@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -228,6 +229,7 @@ class DataModelingKpTest {
                     .contains("Test Data Patterns");
         }
 
+        @Disabled("story-0051-0003: old KP frontmatter contract (user-invocable: false, etc.) replaced by Rule-051-07; test will be rewritten or removed when core consumers are retrofitted")
         @Test
         @DisplayName("SKILL.md has user-invocable false"
                 + " in frontmatter")

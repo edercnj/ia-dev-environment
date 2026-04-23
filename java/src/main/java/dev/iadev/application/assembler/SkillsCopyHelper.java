@@ -26,10 +26,8 @@ import java.util.stream.Stream;
  */
 final class SkillsCopyHelper {
 
-    private static final String SKILLS_TEMPLATES_DIR =
-            "targets/claude/skills";
-    private static final String KNOWLEDGE_PACKS_DIR =
-            "knowledge-packs";
+    private static final String KNOWLEDGE_DIR =
+            "targets/claude/knowledge";
     private static final String INFRA_PATTERNS_DIR =
             "infra-patterns";
     private static final String STACK_PATTERNS_DIR =
@@ -57,30 +55,87 @@ final class SkillsCopyHelper {
             Path outputDir,
             TemplateEngine engine,
             Map<String, Object> context) {
-        Path src = resourcesDir.resolve(
-                SKILLS_TEMPLATES_DIR + "/"
-                        + KNOWLEDGE_PACKS_DIR + "/"
-                        + packName);
-        if (!Files.exists(src)
-                || !Files.isDirectory(src)) {
+        // STORY-0051-0002: KPs moved to targets/claude/knowledge/.
+        // During transition (stories 0003/0004/0005 retrofit consumers),
+        // SkillsAssembler continues to emit .claude/skills/{pack}/ from
+        // the NEW source layout so existing tests and consumers keep
+        // working. STORY-0051-0006 removes this dual-output entirely.
+        Path newSrc = resourcesDir.resolve(
+                KNOWLEDGE_DIR + "/" + packName);
+        Path newSrcFile = resourcesDir.resolve(
+                KNOWLEDGE_DIR + "/" + packName + ".md");
+        boolean isComplexKp = Files.isDirectory(newSrc);
+        boolean isSimpleKp = Files.isRegularFile(newSrcFile);
+        if (!isComplexKp && !isSimpleKp) {
             return Optional.empty();
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + packName);
         CopyHelpers.ensureDirectory(dest);
 
-        Path skillMdSrc = src.resolve(SKILL_MD);
-        if (Files.exists(skillMdSrc)) {
+        if (isSimpleKp) {
+            // knowledge/{pack}.md → skills/{pack}/SKILL.md
             CopyHelpers.copyTemplateFile(
-                    skillMdSrc,
+                    newSrcFile,
                     dest.resolve(SKILL_MD),
                     engine,
                     context);
+        } else {
+            // knowledge/{pack}/index.md → skills/{pack}/SKILL.md;
+            // other files copied as-is into skills/{pack}/
+            Path indexMd = newSrc.resolve("index.md");
+            if (Files.exists(indexMd)) {
+                CopyHelpers.copyTemplateFile(
+                        indexMd,
+                        dest.resolve(SKILL_MD),
+                        engine,
+                        context);
+            }
+            copyNonIndexItems(newSrc, dest);
         }
-        copyNonSkillItems(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
         return Optional.of(dest.toString());
+    }
+
+    private static void copyNonIndexItems(
+            Path src, Path dest) {
+        // Copy all files except index.md. Plain .md files
+        // (previously in references/) are placed back under
+        // dest/references/ to preserve the legacy skill output
+        // shape expected by existing tests and consumers.
+        // Subdirectories are copied as-is (nested KP support).
+        try (Stream<Path> stream = Files.list(src)) {
+            stream
+                    .filter(p -> !"index.md".equals(
+                            p.getFileName().toString()))
+                    .forEach(p -> copyNonIndexEntry(p, dest));
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to copy knowledge items: %s"
+                            .formatted(src), e);
+        }
+    }
+
+    private static void copyNonIndexEntry(
+            Path entry, Path dest) {
+        String name = entry.getFileName().toString();
+        if (Files.isDirectory(entry)) {
+            Path target = dest.resolve(name);
+            CopyHelpers.copyDirectory(entry, target);
+            return;
+        }
+        if (name.endsWith(".md")) {
+            // Place under references/ to preserve legacy
+            // skill output layout (skill/{kp}/references/*.md).
+            Path refsDir = dest.resolve("references");
+            CopyHelpers.ensureDirectory(refsDir);
+            CopyHelpers.copyStaticFile(
+                    entry, refsDir.resolve(name));
+        } else {
+            CopyHelpers.copyStaticFile(
+                    entry, dest.resolve(name));
+        }
     }
 
     /**
@@ -99,14 +154,14 @@ final class SkillsCopyHelper {
             Path outputDir,
             TemplateEngine engine,
             Map<String, Object> context) {
+        // STORY-0051-0002: stack-patterns migrated under knowledge/.
         String packName = StackPackMapping
                 .getStackPackName(config.framework().name());
         if (packName.isEmpty()) {
             return Optional.empty();
         }
         Path src = resourcesDir.resolve(
-                SKILLS_TEMPLATES_DIR + "/"
-                        + KNOWLEDGE_PACKS_DIR + "/"
+                KNOWLEDGE_DIR + "/"
                         + STACK_PATTERNS_DIR + "/"
                         + packName);
         if (!Files.exists(src)
@@ -115,7 +170,17 @@ final class SkillsCopyHelper {
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + packName);
-        CopyHelpers.copyDirectory(src, dest);
+        // Map index.md → SKILL.md to preserve old skill output shape
+        Path indexMd = src.resolve("index.md");
+        if (Files.exists(indexMd)) {
+            CopyHelpers.ensureDirectory(dest);
+            CopyHelpers.copyTemplateFile(
+                    indexMd, dest.resolve(SKILL_MD),
+                    engine, context);
+            copyNonIndexItems(src, dest);
+        } else {
+            CopyHelpers.copyDirectory(src, dest);
+        }
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
         return Optional.of(dest.toString());
@@ -144,9 +209,9 @@ final class SkillsCopyHelper {
             if (!rule.included()) {
                 continue;
             }
+            // STORY-0051-0002: infra-patterns migrated under knowledge/.
             Path src = resourcesDir.resolve(
-                    SKILLS_TEMPLATES_DIR + "/"
-                            + KNOWLEDGE_PACKS_DIR + "/"
+                    KNOWLEDGE_DIR + "/"
                             + INFRA_PATTERNS_DIR + "/"
                             + rule.packName());
             if (!Files.exists(src)
@@ -155,7 +220,17 @@ final class SkillsCopyHelper {
             }
             Path dest = outputDir.resolve(
                     SKILLS_OUTPUT + "/" + rule.packName());
-            CopyHelpers.copyDirectory(src, dest);
+            // index.md → SKILL.md for output compatibility
+            Path indexMd = src.resolve("index.md");
+            if (Files.exists(indexMd)) {
+                CopyHelpers.ensureDirectory(dest);
+                CopyHelpers.copyTemplateFile(
+                        indexMd, dest.resolve(SKILL_MD),
+                        engine, context);
+                copyNonIndexItems(src, dest);
+            } else {
+                CopyHelpers.copyDirectory(src, dest);
+            }
             CopyHelpers.replacePlaceholdersInDir(
                     dest, engine, context);
             generated.add(dest.toString());
