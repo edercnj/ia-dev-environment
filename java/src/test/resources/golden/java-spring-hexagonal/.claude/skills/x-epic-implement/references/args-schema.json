@@ -1,0 +1,163 @@
+{
+  "name": "x-epic-implement",
+  "version": "2.0",
+  "positional": [
+    {
+      "name": "epicId",
+      "required": true,
+      "type": "string",
+      "pattern": "^[0-9]{4}$",
+      "normalize": "zeroPad4",
+      "description": "4-digit epic identifier, e.g. 0049"
+    }
+  ],
+  "flags": [
+    {
+      "name": "--parallel",
+      "type": "boolean",
+      "default": false,
+      "description": "Opt-in parallel story execution via worktrees"
+    },
+    {
+      "name": "--legacy-flow",
+      "type": "boolean",
+      "default": false,
+      "description": "Force EPIC-0042 behavior (stories merge directly into develop; no final PR)"
+    },
+    {
+      "name": "--phase",
+      "type": "integer",
+      "min": 0,
+      "description": "Execute only stories in phase N"
+    },
+    {
+      "name": "--story",
+      "type": "string",
+      "pattern": "^story-[0-9]{4}-[0-9]{4}$",
+      "description": "Execute a single story in isolation"
+    },
+    {
+      "name": "--resume",
+      "type": "boolean",
+      "default": false,
+      "description": "Continue from last checkpoint"
+    },
+    {
+      "name": "--dry-run",
+      "type": "boolean",
+      "default": false,
+      "description": "Produce execution plan only; do not dispatch stories"
+    },
+    {
+      "name": "--skip-review",
+      "type": "boolean",
+      "default": false,
+      "description": "Propagate to x-story-implement: skip specialist + tech-lead reviews"
+    },
+    {
+      "name": "--auto-merge-strategy",
+      "type": "enum",
+      "values": ["merge", "squash", "rebase"],
+      "default": "merge",
+      "description": "Strategy for story-PR auto-merge into epic/<EPIC-ID>"
+    },
+    {
+      "name": "--strict-overlap",
+      "type": "boolean",
+      "default": false,
+      "description": "Demote hard-overlap stories to sequential in --parallel mode"
+    },
+    {
+      "name": "--non-interactive",
+      "type": "boolean",
+      "default": false,
+      "description": "Skip all AskUserQuestion gates (CI / orchestrated invocations)"
+    },
+    {
+      "name": "--skip-pr-comments",
+      "type": "boolean",
+      "default": false,
+      "description": "Skip the post-gate PR-comment remediation pass"
+    },
+    {
+      "name": "--revert-on-failure",
+      "type": "boolean",
+      "default": false,
+      "description": "On integrity-gate failure, revert the last story merge instead of dispatching remediation agent"
+    },
+    {
+      "name": "--skip-smoke",
+      "type": "boolean",
+      "default": false,
+      "description": "Bypass the epic smoke gate (advisory only)"
+    },
+    {
+      "name": "--auto-approve-pr",
+      "type": "boolean",
+      "default": false,
+      "description": "Propagate to x-story-implement for task-PR-into-parent-branch flow"
+    }
+  ],
+  "deprecatedFlags": [
+    {
+      "name": "--sequential",
+      "since": "EPIC-0049",
+      "replacement": "Omit flag (sequential is now default)",
+      "warning": "[DEPRECATED] --sequential is a no-op (sequential is default since EPIC-0049). Remove the flag."
+    },
+    {
+      "name": "--auto-merge",
+      "since": "EPIC-0049",
+      "replacement": "Omit flag (auto-merge against epic/<ID> is now default)",
+      "warning": "[DEPRECATED] --auto-merge is a no-op (auto-merge against epic/<ID> is default since EPIC-0049). Use --auto-merge-strategy to tune strategy."
+    },
+    {
+      "name": "--no-merge",
+      "since": "EPIC-0049",
+      "replacement": "--legacy-flow",
+      "warning": "[DEPRECATED] --no-merge is rejected in EPIC-0049 defaults. Use --legacy-flow to preserve EPIC-0042 no-direct-merge semantics.",
+      "reject": true
+    },
+    {
+      "name": "--interactive-merge",
+      "since": "EPIC-0049",
+      "replacement": "Default interactive mode when --non-interactive is absent",
+      "warning": "[DEPRECATED] --interactive-merge is a no-op. Interactive behavior is default when --non-interactive is not set."
+    },
+    {
+      "name": "--manual-batch-approval",
+      "since": "EPIC-0043",
+      "replacement": "--non-interactive",
+      "warning": "[DEPRECATED] --manual-batch-approval is a no-op since EPIC-0043. Use --non-interactive for CI."
+    },
+    {
+      "name": "--batch-approval",
+      "since": "EPIC-0043",
+      "replacement": "--non-interactive",
+      "warning": "[DEPRECATED] --batch-approval is a no-op since EPIC-0043. Use --non-interactive for CI."
+    },
+    {
+      "name": "--single-pr",
+      "since": "EPIC-0049",
+      "replacement": "--legacy-flow",
+      "warning": "[DEPRECATED] --single-pr is an alias for --legacy-flow. Use --legacy-flow explicitly.",
+      "alias": "--legacy-flow"
+    },
+    {
+      "name": "--task-tracking",
+      "since": "EPIC-0038",
+      "replacement": "Always-on in v2",
+      "warning": "[DEPRECATED] --task-tracking is always-on in v2. Remove the flag."
+    },
+    {
+      "name": "--dry-run-only-comments",
+      "since": "EPIC-0049",
+      "replacement": "--skip-pr-comments",
+      "warning": "[DEPRECATED] --dry-run-only-comments is a no-op. Use --skip-pr-comments to suppress Phase 4b entirely."
+    }
+  ],
+  "mutuallyExclusive": [
+    ["--phase", "--story"],
+    ["--parallel", "--legacy-flow"]
+  ]
+}
