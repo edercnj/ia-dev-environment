@@ -2,12 +2,42 @@
 
 > **Full reference:** Read `skills/testing/SKILL.md` for test patterns and conventions.
 
-## Coverage Thresholds (Non-Negotiable)
+## Coverage Thresholds (Non-Negotiable — Absolute Gate)
 
 | Metric | Minimum |
 |--------|---------|
-| Line Coverage | ≥ 85% |
-| Branch Coverage | ≥ 80% |
+| Line Coverage | ≥ 95% |
+| Branch Coverage | ≥ 90% |
+
+### Absolute-Gate Rule (RULE-005-01)
+
+Coverage thresholds are an **absolute gate**. A PR fails the review if the
+repository's line coverage is below 95% or branch coverage is below 90%,
+**regardless of whether the deficit was caused by the PR or was pre-existing
+on the base branch**. There is no "pre-existing exemption".
+
+Rationale:
+
+- Pre-existing deficits would accumulate indefinitely if grandfathered. The
+  gate would become meaningless.
+- A PR that does not add Java main-source code (e.g., documentation /
+  metadata epics) is free to add tests to close pre-existing gaps.
+- The gate keeps the `develop` baseline trustworthy: every merged PR leaves
+  `develop` at or above the thresholds.
+
+### Operator options when the gate fires
+
+1. **Add tests in the current PR** to close the gap. This is the default
+   and is what the review skills (`x-review`, `x-review-pr`) enforce.
+2. **Split the concerns:** open a separate PR that adds tests to reach the
+   thresholds on `develop` first, then rebase the feature PR.
+3. **Document an explicit exception** via an ADR that temporarily lowers
+   the gate for a specific package with a sunset date. The ADR MUST be
+   approved by the tech lead and recorded under `adr/ADR-NNN-*.md`.
+
+**Silently overriding the gate is forbidden.** No reviewer may merge a PR
+that fails the gate without either (a) closing the gap in-PR, (b) closing
+it in a predecessor PR, or (c) the ADR escape hatch.
 
 ## Test Categories
 
@@ -37,7 +67,7 @@
 ## Merge Checklist
 
 - [ ] All tests passing
-- [ ] Coverage ≥ 85% line, ≥ 80% branch
+- [ ] Coverage ≥ 95% line, ≥ 90% branch (absolute gate — pre-existing deficits MUST be closed in-PR or in a predecessor)
 - [ ] Zero compiler/linter warnings
 - [ ] DB migration applied and tested (if applicable)
 - [ ] Security review for sensitive changes
