@@ -1,5 +1,6 @@
 ---
 name: dockerfile
+model: haiku
 description: "Dockerfile patterns: multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels per language."
 user-invocable: false
 allowed-tools:
