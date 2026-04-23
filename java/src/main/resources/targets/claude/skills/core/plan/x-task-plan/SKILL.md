@@ -3,7 +3,7 @@ name: x-task-plan
 description: "Generates a detailed per-task implementation plan (plan-task-TASK-XXXX-YYYY-NNN.md) with TDD cycles in TPP order, file impact analysis by architecture layer, security checklist by task type, and exit criteria. Two invocation modes: task-file-first (--task-file) consumes a standalone task-TASK-XXXX-YYYY-NNN.md contract (EPIC-0038); story-scoped (STORY-ID --task TASK-ID) reads the task from story Section 8 (legacy). Invocable standalone OR via x-story-plan (future)."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "--task-file <path> [--output-dir <dir>]  |  [STORY-ID] --task [TASK-ID] [--force]"
+argument-hint: "--task-file <path> [--output-dir <dir>] [--no-commit]  |  [STORY-ID] --task [TASK-ID] [--force] [--no-commit]"
 ---
 
 ## Global Output Policy
@@ -22,8 +22,10 @@ Produces a detailed implementation plan for a single task extracted from a story
 
 - `/x-task-plan --task-file <path>` -- **task-file-first** (EPIC-0038): consume a standalone `task-TASK-XXXX-YYYY-NNN.md` contract, write the plan next to it.
 - `/x-task-plan --task-file <path> --output-dir <dir>` -- override output directory.
+- `/x-task-plan --task-file <path> --no-commit` -- **batch mode** (EPIC-0049 story-0049-0017): write the plan file but SKIP the individual planning-commit. Callers (e.g., `x-story-plan`) aggregate N plans and issue ONE batched commit.
 - `/x-task-plan STORY-ID --task TASK-ID` -- **story-scoped (legacy)**: read task from story Section 8.
 - `/x-task-plan STORY-ID --task TASK-ID --force` -- regenerate even if plan exists.
+- `/x-task-plan STORY-ID --task TASK-ID --no-commit` -- **batch mode (story-scoped)**: write plan but skip commit.
 
 > **Invocation modes.** Task-file-first is the canonical path post-EPIC-0038: an
 > orchestrator (human or `x-story-plan` in the future) generates `task-TASK-NNN.md`
@@ -40,6 +42,7 @@ Produces a detailed implementation plan for a single task extracted from a story
 | `--task-file` | Yes | Path to a `task-TASK-XXXX-YYYY-NNN.md` file (schema: story-0038-0001). MUST pass `TaskFileParser` validation. |
 | `--output-dir` | No (default: same dir as `--task-file`) | Directory to write `plan-task-TASK-XXXX-YYYY-NNN.md`. |
 | `--force` | No | Regenerate plan even if a fresh one already exists. |
+| `--no-commit` | No (default: `false`) | When `true`, skip the Planning Status Propagation commit (Phase 5.4). Plan file is still written to disk and status is still flipped `Pendente -> Planejada`, but the commit step is deferred to the caller. Used by `x-story-plan` to batch-commit N plans in a single commit (EPIC-0049 story-0049-0017). |
 
 ### Story-scoped mode (legacy — epics 0025-0037)
 
@@ -48,6 +51,7 @@ Produces a detailed implementation plan for a single task extracted from a story
 | `STORY-ID` | Yes | Story identifier (pattern: `story-XXXX-YYYY`). |
 | `--task` | Yes | Task identifier (pattern: `TASK-XXXX-YYYY-NNN`). Must exist in story Section 8. |
 | `--force` | No | Regenerate plan even if a fresh one already exists. |
+| `--no-commit` | No (default: `false`) | Same semantics as in task-file-first mode: write plan, skip commit; caller handles batched commit. |
 
 ## Workflow
 
@@ -468,8 +472,26 @@ After writing `plan-task-TASK-XXXX-YYYY-NNN.md`, propagate the lifecycle status 
    ```bash
    git add plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md plans/epic-XXXX/plans/plan-task-TASK-XXXX-YYYY-NNN.md
    ```
-5. Commit via `x-git-commit` (Rule 13 Pattern 1 INLINE-SKILL):
+5. **Commit gate (`--no-commit` aware):**
+   - If `--no-commit=false` (default): commit via `x-git-commit` (Rule 13 Pattern 1 INLINE-SKILL):
 
-       Skill(skill: "x-git-commit", args: "docs(task-TASK-XXXX-YYYY-NNN): add plan + update status to Planejada")
+         Skill(skill: "x-git-commit", args: "docs(task-TASK-XXXX-YYYY-NNN): add plan + update status to Planejada")
+
+   - If `--no-commit=true` (EPIC-0049 batch mode): **SKIP the commit step**. The plan file and status write remain on disk (staged) but no commit is produced. Log: `"[no-commit] Plan written; commit deferred to caller"`. Return response with `commitSha: null`.
 
 **Fail-loud:** non-zero CLI exit → abort skill with the same exit code (RULE-046-08).
+
+### `--no-commit` Contract (story-0049-0017)
+
+| Aspect | `--no-commit=false` (default) | `--no-commit=true` (batch) |
+|--------|-------------------------------|----------------------------|
+| Plan file written to disk | Yes | Yes |
+| Status flipped `Pendente -> Planejada` | Yes | Yes |
+| `git add` of plan + task file | Yes | Yes |
+| `x-git-commit` invoked | Yes | **NO** (deferred to caller) |
+| Response `commitSha` | non-null SHA | `null` |
+| Re-invocation semantics | Idempotent (staleness check) | Idempotent; flipping the flag between runs alternates commit behavior |
+
+**Caller contract (e.g., `x-story-plan`):** when invoking N tasks with `--no-commit=true`, the caller MUST aggregate all written paths and issue ONE consolidated `x-planning-commit` call covering every plan + status update — producing a single commit per story instead of N commits.
+
+**Backward compat:** absence of `--no-commit` (or explicit `--no-commit=false`) preserves pre-EPIC-0049 behavior byte-for-byte.
