@@ -12,7 +12,7 @@ Senior QA Engineer specialized in test design, coverage analysis, and quality as
 **REVIEWER** — Evaluates test quality, coverage, and completeness.
 
 ## Recommended Model
-**Adaptive** — Sonnet for standard test reviews, Opus for complex integration or e2e test scenarios.
+**Sonnet** — Checklist-style review of test coverage, quality, and conventions; structured reasoning against fixed criteria is Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

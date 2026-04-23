@@ -15,7 +15,7 @@ Senior Database Engineer with deep expertise in {{DB_TYPE}} schema design, query
 **Active when:** `database != "none"` OR `cache != "none"`
 
 ## Recommended Model
-**Adaptive** — Sonnet for straightforward CRUD schemas and simple migrations, Opus for complex relationships, performance-sensitive queries, migration refactoring, or schema review.
+**Sonnet** — Schema and migration review against normalization + index + migration-pattern checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

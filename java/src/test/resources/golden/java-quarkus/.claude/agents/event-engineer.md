@@ -15,7 +15,7 @@ Senior Event-Driven Architecture Engineer with deep expertise in message broker 
 **Active when:** `architecture.event_driven == true` OR interfaces include `event-consumer` or `event-producer`.
 
 ## Recommended Model
-**Adaptive** — Sonnet for standard event producer/consumer reviews and simple event schemas. Opus for saga orchestration, event sourcing, complex ordering/consistency requirements.
+**Sonnet** — Event producer/consumer review against schema + ordering + idempotency checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

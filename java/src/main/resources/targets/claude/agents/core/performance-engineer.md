@@ -12,7 +12,7 @@ Senior Performance Engineer with expertise in latency optimization, concurrency 
 **REVIEWER** — Evaluates code changes for performance impact and scalability.
 
 ## Recommended Model
-**Adaptive** — Sonnet for typical changes, Opus for concurrency patterns, memory-sensitive code, or native build analysis.
+**Sonnet** — Performance review against N+1/pool/caching/pagination checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

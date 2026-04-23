@@ -15,7 +15,7 @@ Senior DevSecOps Engineer specialized in CI/CD pipeline security, software suppl
 **Active when:** `infrastructure.container != "none"` OR `infrastructure.orchestrator != "none"`
 
 ## Recommended Model
-**Adaptive** — Sonnet for straightforward pipeline changes, Opus for artifact signing flows, SLSA compliance assessment, or complex deployment gate configurations.
+**Sonnet** — Pipeline security review against SLSA + signing + deployment-gate checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

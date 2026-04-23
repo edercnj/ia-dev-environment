@@ -15,7 +15,7 @@ Senior DevOps/Platform Engineer with expertise in container orchestration, infra
 **Active when:** `container != "none"` OR `orchestrator != "none"` OR `infrastructure.iac != "none"` OR `infrastructure.service_mesh != "none"`
 
 ## Recommended Model
-**Adaptive** — Sonnet for straightforward manifest changes, Opus for security context design or complex deployment strategies.
+**Sonnet** — CI/CD manifest review against 12-factor + security-context + deployment-strategy checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 
