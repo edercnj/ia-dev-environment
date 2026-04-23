@@ -46,6 +46,14 @@ When all three flags are absent, behavior is identical to EPIC-0048 (backward co
 - `/x-story-implement story-XXXX-YYYY --worktree` — standalone opt-in worktree (ADR-0004 Mode 2)
 - `/x-story-implement story-XXXX-YYYY --non-interactive` — skip interactive gate menus (CI / orchestrated calls)
 
+## Review Policy
+
+> **MANDATORY:** Specialist Review (Step 3.2 — `x-review`) and Tech Lead Review (Step 3.2 — `x-review-pr`) are
+> NON-NEGOTIABLE by default. They MUST execute on every story unless the caller
+> explicitly passes `--skip-verification`. Omitting either review without the flag
+> is a protocol violation. Subagents MUST NOT silently skip these steps — if unable
+> to execute, they MUST abort with an explicit error log `"REVIEW_SKIPPED_WITHOUT_FLAG"`.
+
 ## Parameters
 
 | Flag | Type | Default | Description |
@@ -58,6 +66,7 @@ When all three flags are absent, behavior is identical to EPIC-0048 (backward co
 | `--task` | String | — | Execute only `TASK-XXXX-YYYY-NNN`. |
 | `--resume` | Boolean | `false` | Delegates resume-point detection to `x-internal-story-resume`. |
 | `--skip-verification` | Boolean | `false` | **Recovery-only.** Skips Phase 3; flagged outside `## Recovery` blocks. |
+| `--skip-review` | Boolean | false | **RESERVED — not yet implemented.** Use `--skip-verification` to bypass all of Phase 3. There is no supported path to skip only reviews while keeping other Phase 3 steps active. |
 | `--skip-smoke`, `--skip-review` | Boolean | `false` | Bypass smoke gate / specialist + TL reviews. |
 | `--full-lifecycle`, `--worktree`, `--non-interactive` | Boolean | `false` | Full execution / standalone worktree / CI mode. |
 | `--no-auto-remediation`, `--no-ci-watch` | Boolean | `false` | Skip Step 3.5 remediation / Rule 21 CI-watch. |
@@ -246,6 +255,16 @@ The sub-skill identifies files touched by the story, runs the scoped test suite 
 Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverageBranch}`. On `passed=false` → exit with code `VERIFY_FAILED` and include `failures[0]` in the message.
 
 ### 3.2 Specialist + Tech-Lead reviews (unless `--skip-review`)
+
+> **MANDATORY — NON-NEGOTIABLE:** The Specialist Review step MUST execute unless `--skip-verification`
+> is explicitly present. A subagent that reaches this point without executing
+> `Skill(skill: "x-review", ...)` MUST abort and emit
+> `"PROTOCOL_VIOLATION: Step 3.4 skipped without --skip-verification"`.
+
+> **MANDATORY — NON-NEGOTIABLE:** The Tech Lead Review step MUST execute unless `--skip-verification`
+> is explicitly present. A subagent that reaches this point without executing
+> `Skill(skill: "x-review-pr", ...)` MUST abort and emit
+> `"PROTOCOL_VIOLATION: Step 3.6 skipped without --skip-verification"`.
 
 MANDATORY TOOL CALLS — emit both in sequence; each MUST persist its evidence file (checked by CI audit):
 
