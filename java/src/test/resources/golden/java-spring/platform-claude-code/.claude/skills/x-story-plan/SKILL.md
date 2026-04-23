@@ -295,9 +295,16 @@ TASK_PROPOSAL:
 END_PROPOSAL
 ```
 
-### Subagent 1: Architect (model hint: opus)
+### Subagent 1: Architect
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent with explicit `model: "opus"` (Rule 23 RULE-002 — deep design reasoning):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "opus",
+      description: "Architect plans implementation of story",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **Senior Architect** planning the implementation of a story for {{PROJECT_NAME}}.
 >
@@ -342,9 +349,16 @@ Launch `general-purpose` subagent:
 >
 > **Output:** Return the architecture plan summary followed by all TASK_PROPOSAL entries in the standardized format.
 
-### Subagent 2: QA Engineer (model hint: opus)
+### Subagent 2: QA Engineer
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-002 — checklist review is Sonnet-appropriate):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "sonnet",
+      description: "QA engineer plans tests for story",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **QA Engineer** planning tests for a story in {{PROJECT_NAME}}.
 >
@@ -388,9 +402,16 @@ Launch `general-purpose` subagent:
 >
 > **Output:** Return the test plan summary followed by all TASK_PROPOSAL entries in the standardized format.
 
-### Subagent 3: Security Engineer (adaptive model)
+### Subagent 3: Security Engineer
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-002 — STRIDE analysis is Sonnet-appropriate):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "sonnet",
+      description: "Security engineer assesses story",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **Security Engineer** assessing security impact for a story in {{PROJECT_NAME}}.
 >
@@ -424,9 +445,16 @@ Launch `general-purpose` subagent:
 >
 > **Output:** Return the security assessment summary followed by all TASK_PROPOSAL entries in the standardized format.
 
-### Subagent 4: Tech Lead (adaptive model)
+### Subagent 4: Tech Lead
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-002 — quality gate validation is Sonnet-appropriate):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "sonnet",
+      description: "Tech lead defines quality gates for story",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **Tech Lead** defining quality gates for a story in {{PROJECT_NAME}}.
 >
@@ -466,9 +494,16 @@ Launch `general-purpose` subagent:
 >
 > **Output:** Return the quality gate summary followed by all TASK_PROPOSAL entries in the standardized format.
 
-### Subagent 5: Product Owner (model hint: sonnet)
+### Subagent 5: Product Owner
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent with explicit `model: "sonnet"` (Rule 23 RULE-002 — DoR validation is Sonnet-appropriate):
+
+    Agent(
+      subagent_type: "general-purpose",
+      model: "sonnet",
+      description: "Product owner validates story completeness",
+      prompt: "<see the blockquote below>"
+    )
 
 > You are a **Product Owner** validating story completeness for {{PROJECT_NAME}}.
 >
