@@ -1,108 +1,99 @@
 # x-story-implement
 
-> Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency.
+> Thin orchestrator (~340 lines — story-0049-0019 refactor) that drives a story end-to-end via 4 delegated phases. Zero inline git/gh/mvn calls; every substantive responsibility is delegated to specialized sub-skills.
 
 | | |
 |---|---|
-| **Category** | Orchestrator |
-| **Invocation** | `/x-story-implement [STORY-ID or feature-name]` |
-| **Delegates to** | `x-arch-plan`, `x-test-plan`, `x-lib-task-decomposer`, `x-task-implement`, `x-arch-update`, `x-review`, `x-review-pr`, `x-git-push`, `x-test-e2e` |
+| **Category** | Orchestrator (thin — ADR-0012 + EPIC-0049) |
+| **Invocation** | `/x-story-implement STORY-ID [--target-branch <branch>] [--auto-merge <strategy>] [--epic-id <XXXX>] ...` |
+| **Delegates to** | `x-internal-args-normalize`, `x-internal-story-load-context`, `x-internal-story-resume`, `x-internal-story-build-plan`, `x-task-implement`, `x-pr-create`, `x-pr-watch-ci`, `x-parallel-eval`, `x-review`, `x-review-pr`, `x-pr-fix`, `x-internal-story-verify`, `x-internal-story-report`, `x-internal-status-update`, `x-git-worktree` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
 ## Overview
 
-Runs the full 9-phase development lifecycle for a single story or feature: preparation, architecture planning, parallel planning (test plan, task decomposition, security, compliance), TDD implementation, documentation, specialist review, remediation + PR creation, Tech Lead review, and final verification. Each heavy phase is delegated to a subagent or skill invocation to preserve orchestrator context. Scope assessment (SIMPLE / STANDARD / COMPLEX) adapts which phases execute.
+Runs the full story implementation lifecycle as 4 delegated phases. Every substantive responsibility — argv parsing, story loading, planning, TDD, verification, reporting — is delegated to a sub-skill. The orchestrator's inline work is limited to `Read`/`Glob` for local file discovery and `Skill`/`Agent` for delegation.
+
+EPIC-0049 introduced three OO-style flags (`--target-branch`, `--auto-merge`, `--epic-id`) that propagate downward to `x-task-implement` and `x-pr-create`. When the flags are absent, the orchestrator preserves EPIC-0048 behavior exactly (target=develop, auto-merge=none).
 
 ## Execution Flow
 
 ```mermaid
 flowchart TD
-    START(["/x-story-implement STORY-ID"]) --> P0["Phase 0: Preparation"]
-    P0 --> SCOPE{Scope Tier?}
-    SCOPE -->|SIMPLE| SKIP["Skip 1B-1E"]
-    SCOPE -->|STANDARD| ALL["All phases"]
-    SCOPE -->|COMPLEX| ALLPAUSE["All phases + pause after P2"]
-    SKIP --> P1
-    ALL --> P1
-    ALLPAUSE --> P1
+    START(["/x-story-implement STORY-ID"]) --> P0["Phase 0: Args, Context & Resume"]
+    P0 --> P0A["0.1 x-internal-args-normalize"]
+    P0A --> P0B["0.2 x-internal-story-load-context"]
+    P0B --> P0C{--resume?}
+    P0C -->|yes| P0D["0.4 x-internal-story-resume"]
+    P0C -->|no| P1
+    P0D --> P1
 
-    P1["Phase 1: Architecture Planning"] --> P1PAR["Phases 1B-1F: Parallel Planning"]
-    P1PAR --> P2["Phase 2: TDD Implementation"]
-    P2 --> P3["Phase 3: Documentation"]
-    P3 --> P4["Phase 4: Specialist Review"]
-    P4 --> P5["Phase 5: Remediation + Fixes"]
-    P5 --> P6["Phase 6: Commit + PR"]
-    P6 --> P7["Phase 7: Tech Lead Review"]
-    P7 --> P7D{GO?}
-    P7D -->|NO-GO| P7FIX["Fix + re-review (max 2)"]
-    P7FIX --> P7
-    P7D -->|GO| P8["Phase 8: Final Verification"]
-    P8 --> DONE(["Lifecycle Complete"])
+    P1["Phase 1: Plan"] --> P1A{PRE_PLANNED?}
+    P1A -->|yes| P2
+    P1A -->|no| P1B["x-internal-story-build-plan"]
+    P1B --> P1C["x-parallel-eval"]
+    P1C --> P2
 
-    style SKIP fill:#533483,color:#fff
+    P2["Phase 2: Task Execution Loop"] --> P2A["x-task-implement per task"]
+    P2A --> P2B["x-pr-watch-ci"]
+    P2B --> P2C["x-pr-create"]
+    P2C --> P2D{More tasks?}
+    P2D -->|yes| P2A
+    P2D -->|no| P3
+
+    P3["Phase 3: Verify, Report & Cleanup"] --> P3A["3.1 x-internal-story-verify"]
+    P3A --> P3B["3.2 x-review + x-review-pr"]
+    P3B --> P3C["3.3 x-internal-story-report"]
+    P3C --> P3D["3.4 Status finalize"]
+    P3D --> P3E["3.5 x-git-worktree remove (Mode 2)"]
+    P3E --> DONE(["Lifecycle Complete"])
+
     style DONE fill:#2d6a4f,color:#fff
-    style P7FIX fill:#e94560,color:#fff
-    style ALL fill:#16213e,color:#fff
-    style ALLPAUSE fill:#16213e,color:#fff
 ```
 
 ## Phases
 
 | # | Phase | Description | Delegated To |
 |---|-------|-------------|--------------|
-| 0 | Preparation | Read story, check dependencies, artifact staleness, create branch, scope assessment | Inline |
-| 0.5 | API Contract | Generate and validate API contracts (conditional: REST/gRPC/event interfaces) | Inline + `x-test-contract-lint` |
-| 1 | Architecture Planning | Evaluate change scope, generate architecture plan | `x-arch-plan` |
-| 1B-1F | Parallel Planning | Test plan, task decomposition, event schema, security, compliance (launched in single message) | `x-test-plan`, `x-lib-task-decomposer`, subagents |
-| 2 | TDD Implementation | Double-Loop TDD: acceptance tests (outer), unit tests in TPP order (inner), compile checks | `x-task-implement` (subagent) |
-| 3 | Documentation | Interface-specific docs (CLI/REST/gRPC/event), changelog, architecture update | Inline + `x-arch-update` |
-| 4 | Specialist Review | 8 parallel specialist engineers review implementation | `x-review` |
-| 5 | Remediation + Fixes | Fix all review findings with TDD discipline, update remediation tracker | Inline |
-| 6 | Commit + PR | Push branch, create PR targeting develop with review summary | `x-git-push` |
-| 7 | Tech Lead Review | 40-point holistic review, requires 40/40 GO (max 2 retry cycles) | `x-review-pr` |
-| 8 | Final Verification | Update status files, Jira sync, DoD checklist (24+ items), smoke tests | Inline + `x-test-e2e` |
+| 0 | Args, Context & Resume | Parse argv, load story, detect resume point, worktree decision | `x-internal-args-normalize`, `x-internal-story-load-context`, `x-internal-story-resume`, `x-git-worktree detect-context` |
+| 1 | Plan | Parallel planning (arch + test + decomposition + security + compliance), parallelism gate | `x-internal-story-build-plan`, `x-parallel-eval` |
+| 2 | Task Execution Loop | Per-task TDD + CI watch + PR create (flags propagate OO-style) | `x-task-implement`, `x-pr-watch-ci`, `x-pr-create`, `x-internal-status-update` |
+| 3 | Verify, Report & Cleanup | Verify gate, specialist + TL reviews, final report, status finalize, worktree cleanup | `x-internal-story-verify`, `x-review`, `x-review-pr`, `x-pr-fix`, `x-internal-story-report`, `x-internal-status-update`, `x-git-worktree remove` |
 
-## Flags
+## EPIC-0049 Flag Propagation
 
-| Flag | Default | Effect |
-|------|---------|--------|
-| `--full-lifecycle` | off | Force all phases regardless of scope tier (overrides SIMPLE) |
+| Flag | Default | Propagation |
+| :--- | :--- | :--- |
+| `--target-branch <branch>` | `develop` | → `x-task-implement --target-branch`, `x-pr-create --target-branch` |
+| `--auto-merge <strategy>` | `none` | → `x-pr-create --auto-merge` (requires `--target-branch` when not `none`) |
+| `--epic-id <XXXX>` | auto-derived | → `x-pr-create --epic-id` (adds `epic-XXXX` label) |
 
-## Scope Tiers
-
-| Tier | Criteria | Phase Behavior |
-|------|----------|---------------|
-| SIMPLE | ≤1 component, 0 endpoints, 0 schema changes | Skips phases 1B, 1C, 1D, 1E |
-| STANDARD | 2-3 components or 1-2 new endpoints | All phases execute |
-| COMPLEX | ≥4 components, schema changes, or compliance | All phases + pause after Phase 2 for stakeholder review |
+With all three flags absent, behavior is identical to EPIC-0048 (backward compat — RULE-008).
 
 ## Prerequisites
 
 - Story file exists with acceptance criteria and sub-tasks
-- Predecessor stories (dependencies) are complete
-- Epic directory structure: `plans/epic-XXXX/plans/`, `plans/epic-XXXX/reviews/`
+- Predecessor stories (dependencies) are complete (validated by `x-internal-story-load-context`)
+- Epic directory structure: `plans/epic-XXXX/plans/`, `plans/epic-XXXX/reports/`
 - Git working tree is clean on the base branch
 
 ## Outputs
 
-| Artifact | Path | Description |
-|----------|------|-------------|
-| Architecture Plan | `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` | Component diagrams, ADRs, constraints |
-| Implementation Plan | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Layers, classes, method signatures, TDD strategy |
-| Test Plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | Double-Loop TDD scenarios in TPP order |
-| Task Breakdown | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | RED/GREEN/REFACTOR tasks with parallelism markers |
-| Security Assessment | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Threat model, OWASP mapping |
-| Compliance Assessment | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Data classification, regulatory review (conditional) |
-| Review Dashboard | `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` | Consolidated specialist + Tech Lead scores |
-| Remediation Tracker | `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` | Finding-to-fix mapping with status |
-| Pull Request | GitHub PR targeting `develop` | TDD compliance summary, review scores |
+| Artifact | Path | Producer |
+|----------|------|----------|
+| Architecture / Implementation / Test / Task / Security / Compliance Plans | `plans/epic-XXXX/plans/*-story-XXXX-YYYY.md` | `x-internal-story-build-plan` (Phase 1) |
+| Story Completion Report | `plans/epic-XXXX/reports/story-completion-report-STORY-ID.md` | `x-internal-story-report` (Phase 3.3) |
+| Review Dashboard | `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` | `x-review` (Phase 3.2) |
+| Per-task PRs | GitHub (targeting `--target-branch` or `develop`) | `x-pr-create` (Phase 2) |
+| Story-level PR (`--auto-approve-pr` only) | GitHub (parent `feat/story-...` → `--target-branch`) | `x-pr-create` (Phase 2.2) |
 
 ## See Also
 
 - [x-epic-implement](../x-epic-implement/) -- Epic-level orchestrator that dispatches this skill per story
 - [x-task-implement](../x-task-implement/) -- TDD implementation engine used in Phase 2
-- [x-test-plan](../x-test-plan/) -- Test plan generator used in Phase 1B
-- [x-review](../x-review/) -- Parallel specialist review used in Phase 4
-- [x-review-pr](../x-review-pr/) -- Tech Lead review used in Phase 7
-- [x-arch-plan](../x-arch-plan/) -- Architecture plan generator used in Phase 1
+- [x-internal-story-load-context](../../internal/plan/x-internal-story-load-context/) -- Story load + artifact pre-checks
+- [x-internal-story-build-plan](../../internal/plan/x-internal-story-build-plan/) -- Parallel planning (Phase 1)
+- [x-internal-story-verify](../../internal/plan/x-internal-story-verify/) -- Verify gate (Phase 3.1)
+- [x-internal-story-report](../../internal/plan/x-internal-story-report/) -- Final report (Phase 3.3)
+- [x-internal-story-resume](../../internal/plan/x-internal-story-resume/) -- Resume-point detection (Phase 0.4)
+- [x-internal-args-normalize](../../internal/ops/x-internal-args-normalize/) -- Argv parsing (Phase 0.1)
