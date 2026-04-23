@@ -176,3 +176,35 @@ story-0049-0020
 story-0049-0021
 story-0049-0022
 story-0051-0001  # merged into epic/0051 on 2026-04-23 (PR #602); pre-Rule-24
+story-0038-0001  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0038-0002  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0038-0003  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0001  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0002  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0003  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0004  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0005  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0006  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0007  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0008  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0009  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0010  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0040-0011  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0043-0001  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0045-0001  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0045-0002  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0045-0003  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0045-0004  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0045-0005  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0045-0006  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0001  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0002  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0003  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0004  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0005  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0006  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0046-0007  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0047-0001  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0047-0002  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0047-0003  # squash-merged pre-Rule-24; detected via improved conventional-commit scan
+story-0047-0004  # squash-merged pre-Rule-24; detected via improved conventional-commit scan

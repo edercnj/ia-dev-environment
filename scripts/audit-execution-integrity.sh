@@ -71,31 +71,51 @@ is_grandfathered() {
 }
 
 has_audit_exempt() {
+    # Returns:
+    #   0 — marker present with a non-empty reason
+    #   1 — marker absent (or story file not found)
+    #   3 — marker present but malformed (empty / whitespace-only reason)
     local story_id="$1"
-    # Search story markdown for audit-exempt marker
     local story_file
     story_file="$(find plans -name "${story_id}.md" 2>/dev/null | head -1)"
     [[ -z "${story_file}" ]] && return 1
-    if grep -qE '<!--\s*audit-exempt:\s*.+-->' "${story_file}"; then
+    # Look for any audit-exempt marker (valid or malformed)
+    if ! grep -qE '<!--\s*audit-exempt' "${story_file}"; then
+        return 1
+    fi
+    # Valid form MUST have a non-empty reason:
+    #   <!-- audit-exempt: <at least one non-space char> -->
+    if grep -qE '<!--\s*audit-exempt:\s*[^[:space:]-][^-]*-->' "${story_file}"; then
         return 0
     fi
-    return 1
+    # Marker present but malformed
+    echo "EIE_INVALID_EXEMPTION: ${story_file} has audit-exempt marker without a reason" >&2
+    return 3
 }
 
 discover_merged_stories() {
+    # Merge-strategy-agnostic story discovery:
+    # scans first-parent commit subjects for `feat(story-XXXX-YYYY...)` OR
+    # `fix(story-XXXX-YYYY...)` AND also inspects `--merges` commits for
+    # `feat/story-*` merged branch names. Covers squash/rebase (conventional
+    # commit subject) and merge-commit strategies uniformly.
     local since_ref="${1:-}"
     local range_arg=""
     if [[ -n "${since_ref}" ]]; then
         range_arg="${since_ref}..HEAD"
     fi
-    # Find merge commits whose merged branch matches feat/story-*
-    # Format: SHA TITLE
-    git log --merges --first-parent ${range_arg} \
-        --format='%H %s' 2>/dev/null \
-        | grep -oE 'feat/story-[0-9]{4}-[0-9]{4}[a-zA-Z0-9-]*' \
-        | sed -E 's|^feat/||' \
-        | grep -oE 'story-[0-9]{4}-[0-9]{4}' \
-        | sort -u
+    {
+        # Squash/rebase: conventional commit subjects on first-parent
+        git log --first-parent ${range_arg} --format='%s' 2>/dev/null \
+            | grep -oE '(feat|fix)\(story-[0-9]{4}-[0-9]{4}' \
+            | grep -oE 'story-[0-9]{4}-[0-9]{4}'
+        # Merge commits referencing feat/story-* branches
+        git log --merges --first-parent ${range_arg} \
+            --format='%H %s' 2>/dev/null \
+            | grep -oE 'feat/story-[0-9]{4}-[0-9]{4}[a-zA-Z0-9-]*' \
+            | sed -E 's|^feat/||' \
+            | grep -oE 'story-[0-9]{4}-[0-9]{4}'
+    } | sort -u
 }
 
 check_evidence() {
@@ -131,13 +151,29 @@ check_evidence() {
     return 0
 }
 
+usage_error() {
+    echo "usage: $(basename "$0") [--self-check] [--since <git-ref>]" >&2
+    exit 2
+}
+
 main() {
     local since_ref=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --self-check) self_check ;;
-            --since)      since_ref="$2"; shift 2 ;;
-            *)            shift ;;
+            --since)
+                if [[ $# -lt 2 || -z "${2:-}" || "${2:0:2}" == "--" ]]; then
+                    echo "error: --since requires a git-ref argument" >&2
+                    usage_error
+                fi
+                since_ref="$2"
+                shift 2
+                ;;
+            -h|--help) usage_error ;;
+            *)
+                echo "error: unknown flag '$1'" >&2
+                usage_error
+                ;;
         esac
     done
 
@@ -154,6 +190,7 @@ main() {
     local total=0
     local exempted=0
     local grandfathered=0
+    local invalid_exemptions=0
 
     echo "EIE audit — Rule 24 Camada 3"
     echo "============================"
@@ -164,9 +201,15 @@ main() {
             grandfathered=$((grandfathered + 1))
             continue
         fi
-        if has_audit_exempt "${story}"; then
+        has_audit_exempt "${story}"
+        local exempt_rc=$?
+        if [[ ${exempt_rc} -eq 0 ]]; then
             printf "  ⚪ %s — audit-exempt\n" "${story}"
             exempted=$((exempted + 1))
+            continue
+        elif [[ ${exempt_rc} -eq 3 ]]; then
+            printf "  ❌ %s — malformed audit-exempt marker\n" "${story}" >&2
+            invalid_exemptions=$((invalid_exemptions + 1))
             continue
         fi
         if check_evidence "${story}"; then
@@ -177,7 +220,18 @@ main() {
     done
 
     echo "----------------------------"
-    echo "Total: ${total} | grandfathered: ${grandfathered} | exempt: ${exempted} | violations: ${violations}"
+    echo "Total: ${total} | grandfathered: ${grandfathered} | exempt: ${exempted} | invalid-exempt: ${invalid_exemptions} | violations: ${violations}"
+
+    if [[ ${invalid_exemptions} -gt 0 ]]; then
+        cat >&2 <<EOF
+
+EIE_INVALID_EXEMPTION — ${invalid_exemptions} story(ies) have malformed '<!-- audit-exempt -->' markers.
+
+Fix: the marker MUST carry a non-empty reason, e.g.:
+  <!-- audit-exempt: reason=migration-only-no-runtime-code approved-by=tech-lead date=YYYY-MM-DD -->
+EOF
+        exit 3
+    fi
 
     if [[ ${violations} -gt 0 ]]; then
         cat >&2 <<EOF
