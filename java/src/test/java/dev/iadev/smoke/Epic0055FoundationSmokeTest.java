@@ -287,8 +287,11 @@ class Epic0055FoundationSmokeTest extends SmokeTestBase {
             + "non-Skill PreToolUse payload")
     void smoke_hook_enforcePhaseSequence_shortCircuitsOnNonSkill()
             throws Exception {
+        // Read from the source of truth — .claude/hooks/ is
+        // gitignored in this project and absent in fresh CI checkouts.
         Path hook = repoRoot().resolve(
-                ".claude/hooks/enforce-phase-sequence.sh");
+                "java/src/main/resources/targets/claude/hooks/"
+                        + "enforce-phase-sequence.sh");
         assertThat(hook).exists();
 
         ProcessBuilder pb = new ProcessBuilder(
@@ -321,7 +324,8 @@ class Epic0055FoundationSmokeTest extends SmokeTestBase {
         runCommand(fakeRepo, "git", "checkout", "-q", "-b", "main");
 
         Path hookSrc = repoRoot().resolve(
-                ".claude/hooks/verify-phase-gates.sh");
+                "java/src/main/resources/targets/claude/hooks/"
+                        + "verify-phase-gates.sh");
         Path hookDest = fakeRepo.resolve(
                 ".claude/hooks/verify-phase-gates.sh");
         Files.createDirectories(hookDest.getParent());
