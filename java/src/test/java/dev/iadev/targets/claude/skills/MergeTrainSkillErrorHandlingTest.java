@@ -22,7 +22,7 @@ class MergeTrainSkillErrorHandlingTest {
 
     private static final String GOLDEN_RELATIVE_PATH =
             "src/test/resources/golden/java-spring-hexagonal"
-                    + "/.claude/skills/x-pr-merge-train/SKILL.md";
+                    + "/.claude/skills/x-pr-merge-train/references/full-protocol.md";
 
     @Test
     @DisplayName("error_handling_table_present_in_golden_skillmd: "

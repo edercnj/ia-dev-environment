@@ -295,9 +295,11 @@ COMPLETED
 
 ---
 
-## Resume Logic (`--resume`)
+## Resume Entry Logic (`--resume`)
 
 **Prerequisites:** existing `plans/merge-train/<trainId>/state.json`. Multiple state files → `--train-id` mandatory; missing → `STATE_CONFLICT`.
+
+Example: `/x-pr-merge-train --resume --train-id epic-0042-20260415-143022`
 
 **Behaviour:**
 1. Load `state.json`; determine last completed phase.
@@ -305,6 +307,29 @@ COMPLETED
 3. Preserve `prsMergedOk[]` and `waves[]` — do NOT re-merge already-merged PRs.
 4. On `CODE_CONFLICT_NEEDS_HUMAN`: human resolves conflict → `git rebase --continue` → push → `--resume` continues from next wave.
 5. On `SMOKE_TEST_FAILED`: diagnose, fix → `--resume` re-runs Phase 6.
+
+---
+
+## Error Handling
+
+| Code | Phase | Condition | Remediation |
+|------|-------|-----------|-------------|
+| `MODE_AMBIGUOUS` | 1 | 0 or 2+ mode flags | Provide exactly one of `--prs`, `--epic`, `--pattern`. |
+| `EPIC_STATE_MISSING` | 1 | `--epic N` but no `execution-state.json` | Use `--prs` or `--pattern`. |
+| `PR_CLOSED` | 2 | `state != "OPEN"` | Remove from train or reopen. |
+| `PR_DRAFT` | 2 | `isDraft == true` | Mark PR as Ready for review. |
+| `PR_BASE_MISMATCH` | 2 | `baseRefName != "develop"` | Rebase PR against develop. |
+| `PR_NOT_APPROVED` | 2 | `reviewDecision != "APPROVED"` | Request review. |
+| `PR_CI_FAILING` | 2 | CI has `FAILURE`/`ERROR` check | Fix CI. |
+| `PR_MERGE_CONFLICT` | 2 | `mergeable == "CONFLICTING"` | Rebase manually. |
+| `NEUTERED_PARALLEL` | 3 | Code-file overlap detected (advisory, non-fatal) | `MAX_PARALLEL=1` forced; train continues serially. |
+| `MERGE_REJECTED_BY_PROTECTION` | 4–5 | Branch protection blocks merge | Adjust protection rules. |
+| `MERGE_POLL_TIMEOUT` | 4–5 | PR did not reach `MERGED` within timeout | Increase `--merge-timeout-seconds` or investigate CI. |
+| `CODE_CONFLICT_NEEDS_HUMAN` | 5 | Rebase conflict in non-golden file | Resolve manually → `git rebase --continue` → push → `--resume`. |
+| `PUSH_LEASE_REJECTED` | 5 | `--force-with-lease` rejected after retry | Fetch + rebase manually → `--resume`. |
+| `GOLDENS_REGEN_FAILED` | 5 | `GoldenFileRegenerator` non-zero | Diagnose build failure; see worker log. |
+| `SMOKE_TEST_FAILED` | 6 | `mvn test` fails after all merges | Diagnose; worktree preserved for diagnosis. |
+| `STATE_CONFLICT` | resume | No `state.json` or ambiguous train ID | Start fresh or provide `--train-id`. |
 
 ---
 

@@ -215,7 +215,13 @@ class LazyKpLoadingTest {
                     outputDir);
             Path storyPlan = outputDir.resolve(
                     "skills/x-story-plan/SKILL.md");
-            return Files.readString(storyPlan);
+            Path fullProtocol = outputDir.resolve(
+                    "skills/x-story-plan/references/full-protocol.md");
+            String content = Files.readString(storyPlan);
+            if (Files.exists(fullProtocol)) {
+                content += "\n" + Files.readString(fullProtocol);
+            }
+            return content;
         }
     }
 }

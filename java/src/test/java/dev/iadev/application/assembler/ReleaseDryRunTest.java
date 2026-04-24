@@ -229,10 +229,14 @@ class ReleaseDryRunTest {
     private String generateClaudeContent(Path tempDir)
             throws IOException {
         Path outputDir = generateOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-release/SKILL.md"),
-                StandardCharsets.UTF_8);
+        Path skillMd = outputDir.resolve("skills/x-release/SKILL.md");
+        Path fullProtocol = outputDir.resolve(
+                "skills/x-release/references/full-protocol.md");
+        String content = Files.readString(skillMd, StandardCharsets.UTF_8);
+        if (Files.exists(fullProtocol)) {
+            content += "\n" + Files.readString(fullProtocol, StandardCharsets.UTF_8);
+        }
+        return content;
     }
 
 }

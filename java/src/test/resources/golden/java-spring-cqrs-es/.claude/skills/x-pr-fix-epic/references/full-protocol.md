@@ -191,7 +191,7 @@ When `--dry-run`: execute Steps 1-7 only. Report includes "Dry-Run Summary" sect
 
 ### 8.2 Branch Setup (RULE-010)
 
-Resolve base branch from `execution-state.json` `.baseBranch` field, defaulting to `develop`.
+Create correction branch from `develop` (branch from `develop`). Resolve base branch from `execution-state.json` `.baseBranch` field, defaulting to `develop`.
 
 ```bash
 git checkout develop && git pull origin develop
@@ -259,7 +259,7 @@ gh pr create --base develop \
   --body "{pr_body}"
 ```
 
-PR body MUST reference all source PRs for traceability (RULE-003). Includes findings-fixed table, findings-skipped table, findings-failed table, and verification status (compile + tests).
+PR output shows `Base: develop`. PR body MUST reference all source PRs for traceability (RULE-003). Includes findings-fixed table, findings-skipped table, findings-failed table, and verification status (compile + tests).
 
 ---
 

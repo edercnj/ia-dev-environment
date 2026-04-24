@@ -101,9 +101,9 @@ Dispatch all 5 in ONE assistant message:
 
     Agent(subagent_type: "general-purpose", model: "opus", description: "Architect — story {STORY_ID}", prompt: "You are a Senior Architect. Read context files. Analyze story {STORY_ID}. Produce TASK_PROPOSAL entries (architecture, layers, dependencies). Follow TASK_PROPOSAL format in references/full-protocol.md.")
     Agent(subagent_type: "general-purpose", model: "sonnet", description: "QA — story {STORY_ID}", prompt: "You are a QA Specialist. Read context files. Produce TASK_PROPOSAL entries (tests, coverage, acceptance criteria). Follow TASK_PROPOSAL format in references/full-protocol.md.")
-    Agent(subagent_type: "general-purpose", model: "sonnet", description: "Security — story {STORY_ID}", prompt: "You are a Security Specialist. Read context files. Produce TASK_PROPOSAL entries (security, OWASP, threat model). Follow TASK_PROPOSAL format in references/full-protocol.md.")
+    Agent(subagent_type: "general-purpose", model: "sonnet", description: "Security — story {STORY_ID}", prompt: "You are a Security Specialist. Read knowledge/security/application-security.md, knowledge/security/security-principles.md, and context files. Produce TASK_PROPOSAL entries (security, OWASP, threat model). Follow TASK_PROPOSAL format in references/full-protocol.md.")
     Agent(subagent_type: "general-purpose", model: "sonnet", description: "TechLead — story {STORY_ID}", prompt: "You are a Tech Lead. Read context files. Produce TASK_PROPOSAL entries (code quality, SOLID, complexity). Follow TASK_PROPOSAL format in references/full-protocol.md.")
-    Agent(subagent_type: "general-purpose", model: "sonnet", description: "PO — story {STORY_ID}", prompt: "You are a Product Owner. Read context files. Produce TASK_PROPOSAL entries (business value, acceptance, DoD). Follow TASK_PROPOSAL format in references/full-protocol.md.")
+    Agent(subagent_type: "general-purpose", model: "sonnet", description: "PO — story {STORY_ID}", prompt: "You are a Product Owner. Read knowledge/compliance.md and context files. Produce TASK_PROPOSAL entries (business value, acceptance, DoD, compliance). Follow TASK_PROPOSAL format in references/full-protocol.md.")
 
 <!-- TELEMETRY: subagent.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end x-story-plan Architect ok`
