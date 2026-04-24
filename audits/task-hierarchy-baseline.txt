@@ -12,6 +12,3 @@
 #
 # See: .claude/rules/25-task-hierarchy.md §Audit Contract
 
-x-release # retirado-por: story-0055-0008
-x-epic-orchestrate # retirado-por: story-0055-0009
-x-pr-merge-train # retirado-por: story-0055-0010
