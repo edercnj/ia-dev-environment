@@ -1,0 +1,21 @@
+{
+  "flowVersion": "2",
+  "epicId": "EPIC-0054",
+  "epicBranch": "epic/0054",
+  "mode": "sequential",
+  "autoMergeStrategy": "merge",
+  "storyStatuses": {
+    "story-0054-0001": { "status": "PENDING", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": null },
+    "story-0054-0002": { "status": "PENDING", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": null },
+    "story-0054-0003": { "status": "PENDING", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": null },
+    "story-0054-0004": { "status": "PENDING", "phase": 1, "prNumber": null, "prUrl": null, "commitSha": null }
+  },
+  "phases": [
+    { "index": 0, "stories": ["story-0054-0001", "story-0054-0002", "story-0054-0003"] },
+    { "index": 1, "stories": ["story-0054-0004"] }
+  ],
+  "criticalPath": ["story-0054-0003", "story-0054-0004"],
+  "executionPlanPath": "plans/epic-0054/reports/epic-execution-plan-0054.md",
+  "createdAt": "2026-04-23T00:00:00Z",
+  "lastUpdatedAt": "2026-04-23T00:00:00Z"
+}
