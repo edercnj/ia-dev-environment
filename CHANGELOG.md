@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **EPIC-0054 story-0054-0004 (ADR-0012 rollout — XL orchestrators):** slim
+  rewrite of `x-epic-implement` (434 → 145 lines, 6 phase telemetry pairs preserved)
+  and `x-release` (2812 → 111 lines, approval gate telemetry preserved, full
+  VALIDATE-DEEP matrix in slim body, comprehensive `references/full-protocol.md`
+  with exact `### Step N — Title` headers for 27 test class compatibility). Test suite
+  updated: 20 test classes now read SKILL.md + references/full-protocol.md
+  concatenated. 3887 tests green.
+
 - **EPIC-0054 story-0054-0002 (ADR-0012 rollout — medium orchestrators):** slim
   rewrite of `x-task-implement` (824 → 100 lines, 4 telemetry marker pairs preserved),
   `x-security-pipeline` (576 → 73 lines, 3-platform YAML in references), and
