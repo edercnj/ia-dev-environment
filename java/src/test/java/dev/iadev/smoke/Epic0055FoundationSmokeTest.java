@@ -2,6 +2,8 @@ package dev.iadev.smoke;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,6 +51,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @see Epic0054CompressionSmokeTest
  */
 @DisplayName("Epic0055FoundationSmokeTest — Rule 25 + phase-gate infra")
+@DisabledOnOs(
+        value = OS.WINDOWS,
+        disabledReason = "Uses bash, git, jq, and POSIX execute bit —"
+                + " matches the same gating as SkillsAssemblerPruneTest"
+                + " and ResourceResolverTest.")
 class Epic0055FoundationSmokeTest extends SmokeTestBase {
 
     private static final List<String> RULE_25_HOOK_FILES = List.of(
@@ -317,11 +324,14 @@ class Epic0055FoundationSmokeTest extends SmokeTestBase {
         // Build a minimal git repo on a branch name that the hook should
         // skip ("main"). Copy the hook into it and run without a state
         // file — the hook must exit 0 without touching anything.
-        runCommand(fakeRepo, "git", "init", "-q");
+        //
+        // `git init -b main` pins the initial branch regardless of the
+        // host's `init.defaultBranch` config — avoids the fragility of
+        // `checkout -b main` on hosts where the default already is main.
+        runCommand(fakeRepo, "git", "init", "-q", "-b", "main");
         runCommand(fakeRepo, "git",
                 "-c", "user.email=t@t", "-c", "user.name=t",
                 "commit", "--allow-empty", "-q", "-m", "init");
-        runCommand(fakeRepo, "git", "checkout", "-q", "-b", "main");
 
         Path hookSrc = repoRoot().resolve(
                 "java/src/main/resources/targets/claude/hooks/"
