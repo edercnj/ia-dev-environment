@@ -4,7 +4,7 @@
 >
 > **Status.** Representa o estado em **2026-04-24**, com a base consolidada (Rules 01–24, épicos até 0054 concluídos) e um roadmap de convenções em evolução (épicos 0055–0057).
 >
-> **Nota.** Este documento **referencia** as regras e artefatos. A fonte canônica é `.claude/rules/*.md` e `java/src/main/resources/targets/claude/` (source of truth). Nenhum trecho aqui substitui a regra original.
+> **Nota.** Este documento **referencia** as regras e artefatos. A fonte canônica (**source of truth**) é `java/src/main/resources/targets/claude/` — lá vivem as rules, skills, knowledge packs, agents, hooks e templates originais. O diretório `.claude/` é **output gerado** por `ia-dev-env generate` e **nunca** deve ser editado manualmente. Este documento referencia os paths do output por conveniência de leitura, mas a ordem canônica ao corrigir qualquer item é: alterar o SoT → regenerar `.claude/`. Nenhum trecho aqui substitui a regra original.
 
 ---
 
@@ -43,12 +43,12 @@ O super-set transformou um fluxo de desenvolvimento **ad-hoc** em um pipeline **
 
 Em números:
 
-- **17 Rules** ativas numeradas 01–24 (com gaps reservados para conditional rules)
-- **~73 Skills** (62 públicas + 11 internas `x-internal-*`) em 10 categorias
-- **10 Hooks** registrados em `settings.json` (5 de telemetria + 1 post-compile + 1 verify-story-completion + 3 libs)
-- **14 Knowledge Packs** cobrindo arquitetura, testing, DDD, CQRS, PCI-DSS, infraestrutura
-- **10 Agentes** com `Recommended Model` explícito (1 Opus + 9 Sonnet)
-- **22 Templates** padronizados para planejamento/review/release
+- **11 Rules carregadas por padrão** (`01, 03, 04, 05, 06, 07, 08, 09, 13, 23` + project identity) com **slots condicionais 10/11/12** (`10-anti-patterns.*`, `11-security-pci`, `12-security-anti-patterns.*`) ativados por stack, e rules adicionais `14, 19, 21, 22, 24` presentes no SoT para projetos que fazem uso de worktrees, epic branches, visibilidade de skill e execution integrity
+- **~73 Skills** (62 públicas + 11 internas `x-internal-*`) em 10 categorias — inventário por projeto em [Apêndice B](#apêndice-b--inventário-de-skills-por-categoria-73)
+- **5 hook commands de telemetria registrados em `settings.json`** (nos eventos `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`) + `post-compile-check` + `verify-story-completion`; além de **3 scripts auxiliares (libs)** em `.claude/hooks/` — `telemetry-emit.sh`, `telemetry-lib.sh`, `telemetry-phase.sh` — que são copiados, mas **não** são hooks registrados
+- **17 Knowledge Packs core** garantidos por `SkillRegistry.CORE_KNOWLEDGE_PACKS` (coding-standards, architecture, testing, security, compliance, api-design, observability, resilience, infrastructure, protocols, story-planning, ci-cd-patterns, sre-practices, release-management, data-management, performance-engineering, feature-flags), mais packs condicionais adicionados por `KnowledgePackSelection` (p.ex. `layer-templates`, `database-patterns`, `data-modeling`, `pci-dss-requirements`, `owasp-asvs`, `dockerfile`, `k8s-*`)
+- **Agentes com `Recommended Model` explícito** no gerador, distribuídos entre perfis Opus (deep planner) e Sonnet (reviewers, executors) conforme a configuração vigente — ver [Apêndice E](#apêndice-e--inventário-de-agentes)
+- **12 templates de planejamento e review** emitidos em `.claude/templates/` pelo `PlanTemplatesAssembler` (RULE-003), cobrindo os sete estágios do workflow
 - **7 fases rastreáveis** por telemetria (planning → implementation → review → release)
 
 A tese operacional é simples: **padronizar o que pode ser padronizado, delegar o que pode ser delegado, auditar o que precisa ser auditado**. O restante do documento detalha cada dimensão.
@@ -147,7 +147,7 @@ O campo discriminador `planningSchemaVersion` (`"1.0"` | `"2.0"`) vive em `execu
 
 ### 2.3 Templates de Planejamento e Review
 
-22 templates vivem em `.claude/templates/_TEMPLATE-*.md`. Placeholders `{{KEY}}` são resolvidos em runtime pelo LLM (não na geração). Cobrem sete estágios do workflow:
+**12 templates principais** vivem em `.claude/templates/_TEMPLATE-*.md` (SoT: `java/src/main/resources/shared/templates/`). Placeholders `{{KEY}}` são resolvidos em runtime pelo LLM (não na geração). Projetos podem estender com templates adicionais por stack; o conjunto abaixo agrupa os emitidos pelo `PlanTemplatesAssembler` nos sete estágios do workflow — nem todos os nomes listados são obrigatórios, e a lista reflete a convenção nomenclatural alvo quando o épico 0056 (RA9) estiver concluído:
 
 | Estágio | Templates |
 | :--- | :--- |
@@ -246,15 +246,18 @@ Execução paralela e isolada usa git worktrees sob `.claude/worktrees/{identifi
 
 Sete specialists disparam em paralelo em **uma única mensagem**:
 
-| Skill | Foco |
-| :--- | :--- |
-| `x-review-qa` | Coverage, TDD compliance, naming |
-| `x-review-perf` | N+1, pools, pagination, timeouts, circuit breakers |
-| `x-review-devops` | Dockerfile, container security, CI/CD, probes |
-| `x-review-arch` | Layering, SOLID, domain purity |
-| `x-review-db` | Migrações, queries, índices |
-| (security specialists) | OWASP, threat model, PCI |
-| `x-review-pr` | Tech Lead holistic (45-point) |
+| Skill | Foco | Ativação |
+| :--- | :--- | :--- |
+| `x-review-qa` | Coverage, TDD compliance, naming | Sempre |
+| `x-review-perf` | N+1, pools, pagination, timeouts, circuit breakers | Sempre |
+| `x-review-devops` | Dockerfile, container security, CI/CD, probes | Sempre |
+| `x-review-security` | OWASP Top 10, anti-patterns, threat model, PCI | Condicional (se `security`/`pci` habilitado no perfil) |
+| `x-review-arch` | Layering, SOLID, domain purity | Condicional |
+| `x-review-db` | Migrações, queries, índices | Condicional (se há database) |
+| `x-review-obs` / `x-review-api` / `x-review-event` | Observabilidade, API, eventos | Condicional por stack |
+| `x-review-pr` | Tech Lead holistic (45-point) | Sempre (gate final) |
+
+A lista exata é montada por `x-review` com base no perfil do projeto — esta tabela ilustra o conjunto típico e não substitui o SKILL.md do `x-review` como fonte canônica de ativação.
 
 Resultado agregado em `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md`.
 
@@ -463,7 +466,7 @@ Ausência em story merged = build falha no CI.
 2. **`Agent(subagent_type: "general-purpose", model: "...")`** — explícito, sem inheritance.
 3. **`Skill(skill: "...", model: "...")`** — explícito quando tier diverge do pai.
 
-`Adaptive` é **proibido** (resolve para Opus em prática). Baseline antes: 84.4% Opus / 0.2% Sonnet / 5.8% Haiku. Alvo: ≤50% Opus / ≥35% Sonnet / ≥12% Haiku. CI script `scripts/audit-model-selection.sh` enforca.
+`Adaptive` é **proibido** (resolve para Opus em prática). Baseline antes: 84.4% Opus / 0.2% Sonnet / 5.8% Haiku. Alvo: ≤50% Opus / ≥35% Sonnet / ≥12% Haiku. CI script `scripts/audit-model-selection.sh` faz cumprir essa regra.
 
 ### 8.2 Skill Visibility (Rule 22)
 
@@ -601,29 +604,42 @@ Convenções **propostas** em épicos ainda não concluídos. **Não são vigent
 
 ## 11. Apêndices
 
-### Apêndice A — Inventário de Rules (17 ativas)
+### Apêndice A — Inventário de Rules
 
-| # | Arquivo | Escopo | Epic de origem |
+Paths do **source of truth** (`java/src/main/resources/targets/claude/rules/`). No output gerado `.claude/rules/` alguns arquivos recebem nomes "planos" (p.ex. `12-security-anti-patterns.md` em vez de `12-security-anti-patterns.java.md`) — o assembler resolve a variante por stack.
+
+**Base (sempre presentes no SoT):**
+
+| # | Path no SoT | Escopo | Epic de origem |
 | :--- | :--- | :--- | :--- |
-| 01 | `01-project-identity.md` | Identidade do projeto | — |
-| 02 | `02-domain.md` | Domínio | — |
-| 03 | `03-coding-standards.md` | Padrões de código | — |
-| 04 | `04-architecture-summary.md` | Arquitetura (Hexagonal) | — |
-| 05 | `05-quality-gates.md` | Coverage absolute gate | — |
-| 06 | `06-security-baseline.md` | Secure defaults | — |
-| 07 | `07-operations-baseline.md` | SRE / observabilidade | — |
-| 08 | `08-release-process.md` | SemVer + Conventional Commits + CHANGELOG | — |
-| 09 | `09-branching-model.md` | Git Flow | — |
-| 12 | `12-security-anti-patterns.md` | Java anti-patterns (CWE-mapped) | — |
-| 13 | `13-skill-invocation-protocol.md` | 3 patterns + telemetria markers | EPIC-0033 / 0040 |
-| 14 | `14-project-scope.md` | Escopo de código + worktree lifecycle | EPIC-0049 |
-| 19 | `19-backward-compatibility.md` | `flowVersion` + deprecation window | EPIC-0049 |
-| 21 | `21-epic-branch-model.md` | Epic branch como integração única | EPIC-0049 |
-| 22 | `22-skill-visibility.md` | `x-internal-*` convention | EPIC-0049 |
-| 23 | `23-model-selection.md` | Matriz Opus/Sonnet/Haiku | EPIC-0050 |
-| 24 | `24-execution-integrity.md` | 4 camadas de enforcement | EPIC-0052 |
+| 01 | `rules/01-project-identity.md` | Identidade do projeto | — |
+| 03 | `rules/03-coding-standards.md` | Padrões de código | — |
+| 04 | `rules/04-architecture-summary.md` | Arquitetura (Hexagonal) | — |
+| 05 | `rules/05-quality-gates.md` | Coverage absolute gate | — |
+| 06 | `rules/06-security-baseline.md` | Secure defaults | — |
+| 07 | `rules/07-operations-baseline.md` | SRE / observabilidade | — |
+| 08 | `rules/08-release-process.md` | SemVer + Conventional Commits + CHANGELOG | — |
+| 09 | `rules/09-branching-model.md` | Git Flow | — |
+| 13 | `rules/13-skill-invocation-protocol.md` | 3 patterns + telemetria markers | EPIC-0033 / 0040 |
+| 14 | `rules/14-project-scope.md` | Escopo de código + worktree lifecycle | EPIC-0049 |
+| 19 | `rules/19-backward-compatibility.md` | `flowVersion` + deprecation window | EPIC-0049 |
+| 21 | `rules/21-epic-branch-model.md` | Epic branch como integração única | EPIC-0049 |
+| 22 | `rules/22-skill-visibility.md` | `x-internal-*` convention | EPIC-0049 |
+| 23 | `rules/23-model-selection.md` | Matriz Opus/Sonnet/Haiku | EPIC-0050 |
+| 24 | `rules/24-execution-integrity.md` | 4 camadas de enforcement | EPIC-0052 |
 
-Gaps reservados (10, 11, 15, 16, 17, 18, 20) — conditional rules opcionais por projeto.
+**Condicionais (`rules/conditional/`, ativadas por stack/profile):**
+
+| # | Path no SoT | Escopo | Ativação |
+| :--- | :--- | :--- | :--- |
+| 09 (data) | `rules/conditional/09-data-management.md` | Regras de dados (quando há database) | Projeto com banco |
+| 10 | `rules/conditional/anti-patterns/10-anti-patterns.{stack}.md` | Anti-patterns por stack (Java-Spring-Boot / Java-Quarkus) | Java Spring/Quarkus |
+| 11 | `rules/conditional/11-security-pci.md` | PCI-DSS v4 enforcement | Perfil PCI |
+| 12 | `rules/conditional/security-anti-patterns/12-security-anti-patterns.{lang}.md` | Anti-patterns de segurança por linguagem (p.ex. `.java`) | Stack correspondente |
+
+**Rule 02 — `02-domain.md`:** é um artefato **gerado pelo assembler** a partir da configuração de domínio do projeto; não existe como arquivo fixo no SoT. No output `.claude/rules/02-domain.md`, o template é preenchido com entidades, value objects e regras específicas do projeto.
+
+Gaps numéricos (15–18, 20) ficam reservados para rules futuras.
 
 ### Apêndice B — Inventário de Skills por Categoria (~73)
 
@@ -639,39 +655,64 @@ Gaps reservados (10, 11, 15, 16, 17, 18, 20) — conditional rules opcionais por
 | Platform & Integrations | 7 | `x-mcp-recommend`, `x-pr-watch-ci`, `x-pr-fix-epic`, `x-jira-create-epic`, `x-jira-create-stories`, `x-planning-commit`, `x-status-reconcile` |
 | Internal (`x-internal-*`) | 11 | `x-internal-args-normalize`, `x-internal-status-update`, `x-internal-report-write`, `x-internal-story-load-context`, `x-internal-story-build-plan`, `x-internal-story-verify`, `x-internal-story-resume`, `x-internal-story-report`, `x-internal-epic-build-plan`, `x-internal-epic-integrity-gate`, `x-internal-epic-branch-ensure` |
 
-### Apêndice C — Inventário de Hooks (10)
+### Apêndice C — Inventário de Hooks
+
+**Hooks registrados em `settings.json`** (7 comandos em 6 eventos):
 
 | Hook | Evento | Papel |
 | :--- | :--- | :--- |
 | `telemetry-session.sh` | SessionStart | Emite evento `session.start` |
 | `telemetry-pretool.sh` | PreToolUse `*` | Emite `tool.precall` |
 | `telemetry-posttool.sh` | PostToolUse `*` | Emite `tool.postcall` com status |
+| `post-compile-check.sh` | PostToolUse `Write\|Edit` | Valida compile pós-edição |
 | `telemetry-subagent.sh` | SubagentStop | Captura resultado de subagent |
 | `telemetry-stop.sh` | Stop | Emite `session.end` |
-| `post-compile-check.sh` | PostToolUse `Write\|Edit` | Valida compile pós-edição |
 | `verify-story-completion.sh` | Stop | Rule 24 Camada 2 — verifica evidence files |
-| `telemetry-emit.sh` | (lib) | Escrita NDJSON com scrubber de privacidade |
-| `telemetry-lib.sh` | (lib) | Utilitários compartilhados |
-| `telemetry-phase.sh` | (lib) | Helper `start`/`end`/`subagent-start`/`subagent-end` fail-open |
 
-### Apêndice D — Inventário de Knowledge Packs (14)
+**Scripts auxiliares (libs)** copiados para `.claude/hooks/` mas **não** registrados como hooks — consumidos via `source` pelos hooks registrados e invocados por `telemetry-phase.sh start|end` dentro das skills:
+
+| Script | Papel |
+| :--- | :--- |
+| `telemetry-emit.sh` | Escrita NDJSON com scrubber de privacidade (Rule 20 telemetria) |
+| `telemetry-lib.sh` | Utilitários compartilhados de resolução de caminho e env |
+| `telemetry-phase.sh` | Helper `start`/`end`/`subagent-start`/`subagent-end` fail-open (Rule 13 seção Telemetry) |
+
+### Apêndice D — Inventário de Knowledge Packs
+
+A fonte canônica é `SkillRegistry.CORE_KNOWLEDGE_PACKS` (`java/src/main/java/dev/iadev/domain/stack/SkillRegistry.java`). Packs adicionais são habilitados por `KnowledgePackSelection` baseado em stack/profile.
+
+**17 Core KPs (sempre presentes):**
 
 | KP | Categoria | Escopo |
 | :--- | :--- | :--- |
-| `architecture` | Architecture | Padrões core, dependency direction |
-| `architecture-hexagonal` | Architecture | Ports & Adapters |
-| `architecture-cqrs` | Architecture | CQRS + Event Sourcing |
-| `architecture-patterns` | Architecture | MVC, MVVM, Repository, Singleton |
-| `layer-templates` | Architecture | Templates por camada |
-| `patterns-outbox` | Architecture | Transactional Outbox |
-| `ddd-strategic` | DDD | Bounded contexts, ubiquitous language |
 | `coding-standards` | Quality | Naming, limites, imports |
-| `testing` | Testing | TDD, TPP, coverage strategies |
-| `parallelism-heuristics` | Performance | Thread pools, async |
-| `infrastructure` | DevOps | K8s, Docker, networking |
-| `story-planning` | Process | Story structure, AC format |
+| `architecture` | Architecture | Padrões core, dependency direction |
+| `testing` | Testing | TDD, TPP, coverage strategies, test anti-patterns |
+| `security` | Security | OWASP fundamentals, crypto, pentest readiness |
 | `compliance` | Governance | Retention, auditing, changelogs |
-| `pci-dss-requirements` | Compliance | PCI-DSS v4.0 mapping |
+| `api-design` | API | REST/GraphQL/gRPC conventions |
+| `observability` | Ops | Metrics, logs, traces, SLOs |
+| `resilience` | Ops | Circuit breakers, retries, timeouts |
+| `infrastructure` | DevOps | K8s, Docker, networking, load balancing |
+| `protocols` | Process | Branching, release, hotfix |
+| `story-planning` | Process | Story structure, AC format, DoR |
+| `ci-cd-patterns` | DevOps | Pipelines, stages, artifacts |
+| `sre-practices` | Ops | Error budgets, on-call, runbooks |
+| `release-management` | Release | SemVer, changelog, rollback |
+| `data-management` | Data | Retention, migrations, privacy |
+| `performance-engineering` | Performance | Profiling, hotspots, tuning |
+| `feature-flags` | Release | Flag lifecycle, safe rollouts |
+
+**Packs condicionais (exemplos habilitados por stack/profile):**
+
+| KP | Ativação |
+| :--- | :--- |
+| `layer-templates` | Projetos com arquitetura hexagonal |
+| `database-patterns`, `data-modeling` | Projetos com banco de dados |
+| `pci-dss-requirements` | Perfil PCI |
+| `owasp-asvs` | Perfil security/ASVS |
+| `dockerfile`, `k8s-deployment`, `k8s-kustomize`, `k8s-helm` | `InfraConfig` com container/k8s |
+| `iac-terraform`, `container-registry` | Infra IaC/registry habilitados |
 
 ### Apêndice E — Inventário de Agentes (10)
 
@@ -688,9 +729,9 @@ Gaps reservados (10, 11, 15, 16, 17, 18, 20) — conditional rules opcionais por
 | `java-developer` | Sonnet | Implementation (Senior Java) |
 | `product-owner` | Sonnet | DoR validation, AC |
 
-### Apêndice F — Inventário de Templates (22)
+### Apêndice F — Inventário de Templates
 
-Listados na seção 2.3.
+Emitidos em `.claude/templates/` pelo `PlanTemplatesAssembler` (RULE-003). **12 templates principais** cobrindo o workflow de planejamento → review → release (listados na [seção 2.3](#23-templates-de-planejamento-e-review)). Projetos podem estender via `java/src/main/resources/shared/templates/` se necessário; o inventário acima reflete a base garantida.
 
 ### Apêndice G — Glossário
 
