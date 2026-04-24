@@ -132,6 +132,11 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-stor
 
 **Phase 4 (Artifact Generation):** Write `tasks-story-*.md` and `planning-report-*.md`. v2 only: Phases 4a-4c emit per-task artifacts and task map (see references).
 
+**Phase 4b (v2 only — batch task-plan dispatch):** For each TASK-XXXX-YYYY-NNN, invoke `x-task-plan` in parallel (batch ≤ 4) with `--no-commit` so the caller aggregates into a single Step P4 commit:
+
+    Skill(skill: "x-task-plan",
+          args: "--task-file plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md --no-commit")
+
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-4-Artifact-Generation ok`
 
@@ -142,6 +147,39 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-stor
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-5-DoR-Validation ok`
+
+### Step P4 — Batch Planning Commit (EPIC-0049 / RULE-007)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-P4-Batch-Commit`
+
+If `--dry-run` is set, log `"dry-run, skipping commit"` and skip this step. If `--no-commit` is set, skip as well — the parent orchestrator (e.g., `x-epic-orchestrate`) aggregates commits at the wave level.
+
+Otherwise, issue ONE consolidated commit covering every planning artifact produced by this story (task breakdown, planning report, DoR checklist, plan-story, all task files, all plan-task files, task map, and the updated `execution-state.json`):
+
+    Skill(skill: "x-planning-commit",
+          args: "--scope docs --epic-id <XXXX> --paths plans/epic-<XXXX>/plans/ plans/epic-<XXXX>/execution-state.json --subject \"docs(story-<XXXX>-<YYYY>): add planning artifacts\"")
+
+Idempotency: re-executing with identical inputs returns `commitSha=null` (silent no-op). On `COMMIT_FAILED` (exit 4), abort with the same code.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-P4-Batch-Commit ok`
+
+### Step P5 — Push Epic Branch to Origin (optional, EPIC-0049)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-P5-Push`
+
+If `--dry-run` or `--no-commit` is set, log `"dry-run, skipping push"` and skip this step.
+
+Otherwise, delegate the push to `x-git-push` so the canonical `epic/<XXXX>` branch is synchronized with origin:
+
+    Skill(skill: "x-git-push", args: "--branch epic/<XXXX>")
+
+On push failure (remote rejection, no connectivity), log a WARNING and continue — the local commit is preserved; the operator can re-run Step P5 or `git push` manually. Do NOT abort.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-P5-Push ok`
 
 ## Error Envelope
 

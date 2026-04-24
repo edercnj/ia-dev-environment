@@ -1,4 +1,4 @@
-> Returns to [slim body](../SKILL.md) after reading the required operation.
+<!-- Returns to [slim body](../SKILL.md) after reading the required operation. -->
 
 # x-git-worktree — Full Protocol
 

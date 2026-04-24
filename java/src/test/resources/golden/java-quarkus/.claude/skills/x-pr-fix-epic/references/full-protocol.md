@@ -1,4 +1,4 @@
-> Returns to [slim body](../SKILL.md) after reading the required phase.
+<!-- Returns to [slim body](../SKILL.md) after reading the required phase. -->
 
 # x-pr-fix-epic — Full Protocol
 

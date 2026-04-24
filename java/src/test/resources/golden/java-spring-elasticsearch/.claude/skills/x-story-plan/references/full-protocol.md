@@ -1,5 +1,7 @@
-> Returns to [slim body](../SKILL.md) after reading the required phase.
-> TASK_PROPOSAL format and consolidation rules: see [`planning-guide.md`](planning-guide.md).
+<!--
+Returns to [slim body](../SKILL.md) after reading the required phase.
+TASK_PROPOSAL format and consolidation rules: see `planning-guide.md`.
+-->
 
 # x-story-plan — Full Protocol
 

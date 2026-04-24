@@ -1,5 +1,9 @@
-> Returns to [slim body](../SKILL.md) after reading the required phase.
-> Sibling references: [approval-gate-workflow.md](approval-gate-workflow.md), [auto-version-detection.md](auto-version-detection.md), [backmerge-strategies.md](backmerge-strategies.md), [state-file-schema.md](state-file-schema.md), [interactive-flow-walkthrough.md](interactive-flow-walkthrough.md), [prompt-flow.md](prompt-flow.md), [git-flow-cycle-explainer.md](git-flow-cycle-explainer.md).
+<!--
+Returns to [slim body](../SKILL.md) after reading the required phase.
+Sibling references: approval-gate-workflow.md, auto-version-detection.md,
+backmerge-strategies.md, state-file-schema.md, interactive-flow-walkthrough.md,
+prompt-flow.md, git-flow-cycle-explainer.md.
+-->
 
 # x-release — Full Protocol
 

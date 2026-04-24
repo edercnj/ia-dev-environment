@@ -1,4 +1,4 @@
-> Returns to [slim body](../SKILL.md) after reading the required platform or stage.
+<!-- Returns to [slim body](../SKILL.md) after reading the required platform or stage. -->
 
 # x-security-pipeline — Full Protocol
 
@@ -127,6 +127,12 @@ permissions:
   contents: read
   security-events: write  # required for SARIF upload
 
+env:
+  # Default severity thresholds. Override at the repo level by defining
+  # the repository variable `SECURITY_SEVERITY_THRESHOLD` (org / repo vars).
+  SEVERITY_THRESHOLD: HIGH
+  SEVERITY_THRESHOLD_CONTAINER: HIGH,CRITICAL
+
 jobs:
   secret-scan:  # when security.scanning.secrets=true
     name: Secret Scan
@@ -176,7 +182,6 @@ jobs:
         # controlled way (Renovate/Dependabot recommended).
         env:
           GRYPE_VERSION: v0.90.0
-          SEVERITY_THRESHOLD: ${{ vars.SECURITY_SEVERITY_THRESHOLD || 'HIGH' }}
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/${GRYPE_VERSION}/install.sh \
             | sh -s -- -b /usr/local/bin ${GRYPE_VERSION}
@@ -200,7 +205,7 @@ jobs:
           scan-type: fs
           format: sarif
           output: trivy-results.sarif
-          severity: ${{ vars.SECURITY_SEVERITY_THRESHOLD || 'HIGH,CRITICAL' }}
+          severity: ${{ env.SEVERITY_THRESHOLD_CONTAINER }}
           exit-code: '1'
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
