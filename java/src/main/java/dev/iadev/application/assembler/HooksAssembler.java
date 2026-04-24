@@ -65,7 +65,17 @@ public final class HooksAssembler implements Assembler {
             "telemetry-posttool.sh",
             "telemetry-subagent.sh",
             "telemetry-stop.sh",
-            "verify-story-completion.sh",
+            "verify-story-completion.sh");
+
+    /**
+     * Rule 25 enforcement hooks — always copied, independent of
+     * telemetry. {@code verify-phase-gates.sh} is the Stop-event
+     * Layer-2 enforcement; {@code enforce-phase-sequence.sh} is
+     * the PreToolUse Layer-3 enforcement. Decoupled from the
+     * telemetry toggle because Rule 25 classifies them as runtime
+     * enforcement (not observability).
+     */
+    public static final List<String> RULE_25_SCRIPTS = List.of(
             "verify-phase-gates.sh",
             "enforce-phase-sequence.sh");
 
@@ -104,8 +114,15 @@ public final class HooksAssembler implements Assembler {
         written.addAll(copyPostCompileHook(
                 config, outputDir));
         if (config.telemetryEnabled()) {
-            written.addAll(copyTelemetryScripts(outputDir));
+            written.addAll(copyScriptList(
+                    outputDir, TELEMETRY_SCRIPTS,
+                    "telemetry"));
         }
+        // Rule 25 hooks are always copied — decoupled from
+        // telemetry so disabling observability cannot silently
+        // disable runtime enforcement.
+        written.addAll(copyScriptList(
+                outputDir, RULE_25_SCRIPTS, "rule-25"));
         return List.copyOf(written);
     }
 
@@ -126,18 +143,20 @@ public final class HooksAssembler implements Assembler {
         return copyHook(hookSrc, outputDir);
     }
 
-    private List<String> copyTelemetryScripts(
-            Path outputDir) {
+    private List<String> copyScriptList(
+            Path outputDir,
+            List<String> scripts,
+            String kind) {
         Path hooksDir = outputDir.resolve(HOOKS_DIR);
         CopyHelpers.ensureDirectory(hooksDir);
         List<String> copied = new java.util.ArrayList<>();
-        for (String name : TELEMETRY_SCRIPTS) {
+        for (String name : scripts) {
             Path src = resourcesDir.resolve(
                     HOOKS_TEMPLATES_DIR + "/" + name);
             if (!Files.exists(src)) {
                 throw new UncheckedIOException(
                         new IOException(
-                                "Telemetry hook source not"
+                                kind + " hook source not"
                                         + " found: " + src));
             }
             Path dest = hooksDir.resolve(name);
@@ -147,7 +166,8 @@ public final class HooksAssembler implements Assembler {
                 makeExecutable(dest);
             } catch (IOException e) {
                 throw new UncheckedIOException(
-                        "Failed to copy telemetry hook: %s"
+                        ("Failed to copy " + kind
+                                + " hook: %s")
                                 .formatted(src), e);
             }
             copied.add(dest.toString());

@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # enforce-phase-sequence.sh — Camada 3 (PreToolUse hook) of Rule 25 enforcement.
 #
-# Registered in settings.json as a PreToolUse hook filtered to `Skill`
-# invocations. Blocks attempts to invoke an orchestrator skill whose
-# predecessor phase has no passed=true record in execution-state.json —
-# preventing the LLM from silently skipping a phase.
+# Registered in settings.json as a broad PreToolUse hook (matcher "*"),
+# then self-filtered in this script to `Skill` invocations via the
+# `tool_name` check below. Blocks attempts to invoke an orchestrator
+# skill whose predecessor phase has no passed=true record in
+# execution-state.json — preventing the LLM from silently skipping a
+# phase.
 #
 # Fail-open by design for ambiguous cases:
 #   - No state file → allow (legacy / fresh run).

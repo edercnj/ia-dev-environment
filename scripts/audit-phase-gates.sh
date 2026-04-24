@@ -135,9 +135,11 @@ check_phase_body() {
   local body="$4"
   local -n viol_ref="$5"
 
-  # Check for explicit no-gate marker preceding the phase
+  # Check for explicit no-gate marker on the line IMMEDIATELY preceding
+  # the phase header (Rule 25 §Audit Contract — strict single-line adjacency;
+  # blank-line separation invalidates the exemption).
   local preceding
-  preceding=$(sed -n "$((line-2)),$((line-1))p" "$file" 2>/dev/null)
+  preceding=$(sed -n "$((line-1))p" "$file" 2>/dev/null)
   if echo "$preceding" | grep -qE "<!-- phase-no-gate:"; then
     return 0
   fi
@@ -175,8 +177,11 @@ main() {
     }
   done < <(find "$SKILLS_ROOT" -name "SKILL.md" -path "*/core/*" 2>/dev/null)
 
+  local actual_exit=0
+  [ "$total_violations" -gt 0 ] && actual_exit=26
+
   if [ "$OUTPUT_JSON" = "true" ]; then
-    printf '{"exit_code":%d,"violations":[' "$total_violations"
+    printf '{"exit_code":%d,"violations":[' "$actual_exit"
     local first=true
     for v in "${all_violations[@]}"; do
       [ "$first" = "false" ] && printf ','

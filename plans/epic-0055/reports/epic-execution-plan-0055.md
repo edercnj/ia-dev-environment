@@ -71,7 +71,7 @@ Auto-merge strategy: `merge`
 Each story is dispatched via:
 ```
 Skill(skill: "x-story-implement", model: "sonnet",
-      args: "<STORY-ID> --target-branch epic/0055 --auto-merge-strategy merge")
+      args: "<STORY-ID> --target-branch epic/0055 --auto-merge merge")
 ```
 
 Phase gate: all stories in Kahn phase N must have `status=SUCCESS` AND `prMergeStatus=MERGED`

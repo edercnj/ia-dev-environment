@@ -15,9 +15,8 @@
 # Exit codes:
 #   0  — OK
 #   25 — TASK_HIERARCHY_VIOLATION
-#   2  — TASK_HIERARCHY_BASELINE_CORRUPT
-#   3  — TASK_HIERARCHY_INVALID_EXEMPTION
 #   4  — TASK_HIERARCHY_ENFORCEMENT_BROKEN (self-check failure)
+#   64 — EX_USAGE (unknown flag)
 #
 # Usage:
 #   scripts/audit-task-hierarchy.sh                                 # full audit
@@ -112,36 +111,32 @@ check_skill() {
 
   local violations=()
 
-  # Check 1: every `## Phase N` has at least one TaskCreate
-  # Parse phase headers and detect TaskCreate in the body until next phase header
+  # Check 1: every `## Phase N` has at least one TaskCreate (Rule 25 Invariant 1).
+  # `<!-- phase-no-gate: -->` is a gate exemption only (Invariant 4) — it does
+  # NOT exempt TaskCreate. If you need to exempt TaskCreate too, combine with
+  # `<!-- audit-exempt -->` per Check 2.
   local current_phase=""
   local current_phase_line=0
   local phase_has_taskcreate="false"
   local line_no=0
-  local phase_no_gate_next="false"
 
   while IFS= read -r line; do
     line_no=$((line_no + 1))
-    if echo "$line" | grep -qE "<!-- phase-no-gate:"; then
-      phase_no_gate_next="true"
-      continue
-    fi
     if echo "$line" | grep -qE "^## Phase [0-9]+"; then
       # Flush previous phase
-      if [ -n "$current_phase" ] && [ "$phase_has_taskcreate" = "false" ] && [ "$phase_no_gate_next" != "true" ]; then
+      if [ -n "$current_phase" ] && [ "$phase_has_taskcreate" = "false" ]; then
         violations+=("$skill_file:$current_phase_line:missing TaskCreate in $current_phase")
       fi
       current_phase=$(echo "$line" | sed -E 's/^## (Phase [0-9]+).*/\1/')
       current_phase_line=$line_no
       phase_has_taskcreate="false"
-      phase_no_gate_next="false"
     elif echo "$line" | grep -qE "TaskCreate\("; then
       phase_has_taskcreate="true"
     fi
   done < "$skill_file"
 
   # Flush final phase
-  if [ -n "$current_phase" ] && [ "$phase_has_taskcreate" = "false" ] && [ "$phase_no_gate_next" != "true" ]; then
+  if [ -n "$current_phase" ] && [ "$phase_has_taskcreate" = "false" ]; then
     violations+=("$skill_file:$current_phase_line:missing TaskCreate in $current_phase")
   fi
 
@@ -157,14 +152,19 @@ check_skill() {
     violations+=("$skill_file:0:$tc_count TaskCreate calls but only $tu_count TaskUpdate(completed) + $exempt_count exempt markers")
   fi
 
-  # Check 3: subject regex compliance
-  grep -nE 'subject:[[:space:]]*"[^"]+"' "$skill_file" | while IFS=: read -r ln body; do
-    local subject
-    subject=$(echo "$body" | sed -E 's/.*subject:[[:space:]]*"([^"]+)".*/\1/')
-    if ! echo "$subject" | grep -qE "$SUBJECT_REGEX"; then
-      echo "SUBJECT_VIOLATION:$skill_file:$ln:$subject" >&2
+  # Check 3: subject regex compliance (Rule 25 §3). Subject violations
+  # contribute to `violations` and flip the return code — stderr-only was
+  # previously silent to CI and defeated the audit purpose.
+  while IFS= read -r grep_line; do
+    [ -z "$grep_line" ] && continue
+    local ln body subject
+    ln="${grep_line%%:*}"
+    body="${grep_line#*:}"
+    subject=$(printf '%s' "$body" | sed -E 's/.*subject:[[:space:]]*"([^"]+)".*/\1/')
+    if ! printf '%s' "$subject" | grep -qE "$SUBJECT_REGEX"; then
+      violations+=("$skill_file:$ln:subject regex violation — '$subject'")
     fi
-  done
+  done < <(grep -nE 'subject:[[:space:]]*"[^"]+"' "$skill_file" 2>/dev/null)
 
   if [ ${#violations[@]} -gt 0 ]; then
     printf '%s\n' "${violations[@]}"
@@ -193,8 +193,11 @@ main() {
     }
   done < <(find "$SKILLS_ROOT" -name "SKILL.md" -path "*/core/*" 2>/dev/null)
 
+  local actual_exit=0
+  [ "$total_violations" -gt 0 ] && actual_exit=25
+
   if [ "$OUTPUT_JSON" = "true" ]; then
-    printf '{"exit_code":%d,"violations":[' "$total_violations"
+    printf '{"exit_code":%d,"violations":[' "$actual_exit"
     local first=true
     for v in "${all_violations[@]}"; do
       [ "$first" = "false" ] && printf ','

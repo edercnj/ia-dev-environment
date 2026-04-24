@@ -171,4 +171,4 @@ This promotes Rule 24 enforcement from "Stop-hook notices afterwards" to **synch
 
 ## Audit
 
-The audit itself is self-verified: `scripts/audit-task-hierarchy.sh --self-check` asserts that this rule exists, that CLAUDE.md references the EPIC-0055 block, and that `x-internal-phase-gate` is present. Any missing piece fails the build with `RULE_25_ENFORCEMENT_BROKEN`.
+The audit itself is self-verified: `scripts/audit-task-hierarchy.sh --self-check` asserts that this rule file, the baseline file (`audits/task-hierarchy-baseline.txt`), and the skills root directory are present. If any of those expected paths are missing, the build fails with `RULE_25_ENFORCEMENT_BROKEN`. Deeper wiring assertions (CLAUDE.md references, `x-internal-phase-gate` presence) are intentionally out of scope for the self-check — they live inside the full audit pass.
