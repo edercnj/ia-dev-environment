@@ -30,7 +30,7 @@ Internal skills (`x-internal-*`) are **exempt** (see Invariant 6 below) — they
 1. **`TaskCreate` per phase.** Every orchestrator MUST emit exactly one `TaskCreate(...)` upon entering each numbered `## Phase N` section, and a matching `TaskUpdate(status: "completed")` upon leaving it.
 2. **`TaskCreate` per wave member.** When a phase dispatches a parallel wave (Batch A/B pattern — Rule 13 Pattern 2 used to launch N sibling subagents in one assistant message), the orchestrator MUST emit one `TaskCreate` per wave member in Batch A and one `TaskUpdate(status: "completed")` per member in Batch B.
 3. **`TaskCreate` per sequential iteration.** When a phase iterates sequentially over items (stories, tasks, PRs), the orchestrator MUST emit one `TaskCreate` per iteration and chain them via `TaskUpdate(addBlockedBy: [previousId])` so the CLI renders "blocked by #N" between iterations.
-4. **Phase gates PRE/POST mandatory.** Every numbered phase MUST invoke `Skill(skill: "x-internal-phase-gate", args: "--mode pre --phase N …")` before dispatch and `Skill(skill: "x-internal-phase-gate", args: "--mode post --phase N …")` after completion. Exceptions MUST be marked with `<!-- phase-no-gate: <reason> -->` on the line immediately preceding the phase header.
+4. **Phase gates PRE/POST mandatory.** Every numbered phase MUST invoke `Skill(skill: "x-internal-phase-gate", args: "--mode pre --phase N …")` before dispatch and a POST-family gate (`--mode post`, `--mode wave`, or `--mode final`) after completion. `wave` and `final` are reinforced POST variants (see §Integration with Rule 24 below): both validate everything `post` does and add extra checks (wave = Batch-B parallel completeness; final = Rule-24 mandatory-artifact scan). A phase that carries any one of the three satisfies the POST requirement. Exceptions MUST be marked with `<!-- phase-no-gate: <reason> -->` on the line immediately preceding the phase header.
 5. **`subject` hierarchy.** Every `TaskCreate` `subject` MUST use the triangle separator `›` (U+203A) to express hierarchy. Maximum depth: 4 levels. Contract regex in §3 below.
 6. **Internal skills DO NOT emit tasks.** Skills under `x-internal-*` are silent by design — their calling orchestrator owns the task boundary. Single exception: `x-internal-phase-gate --mode wave --emit-tracker true` MAY emit one tracker task to surface wave-level timing.
 7. **Gate failure aborts with exit 12.** `x-internal-phase-gate` returns exit `12` (`PHASE_GATE_FAILED`) on any failed gate. The calling orchestrator propagates via its already-documented exit code (e.g., `x-story-implement` → `VERIFY_FAILED`; `x-epic-implement` → `INTEGRITY_GATE_FAILED`). Exit 12 is reserved for the gate sub-skill itself.
@@ -136,7 +136,7 @@ Four layers — a violation caught by any layer fails the lifecycle.
 
 1. An orchestrator in the Scope table above lacks a `TaskCreate(` inside any `## Phase N` section.
 2. A `TaskCreate(` has no matching `TaskUpdate(..., status: "completed")` downstream in the same file (unless `<!-- audit-exempt -->` precedes it).
-3. A `## Phase N` section lacks both `--mode pre` and `--mode post` invocations of `x-internal-phase-gate` (unless `<!-- phase-no-gate: <reason> -->` precedes it).
+3. A `## Phase N` section lacks a `--mode pre` invocation OR any POST-family gate (`--mode post`, `--mode wave`, or `--mode final`) of `x-internal-phase-gate` (unless `<!-- phase-no-gate: <reason> -->` precedes it).
 4. A `subject:` literal does not match the regex in §3.
 
 Escape hatches:
