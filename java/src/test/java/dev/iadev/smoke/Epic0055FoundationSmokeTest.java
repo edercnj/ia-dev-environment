@@ -349,21 +349,35 @@ class Epic0055FoundationSmokeTest extends SmokeTestBase {
     }
 
     @Test
-    @DisplayName("task-hierarchy baseline lists all 8 "
-            + "canonical orchestrators")
-    void smoke_baseline_listsCanonicalOrchestrators()
+    @DisplayName("task-hierarchy baseline is a subset of the 8 "
+            + "canonical orchestrators (shrinks as retrofits merge)")
+    void smoke_baseline_isSubsetOfCanonicalOrchestrators()
             throws IOException {
+        // The baseline starts listing all 8 canonical orchestrators
+        // and shrinks as each retrofit story merges (0055-0003..0010).
+        // Every entry MUST still be a canonical orchestrator name —
+        // unknown entries would be baseline corruption.
         Path baseline = repoRoot().resolve(
                 "audits/task-hierarchy-baseline.txt");
         assertThat(baseline).exists();
 
-        String body = Files.readString(baseline, StandardCharsets.UTF_8);
-        for (String orchestrator : CANONICAL_ORCHESTRATORS) {
-            assertThat(body)
-                    .as("baseline must list '%s' "
-                            + "(pending retrofit)", orchestrator)
-                    .contains(orchestrator);
-        }
+        List<String> baselineEntries = Files.readAllLines(
+                        baseline, StandardCharsets.UTF_8)
+                .stream()
+                .map(String::trim)
+                .filter(l -> !l.isEmpty() && !l.startsWith("#"))
+                .map(l -> l.split("\\s")[0])
+                .toList();
+
+        assertThat(baselineEntries)
+                .as("baseline must be a subset of the canonical"
+                        + " orchestrator set (no unknown names)")
+                .allSatisfy(e -> assertThat(CANONICAL_ORCHESTRATORS)
+                        .contains(e));
+        assertThat(baselineEntries)
+                .as("baseline must not exceed the canonical set")
+                .hasSizeLessThanOrEqualTo(
+                        CANONICAL_ORCHESTRATORS.size());
     }
 
     // ---------------------------------------------------------------
