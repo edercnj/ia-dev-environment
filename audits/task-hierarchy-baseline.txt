@@ -12,7 +12,6 @@
 #
 # See: .claude/rules/25-task-hierarchy.md §Audit Contract
 
-x-task-implement # retirado-por: story-0055-0003
 x-story-implement # retirado-por: story-0055-0004
 x-epic-implement # retirado-por: story-0055-0005
 x-release # retirado-por: story-0055-0008

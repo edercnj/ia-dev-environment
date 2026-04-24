@@ -3,9 +3,9 @@ name: x-task-implement
 model: sonnet
 description: "Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, TaskCreate, TaskUpdate
 argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description] [--worktree] [--no-ci-watch]"
-context-budget: light
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -47,41 +47,183 @@ Emits structured result to caller:
 {"status":"DONE","taskId":"TASK-XXXX-YYYY-NNN","commitSha":"abc123","cycleCount":N,"coverageDelta":{"lineBefore":95.1,"lineAfter":95.3},"wallclockMs":12340}
 ```
 
-**TDD Cycle (telemetry markers preserved):**
+## Task Tracking (Rule 25)
+
+Six phases (Rule 25 REGRA-001, EPIC-0055). Each phase opens with `x-internal-phase-gate --mode pre` + `TaskCreate`, closes with `TaskUpdate(completed)` + POST/WAVE/FINAL gate. Phase 2 dispatches 3 × N `TaskCreate` calls (Red/Green/Refactor per cycle) in Batch A, then updates sequentially in the execution loop. See `references/tdd-cycle-protocol.md` for the canonical TDD cycle tracking protocol.
+
+## Phase 0 — Setup (Steps 0 and 0.5)
 
 <!-- TELEMETRY: phase.start -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Red-Phase`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-0-Setup`
 
-**RED:** write failing test → run → MUST fail.
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-task-implement --phase Phase-0-Setup")
+
+Open phase tracker (close with `TaskUpdate(id: phase0TaskId, status: "completed")` after Step 0.5):
+
+    TaskCreate(subject: "{TASK_ID} › Step 0 - Precheck", activeForm: "Checking plan reuse and staleness")
+
+Resolve paths, check staleness (Step 0), detect worktree context (Step 0.5):
+
+    Skill(skill: "x-git-worktree", model: "haiku", args: "detect-context")
+
+See `references/full-protocol.md` §Step 0 and §Step 0.5 for full three-way mode decision (REUSE / CREATE / LEGACY).
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-task-implement --phase Phase-0-Setup")
+
+TaskUpdate(id: phase0TaskId, status: "completed")
 
 <!-- TELEMETRY: phase.end -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Red-Phase ok`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-0-Setup ok`
+
+## Phase 1 — Prepare and Understand (Step 1)
 
 <!-- TELEMETRY: phase.start -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Green-Phase`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-1-Prepare`
 
-**GREEN:** implement minimum code → run all tests → MUST pass.
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-task-implement --phase Phase-1-Prepare")
+
+Open phase tracker (close with `TaskUpdate(id: phase1TaskId, status: "completed")` after Step 1):
+
+    TaskCreate(subject: "{TASK_ID} › Step 1 - Prepare", activeForm: "Loading knowledge packs and building TDD plan")
+
+Dispatch a preparation subagent (Rule 13 Pattern 2 — SUBAGENT-GENERAL) that reads KPs and produces the TDD implementation plan. See `references/full-protocol.md` §Step 1.
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-task-implement --phase Phase-1-Prepare")
+
+TaskUpdate(id: phase1TaskId, status: "completed")
 
 <!-- TELEMETRY: phase.end -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Green-Phase ok`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-1-Prepare ok`
+
+## Phase 2 — TDD Cycles (Step 2)
+
+See `references/tdd-cycle-protocol.md` for the canonical TDD cycle tracking protocol with Batch A/B dispatch and wave gate.
 
 <!-- TELEMETRY: phase.start -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Refactor-Phase`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-2-TDD`
 
-**REFACTOR:** improve design without adding behavior → tests MUST stay green.
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-task-implement --phase Phase-2-TDD")
+
+Open phase tracker (close with `TaskUpdate(id: phase2TaskId, status: "completed")` after wave gate):
+
+    TaskCreate(subject: "{TASK_ID} › Step 2 - TDD Cycles", activeForm: "Running TDD Red-Green-Refactor cycles")
+
+**Batch A — emit all TDD cycle task trackers in ONE assistant message (Red/Green/Refactor per UT-N):**
+
+    TaskCreate(subject: "{TASK_ID} › Step 2 › Cycle 1 › Red", activeForm: "RED cycle 1")
+    TaskCreate(subject: "{TASK_ID} › Step 2 › Cycle 1 › Green", activeForm: "GREEN cycle 1")
+    TaskCreate(subject: "{TASK_ID} › Step 2 › Cycle 1 › Refactor", activeForm: "REFACTOR cycle 1")
+    [... repeat for Cycle 2..N in the same message ...]
+
+Store returned IDs: `tddCycleTaskIds[N] = {red: id, green: id, refactor: id}`.
+
+**Per-cycle execution (sequential):**
+
+For each cycle N = 1..M:
+
+    TaskUpdate(id: tddCycleTaskIds[N].red, status: "in_progress")
+    [RED: write failing test → run → MUST fail]
+    Skill(skill: "x-git-commit", model: "haiku", args: "--type test --scope {scope} --subject \"add failing test UT-N (RED)\"")
+    TaskUpdate(id: tddCycleTaskIds[N].red, status: "completed")
+
+    TaskUpdate(id: tddCycleTaskIds[N].green, status: "in_progress")
+    [GREEN: minimum code → all tests MUST pass]
+    Skill(skill: "x-git-commit", model: "haiku", args: "--type feat --scope {scope} --subject \"implement UT-N (GREEN)\"")
+    TaskUpdate(id: tddCycleTaskIds[N].green, status: "completed")
+
+    TaskUpdate(id: tddCycleTaskIds[N].refactor, status: "in_progress")
+    [REFACTOR: improve design → tests MUST stay GREEN]
+    Skill(skill: "x-git-commit", model: "haiku", args: "--type refactor --scope {scope} --subject \"improve UT-N\"")
+    TaskUpdate(id: tddCycleTaskIds[N].refactor, status: "completed")
+
+**Wave gate — all TDD cycle tasks completed:**
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode wave --skill x-task-implement --phase Phase-2-TDD --expected-tasks {all-tdd-task-ids}")
+
+TaskUpdate(id: phase2TaskId, status: "completed")
 
 <!-- TELEMETRY: phase.end -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Refactor-Phase ok`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-2-TDD ok`
 
-**CI-Watch (Step 4.5):**
+## Phase 3 — Validate and Status Transition (Steps 3 and 3.5)
 
 <!-- TELEMETRY: phase.start -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-4-5-CI-Watch`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-3-Validate`
 
-Fires only when: `planningSchemaVersion=="2.0"` AND `--worktree` present AND `--no-ci-watch` absent AND `inWorktree==false` at Step 0.5 (standalone). Invokes: `Skill(skill: "x-pr-watch-ci", args: "--pr-number {N} --poll-interval-seconds 60 --timeout-minutes 30 --require-copilot-review=false")`.
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-task-implement --phase Phase-3-Validate")
+
+Open phase tracker (close with `TaskUpdate(id: phase3TaskId, status: "completed")` after Step 3.5):
+
+    TaskCreate(subject: "{TASK_ID} › Step 3 - Validate", activeForm: "Validating coverage and acceptance criteria")
+
+Run all AT-N acceptance tests; coverage check (line ≥ 95%, branch ≥ 90%). See `references/full-protocol.md` §Step 3.
+
+v2 only — Status transition (Step 3.5):
+
+    TaskCreate(subject: "{TASK_ID} › Step 3.5 - Status sync", activeForm: "Syncing task status to Concluida")
+
+Write `**Status:** Concluída` to task file and map row via `TaskMapRowUpdaterCli`. See `references/full-protocol.md` §Phase 3.5.
+
+    TaskUpdate(id: step35TaskId, status: "completed")
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-task-implement --phase Phase-3-Validate")
+
+TaskUpdate(id: phase3TaskId, status: "completed")
 
 <!-- TELEMETRY: phase.end -->
-Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-4-5-CI-Watch ok`
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-3-Validate ok`
+
+## Phase 4 — Commit and CI Watch (Steps 4 and 4.5)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-4-Commit`
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-task-implement --phase Phase-4-Commit")
+
+Open phase tracker (close with `TaskUpdate(id: phase4TaskId, status: "completed")` after Step 4.5):
+
+    TaskCreate(subject: "{TASK_ID} › Step 4 - Commit", activeForm: "Creating TDD atomic commit")
+
+Invoke atomic commit via `x-git-commit`. See `references/full-protocol.md` §Step 4.
+
+    Skill(skill: "x-git-commit", model: "haiku", args: "--type feat --scope {scope} --subject \"implement {task-description}\"")
+
+CI Watch (Step 4.5, conditional — v2 + `--worktree` standalone only; see decision table in `references/full-protocol.md` §Step 4.5):
+
+    TaskCreate(subject: "{TASK_ID} › Step 4.5 - CI Watch", activeForm: "Polling CI checks after PR creation")
+
+    Skill(skill: "x-pr-watch-ci", args: "--pr-number {N} --poll-interval-seconds 60 --timeout-minutes 30 --require-copilot-review=false")
+
+    TaskUpdate(id: step45TaskId, status: "completed")
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-task-implement --phase Phase-4-Commit")
+
+TaskUpdate(id: phase4TaskId, status: "completed")
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-4-Commit ok`
+
+## Phase 5 — Cleanup (Step 5)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-5-Cleanup`
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-task-implement --phase Phase-5-Cleanup")
+
+Open phase tracker (close with `TaskUpdate(id: phase5TaskId, status: "completed")` at final gate):
+
+    TaskCreate(subject: "{TASK_ID} › Step 5 - Cleanup", activeForm: "Cleaning up worktree")
+
+Mode-aware cleanup (REUSE: no-op; CREATE: remove worktree; LEGACY: checkout develop). See `references/full-protocol.md` §Step 5.
+
+    Skill(skill: "x-git-worktree", model: "haiku", args: "remove --id {task-id}")
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode final --skill x-task-implement --phase Phase-5-Cleanup")
+
+TaskUpdate(id: phase5TaskId, status: "completed")
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-5-Cleanup ok`
 
 ## Error Envelope
 
@@ -98,4 +240,4 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-i
 
 ## Full Protocol
 
-> Complete Step 0 (plan reuse + staleness check), Step 0.5 (worktree-first policy, ADR-0004 3-way REUSE/CREATE/LEGACY), Step 1 (subagent reads KPs + builds TDD plan), Step 2 (Double-Loop TDD + TPP ordering, full bash snippets), Step 3 (coverage + AC validation), Step 4 (TDD atomic commit conventions), v2 extensions (Phase 0c schema detection, Phase 0d–0e pre-execution gates, Phase 3 output-contract verification, Phase 3.5 status transition via `StatusFieldParser`/`TaskMapRowUpdaterCli`, Phase 5 status report), CI-Watch state-file schema, Mode-Aware cleanup (Rule 14 §5 creator-owns-removal), and all knowledge pack references in [`references/full-protocol.md`](references/full-protocol.md).
+> Complete step-by-step instructions for each phase (Step 0 plan-reuse + staleness check, Step 0.5 worktree three-way mode decision, Step 1 subagent KP loading, Step 2 Double-Loop TDD + TPP ordering, Step 3 coverage + AC validation, Step 3.5 status transition, Step 4 atomic commit conventions, Step 4.5 CI-Watch decision table, Step 5 mode-aware cleanup), v2 extensions (Phase 0c schema detection, Phase 0d–0e pre-execution gates, Phase 5 status report), CI-Watch state-file schema, and all knowledge pack references in [`references/full-protocol.md`](references/full-protocol.md). Canonical TDD cycle tracking protocol (Batch A/B dispatch, wave gate, cycle IDs) in [`references/tdd-cycle-protocol.md`](references/tdd-cycle-protocol.md).
