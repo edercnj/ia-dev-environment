@@ -144,17 +144,21 @@ check_phase_body() {
     return 0
   fi
 
+  # A phase is compliant when it carries BOTH a pre-entry gate and a
+  # post-completion gate. `wave` and `final` are reinforced POST variants
+  # (Rule 25 §Integration with Rule 24) that validate the same invariants
+  # as `post` plus extras — so they satisfy the POST requirement.
   local has_pre="false"
   local has_post="false"
   if echo "$body" | grep -qE 'x-internal-phase-gate.*--mode pre'; then
     has_pre="true"
   fi
-  if echo "$body" | grep -qE 'x-internal-phase-gate.*--mode post'; then
+  if echo "$body" | grep -qE 'x-internal-phase-gate.*--mode (post|wave|final)'; then
     has_post="true"
   fi
 
   [ "$has_pre" = "false" ] && viol_ref+=("$file:$line:$phase missing --mode pre gate")
-  [ "$has_post" = "false" ] && viol_ref+=("$file:$line:$phase missing --mode post gate")
+  [ "$has_post" = "false" ] && viol_ref+=("$file:$line:$phase missing --mode post|wave|final gate")
 }
 
 main() {

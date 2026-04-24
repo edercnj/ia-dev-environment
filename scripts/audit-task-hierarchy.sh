@@ -147,13 +147,14 @@ check_skill() {
     violations+=("$skill_file:$current_phase_line:missing TaskCreate in $current_phase")
   fi
 
-  # Check 2: every TaskCreate has a downstream TaskUpdate(completed) or audit-exempt
-  local tc_count
-  local tu_count
-  tc_count=$(grep -cE "TaskCreate\(" "$skill_file" || echo 0)
-  tu_count=$(grep -cE 'TaskUpdate\(.*status.*"completed"' "$skill_file" || echo 0)
-  local exempt_count
-  exempt_count=$(grep -cE "<!-- audit-exempt" "$skill_file" || echo 0)
+  # Check 2: every TaskCreate has a downstream TaskUpdate(completed) or audit-exempt.
+  # Capturing grep -c with `|| echo 0` is broken: on zero matches grep writes "0"
+  # to stdout AND exits 1, then echo writes another "0", producing "0\n0" which
+  # breaks arithmetic expansion. Use post-assignment `||` to fall back cleanly.
+  local tc_count tu_count exempt_count
+  tc_count=$(grep -cE "TaskCreate\(" "$skill_file" 2>/dev/null) || tc_count=0
+  tu_count=$(grep -cE 'TaskUpdate\(.*status.*"completed"' "$skill_file" 2>/dev/null) || tu_count=0
+  exempt_count=$(grep -cE "<!-- audit-exempt" "$skill_file" 2>/dev/null) || exempt_count=0
 
   if [ "$tc_count" -gt 0 ] && [ $((tu_count + exempt_count)) -lt "$tc_count" ]; then
     violations+=("$skill_file:0:$tc_count TaskCreate calls but only $tu_count TaskUpdate(completed) + $exempt_count exempt markers")
@@ -162,12 +163,21 @@ check_skill() {
   # Check 3: subject regex compliance (Rule 25 §3). Subject violations
   # contribute to `violations` and flip the return code — stderr-only was
   # previously silent to CI and defeated the audit purpose.
+  #
+  # SKILL.md files are documentation/templates and frequently carry
+  # `{PLACEHOLDER}` tokens (e.g., `{STORY_ID}`) that the LLM resolves at
+  # runtime. Skip subjects that contain `{...}` — the canonical regex
+  # applies to the substituted form, validated at runtime by the
+  # x-internal-phase-gate skill, not at SKILL.md lint time.
   while IFS= read -r grep_line; do
     [ -z "$grep_line" ] && continue
     local ln body subject
     ln="${grep_line%%:*}"
     body="${grep_line#*:}"
     subject=$(printf '%s' "$body" | sed -E 's/.*subject:[[:space:]]*"([^"]+)".*/\1/')
+    if printf '%s' "$subject" | grep -qE '\{[A-Za-z_][A-Za-z0-9_]*\}'; then
+      continue
+    fi
     if ! printf '%s' "$subject" | grep -qE "$SUBJECT_REGEX"; then
       violations+=("$skill_file:$ln:subject regex violation — '$subject'")
     fi
