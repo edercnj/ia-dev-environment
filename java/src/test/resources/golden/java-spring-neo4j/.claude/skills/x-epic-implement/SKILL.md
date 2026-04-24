@@ -105,7 +105,7 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic
 
 **Phase 3:** For each story (seq default, parallel with `--parallel`):
 
-    Skill(skill: "x-story-implement", model: "sonnet", args: "<STORY-ID> --target-branch <epicBranch> --auto-merge-strategy <strategy> [--skip-review] [--non-interactive] [--auto-approve-pr]")
+    Skill(skill: "x-story-implement", model: "sonnet", args: "<STORY-ID> --target-branch <epicBranch> --auto-merge <strategy> [--skip-review] [--non-interactive] [--auto-approve-pr]")
 
 Phase gate: all stories in phase N must be `status=SUCCESS` AND `prMergeStatus=MERGED` before phase N+1. Failed story → block-propagation → `STORY_FAILED` (unless `--revert-on-failure`). Resume: Phase 1 envelope `resumeProjection` provides reclassified story statuses.
 
