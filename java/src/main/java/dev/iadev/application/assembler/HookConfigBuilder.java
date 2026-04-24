@@ -61,16 +61,20 @@ public final class HookConfigBuilder {
         if (telemetryEnabled) {
             appendTelemetryEvent(sb, "SessionStart",
                     "telemetry-session.sh", false, false);
-            appendTelemetryEvent(sb, "PreToolUse",
-                    "telemetry-pretool.sh", true, false);
         }
+        // PreToolUse with Rule 25 Layer 3 (enforce-phase-sequence.sh)
+        // is emitted regardless of telemetry — see Rule 25 enforcement
+        // matrix: Layer 3 is runtime enforcement, not observability.
+        appendPreToolUseWithPhaseSequence(sb, telemetryEnabled);
         appendPostToolUseArray(
                 sb, hasLegacy, telemetryEnabled);
         if (telemetryEnabled) {
             appendTelemetryEvent(sb, "SubagentStop",
                     "telemetry-subagent.sh", false, false);
-            appendStopEventWithEie(sb);
         }
+        // Stop with Rule 25 Layer 2 (verify-phase-gates.sh) is emitted
+        // regardless of telemetry — same rationale as PreToolUse.
+        appendStopEventWithEie(sb, telemetryEnabled);
         sb.append(JsonHelpers.indent(1)).append("}\n");
     }
 
@@ -161,18 +165,61 @@ public final class HookConfigBuilder {
      * as a blocking notification.</p>
      */
     private static void appendStopEventWithEie(
-            StringBuilder sb) {
+            StringBuilder sb, boolean telemetryEnabled) {
         sb.append(JsonHelpers.indent(2))
                 .append("\"Stop\": [\n");
         sb.append(JsonHelpers.indent(3)).append("{\n");
         sb.append(JsonHelpers.indent(4))
                 .append("\"hooks\": [\n");
-        appendStopHookEntry(sb, "telemetry-stop.sh", true);
+        if (telemetryEnabled) {
+            appendStopHookEntry(
+                    sb, "telemetry-stop.sh", true);
+            appendStopHookEntry(sb,
+                    "verify-story-completion.sh", true);
+        }
+        // Rule 25 Layer 2 — always emitted, independent of telemetry.
         appendStopHookEntry(sb,
-                "verify-story-completion.sh", false);
+                "verify-phase-gates.sh", false);
         sb.append(JsonHelpers.indent(4)).append("]\n");
         sb.append(JsonHelpers.indent(3)).append("}\n");
         sb.append(JsonHelpers.indent(2)).append("]\n");
+    }
+
+    /**
+     * Appends the {@code PreToolUse} event with Rule 25 Layer 3
+     * enforcement ({@code enforce-phase-sequence.sh}) — always
+     * emitted — and the optional telemetry pretool hook
+     * ({@code telemetry-pretool.sh}), only emitted when
+     * {@code telemetryEnabled} is {@code true}.
+     *
+     * <p>Both (when both present) run under the same wildcard
+     * matcher. {@code enforce-phase-sequence.sh} short-circuits on
+     * {@code tool_name != "Skill"}, so overhead on non-Skill tool
+     * calls is one stdin read + one jq lookup.</p>
+     *
+     * <p>Decoupling Layer 3 from telemetry: Rule 25 defines the
+     * phase-sequence hook as a runtime enforcement layer (not an
+     * observability toggle), so disabling telemetry does NOT
+     * disable Rule 25 enforcement.</p>
+     */
+    private static void appendPreToolUseWithPhaseSequence(
+            StringBuilder sb, boolean telemetryEnabled) {
+        sb.append(JsonHelpers.indent(2))
+                .append("\"PreToolUse\": [\n");
+        sb.append(JsonHelpers.indent(3)).append("{\n");
+        sb.append(JsonHelpers.indent(4))
+                .append("\"matcher\": \"*\",\n");
+        sb.append(JsonHelpers.indent(4))
+                .append("\"hooks\": [\n");
+        if (telemetryEnabled) {
+            appendStopHookEntry(
+                    sb, "telemetry-pretool.sh", true);
+        }
+        appendStopHookEntry(sb,
+                "enforce-phase-sequence.sh", false);
+        sb.append(JsonHelpers.indent(4)).append("]\n");
+        sb.append(JsonHelpers.indent(3)).append("}\n");
+        sb.append(JsonHelpers.indent(2)).append("],\n");
     }
 
     private static void appendStopHookEntry(

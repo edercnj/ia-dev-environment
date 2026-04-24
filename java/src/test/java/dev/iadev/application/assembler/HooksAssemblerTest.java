@@ -47,7 +47,7 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("generates post-compile-check.sh"
-                + " for java-maven")
+                + " for java-maven (plus always-on Rule 25 scripts)")
         void assemble_whenCalled_generatesHookForJavaMaven(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -67,10 +67,19 @@ class HooksAssemblerTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).hasSize(1);
-            Path hookFile = outputDir.resolve(
-                    "hooks/post-compile-check.sh");
-            assertThat(hookFile).exists();
+            // 1 post-compile-check + 2 Rule-25 enforcement scripts
+            // (always copied, independent of telemetry).
+            assertThat(files).hasSize(
+                    1 + HooksAssembler.RULE_25_SCRIPTS.size());
+            assertThat(outputDir.resolve(
+                    "hooks/post-compile-check.sh"))
+                    .exists();
+            assertThat(outputDir.resolve(
+                    "hooks/verify-phase-gates.sh"))
+                    .exists();
+            assertThat(outputDir.resolve(
+                    "hooks/enforce-phase-sequence.sh"))
+                    .exists();
         }
 
         // Non-Java hook generation tests removed in EPIC-0048 full
@@ -195,15 +204,22 @@ class HooksAssemblerTest {
     class EdgeCases {
 
         @Test
-        @DisplayName("missing hook template returns"
-                + " empty list")
-        void assemble_missingTemplate_returnsEmpty(
+        @DisplayName("missing post-compile template returns"
+                + " only Rule 25 scripts")
+        void assemble_missingTemplate_returnsRule25Only(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
-            Path hooksDir = resourceDir.resolve(
-                    "targets/claude/hooks/exotic");
-            Files.createDirectories(hooksDir);
+            Path hooksResourceDir = resourceDir.resolve(
+                    "targets/claude/hooks");
+            Files.createDirectories(
+                    hooksResourceDir.resolve("exotic"));
+            // Seed Rule 25 script sources (always required).
+            for (String name : HooksAssembler.RULE_25_SCRIPTS) {
+                Files.writeString(
+                        hooksResourceDir.resolve(name),
+                        "#!/usr/bin/env bash\nexit 0\n");
+            }
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
 
@@ -220,12 +236,16 @@ class HooksAssemblerTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isEmpty();
+            // No post-compile hook (kotlin has no template),
+            // but Rule 25 scripts are always copied.
+            assertThat(files).hasSize(
+                    HooksAssembler.RULE_25_SCRIPTS.size());
         }
 
         @Test
-        @DisplayName("unknown language returns empty list")
-        void assemble_unknownLanguage_returnsEmpty(
+        @DisplayName("unknown language returns only"
+                + " Rule 25 enforcement scripts")
+        void assemble_unknownLanguage_returnsRule25Only(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -244,7 +264,16 @@ class HooksAssemblerTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isEmpty();
+            // No post-compile hook for unknown language, but
+            // Rule 25 scripts are always copied regardless.
+            assertThat(files).hasSize(
+                    HooksAssembler.RULE_25_SCRIPTS.size());
+            assertThat(outputDir.resolve(
+                    "hooks/verify-phase-gates.sh"))
+                    .exists();
+            assertThat(outputDir.resolve(
+                    "hooks/enforce-phase-sequence.sh"))
+                    .exists();
         }
     }
 
