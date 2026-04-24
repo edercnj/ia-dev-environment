@@ -2,6 +2,75 @@
 
 # x-security-pipeline — Full Protocol
 
+## Template Variables
+
+Pipeline generation uses these placeholders (resolved at runtime):
+- `{{LANGUAGE}}` — project language (java, typescript, python, go, rust)
+- `{{BUILD_TOOL}}` — build tool (maven, gradle, npm, pip, cargo, go)
+- `{{FRAMEWORK}}` — framework (spring, quarkus, nestjs, fastapi, gin, axum)
+- `{{PROJECT_NAME}}` — project name
+
+## Knowledge Pack References
+
+| Pack | Purpose |
+|------|---------|
+| `ci-cd-patterns` | Caching strategies, artifact management, pipeline structure |
+| `security` | SecurityConfig flags, severity classification, `DevOps` agent config |
+
+## Stage Dependency Reference
+
+Stages use `dependsOn:` declarations (Azure DevOps) or `needs:` (GitLab) to declare dependencies:
+
+```yaml
+stage: pre-commit
+dependsOn: []
+```
+
+**Minimal mode (stages 1-3):** Only Secret Scan (pre-commit), SAST (build), Dependency Audit (build). For teams starting with security. Dependency Audit is `Always enabled` regardless of flags.
+
+## Report
+
+Generate summary Report after pipeline creation:
+- Enabled stages list
+- Disabled stages with reasons
+- Output file path
+- Validation status
+
+## Write Pipeline File
+
+After rendering platform-specific YAML, write the output file:
+- GitHub: `.github/workflows/security.yml`
+- GitLab: `.gitlab-ci-security.yml` (or appended to `.gitlab-ci.yml`)
+- Azure DevOps: `azure-pipelines-security.yml`
+
+## Validate Generated YAML
+
+`Validate Generated YAML` step after generation:
+```bash
+# GitHub Actions
+actionlint .github/workflows/security.yml
+# GitLab CI (.gitlab-ci-security.yml or appended .gitlab-ci.yml)
+# Azure DevOps
+az pipelines validate
+```
+
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Unknown CI platform | Default to `github`; warn user |
+| No SecurityConfig flags | Generate Dependency Audit only (`Always enabled`) |
+| All conditions disabled | Pipeline with only Dependency Audit |
+| Container scan without Dockerfile | Exclude; add to `disabledStages` |
+| Invalid severity threshold | Default to `HIGH`; warn |
+| Validation tool missing | Warn, skip non-blocking |
+
+## Composability (RULE-011)
+
+This skill `never duplicates their scan logic` — it references atomic scanning skills and provides only CI stage wrappers (triggers, artifacts, caching). The scan logic lives in the referenced skill.
+
+---
+
 ## Workflow
 
 ### Step 1 — Read Configuration
@@ -102,11 +171,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run OWASP Dependency-Check / Grype
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh
-          grype dir:. --fail-on ${{ env.SEVERITY_THRESHOLD }} --output sarif > dependency-audit.sarif
+        # Pin Grype to an exact version tag (install script is NOT tracked against
+        # main — supply-chain attack surface). Update the GRYPE_VERSION var in a
+        # controlled way (Renovate/Dependabot recommended).
         env:
+          GRYPE_VERSION: v0.90.0
           SEVERITY_THRESHOLD: ${{ vars.SECURITY_SEVERITY_THRESHOLD || 'HIGH' }}
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/${GRYPE_VERSION}/install.sh \
+            | sh -s -- -b /usr/local/bin ${GRYPE_VERSION}
+          grype dir:. --fail-on ${{ env.SEVERITY_THRESHOLD }} --output sarif > dependency-audit.sarif
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
@@ -118,7 +192,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@master
+        # Pin to a released tag or commit SHA (RULE-supply-chain). `@master` is
+        # an unpinned moving target; replace with the latest stable tag and
+        # let Renovate/Dependabot propose upgrades.
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           format: sarif

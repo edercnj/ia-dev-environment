@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.testutil.SkillContentReader;
 import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
@@ -213,15 +214,8 @@ class LazyKpLoadingTest {
                     config,
                     new TemplateEngine(),
                     outputDir);
-            Path storyPlan = outputDir.resolve(
-                    "skills/x-story-plan/SKILL.md");
-            Path fullProtocol = outputDir.resolve(
-                    "skills/x-story-plan/references/full-protocol.md");
-            String content = Files.readString(storyPlan);
-            if (Files.exists(fullProtocol)) {
-                content += "\n" + Files.readString(fullProtocol);
-            }
-            return content;
+            return SkillContentReader
+                    .readSkillWithReferences(outputDir, "x-story-plan");
         }
     }
 }

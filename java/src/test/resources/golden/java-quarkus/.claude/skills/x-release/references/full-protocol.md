@@ -167,12 +167,13 @@ git push -u origin "release/${VERSION}"
 git push origin release/X.Y.Z
 gh pr create --base main --title "release(X.Y.Z): Release X.Y.Z" \
   --body "..." \
-  --base "$RELEASE_BRANCH" \
   --head "release/${VERSION}"
+# Hotfix (when a release/X.Y.Z branch is active): additional PR to the active release branch
+#   gh pr create --base "$RELEASE_BRANCH" --head hotfix/X.Y.Z
 ```
 
 State updates: `prNumber`, `prUrl`, `prTitle`, `PR_OPENED` status. `Message` field with PR body. `OWASP A03` reference in security-reviewed PRs. `CWE-22` path traversal check for release branch name.
-Emits: `PR_URL`, `PR_NUMBER`, `Base: develop` indicator in logs. `releaseType` and `OPEN_RELEASE_PR` phase marker. Verify PR state `MERGED` before proceeding.
+Emits: `PR_URL`, `PR_NUMBER`, `Base: main` indicator in logs (or `Base: $RELEASE_BRANCH` for hotfix additional PR). `releaseType` and `OPEN_RELEASE_PR` phase marker. Verify PR state `MERGED` before proceeding.
 
 Unless `--skip-review`: fire-and-forget `x-review-pr`. `| \`--skip-review\`` in Parameters. `--no-publish` does NOT skip this step (only affects Step 11 GitHub Release prompt).
 

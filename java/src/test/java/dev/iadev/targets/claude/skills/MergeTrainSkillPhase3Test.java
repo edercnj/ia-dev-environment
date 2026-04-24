@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("MergeTrainSkill — Phase 3 Sort + File-Overlap Precheck")
 class MergeTrainSkillPhase3Test {
 
-    private static final String GOLDEN_RELATIVE_PATH =
+    private static final String GOLDEN_FULL_PROTOCOL_RELATIVE_PATH =
             "src/test/resources/golden/java-spring-hexagonal"
                     + "/.claude/skills/x-pr-merge-train/references/full-protocol.md";
 
@@ -30,7 +30,7 @@ class MergeTrainSkillPhase3Test {
     void phase3_section_present_in_skillmd() throws IOException {
         // user.dir is the java/ module directory during mvn test
         Path javaModuleDir = Path.of(System.getProperty("user.dir"));
-        Path goldenFile = javaModuleDir.resolve(GOLDEN_RELATIVE_PATH);
+        Path goldenFile = javaModuleDir.resolve(GOLDEN_FULL_PROTOCOL_RELATIVE_PATH);
 
         assertThat(goldenFile)
                 .as("Golden SKILL.md must exist at " + goldenFile)

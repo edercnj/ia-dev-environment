@@ -171,11 +171,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run OWASP Dependency-Check / Grype
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh
-          grype dir:. --fail-on ${{ env.SEVERITY_THRESHOLD }} --output sarif > dependency-audit.sarif
+        # Pin Grype to an exact version tag (install script is NOT tracked against
+        # main — supply-chain attack surface). Update the GRYPE_VERSION var in a
+        # controlled way (Renovate/Dependabot recommended).
         env:
+          GRYPE_VERSION: v0.90.0
           SEVERITY_THRESHOLD: ${{ vars.SECURITY_SEVERITY_THRESHOLD || 'HIGH' }}
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/${GRYPE_VERSION}/install.sh \
+            | sh -s -- -b /usr/local/bin ${GRYPE_VERSION}
+          grype dir:. --fail-on ${{ env.SEVERITY_THRESHOLD }} --output sarif > dependency-audit.sarif
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
@@ -187,7 +192,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@master
+        # Pin to a released tag or commit SHA (RULE-supply-chain). `@master` is
+        # an unpinned moving target; replace with the latest stable tag and
+        # let Renovate/Dependabot propose upgrades.
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           format: sarif
