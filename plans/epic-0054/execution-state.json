@@ -5,7 +5,7 @@
   "mode": "sequential",
   "autoMergeStrategy": "merge",
   "storyStatuses": {
-    "story-0054-0001": { "status": "PENDING", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": null },
+    "story-0054-0001": { "status": "COMPLETE", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": "e3b21c2d1", "tasksDone": 4, "tasksCount": 4, "techLeadScore": "42/45", "techLeadDecision": "GO" },
     "story-0054-0002": { "status": "PENDING", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": null },
     "story-0054-0003": { "status": "PENDING", "phase": 0, "prNumber": null, "prUrl": null, "commitSha": null },
     "story-0054-0004": { "status": "PENDING", "phase": 1, "prNumber": null, "prUrl": null, "commitSha": null }
