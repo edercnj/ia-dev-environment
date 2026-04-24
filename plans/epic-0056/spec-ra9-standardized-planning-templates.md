@@ -18,7 +18,7 @@ Os templates de planejamento atuais do projeto `ia-dev-environment` são **incon
 
 1. **Alucinações de escopo.** Como cada nível tem seções distintas, o LLM preenche "em branco" e improvisa decisões de arquitetura (escolha de package, direção de dependência, forma do endpoint) em vez de herdar invariantes já declaradas no nível superior. Exemplo concreto: em EPIC-0053, três stories recriaram de forma divergente a convenção de pacote de `adapter/inbound/cli/` — o épico não tinha uma seção declarando essa convenção.
 2. **Decisões sem rastro.** Escolhas estruturais como *cascade delete*, *timeout de API=5s*, *fallback silencioso vs throw*, *retry count* aparecem no código sem ficar registradas no plan. Hoje, apenas `_TEMPLATE-IMPLEMENTATION-PLAN.md` e `_TEMPLATE-ARCHITECTURE-PLAN.md` possuem campo **Architecture Decisions** com Rationale. `_TEMPLATE-EPIC.md`, `_TEMPLATE-STORY.md` e `_TEMPLATE-TASK.md` **não têm**.
-3. **Rules/KPs subutilizadas.** O projeto possui 15 rules numeradas (01, 03, 04, 05, 06, 07, 08, 09, 13, 14, 19, 20, 21, 22, 23, 24) e ~13 knowledge packs (`x-lib-*`, `x-internal-*`), mas os templates de plan **não têm seções ancoradas** em cada uma. Resultado: ao redigir um plan, o LLM não sabe que "aqui entra Rule 06 (segurança)" porque não existe um slot nomeado.
+3. **Rules/KPs subutilizadas.** O projeto possui 15 rules numeradas (01, 03, 04, 05, 06, 07, 08, 09, 13, 14, 19, 21, 22, 23, 24) e ~13 knowledge packs (`x-lib-*`, `x-internal-*`), mas os templates de plan **não têm seções ancoradas** em cada uma. Resultado: ao redigir um plan, o LLM não sabe que "aqui entra Rule 06 (segurança)" porque não existe um slot nomeado.
 
 ### 1.2 Diagnóstico técnico
 

@@ -17,7 +17,7 @@
 | story-0056-0007 | Estender LifecycleIntegrityAuditTest | — | 0002, 0003, 0004 | 0008 | Pendente |
 | story-0056-0008 | Regenerar golden files + CHANGELOG | — | 0006, 0007 | — | Pendente |
 
-> **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
+> **Valores de Status:** `Pendente` (padrão) · `Planejada` · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada`
 
 > **Nota:** Dependência implícita entre 0006 (skills) e 0007 (audit) existe funcionalmente (skills emitem RA9 antes do audit validar), mas o audit é independente: se 0007 mergear antes de 0006, ele valida artefatos legados via baseline sem falhar. Por isso 0008 depende de ambos (precisa skills E audit prontos).
 
