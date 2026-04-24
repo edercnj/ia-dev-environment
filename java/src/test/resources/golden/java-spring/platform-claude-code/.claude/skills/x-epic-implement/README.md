@@ -22,7 +22,7 @@ flowchart TD
 
     subgraph P3N["Phase 3 — Execution Loop (v2)"]
         P3N_SEQ{"Parallel?"}
-        P3N_SEQ -->|"No (default)"| SEQ["Sequential: one story at a time<br/>x-story-implement --target-branch epic/XXXX --auto-merge-strategy=merge"]
+        P3N_SEQ -->|"No (default)"| SEQ["Sequential: one story at a time<br/>x-story-implement --target-branch epic/XXXX --auto-merge=merge"]
         P3N_SEQ -->|"--parallel"| PAR["Parallel within phase batch<br/>(siblings in ONE assistant message)"]
     end
 
