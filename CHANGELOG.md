@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **EPIC-0054 story-0054-0004 (ADR-0012 rollout — XL orchestrators):** slim
+  rewrite of `x-epic-implement` (434 → 145 lines, 6 phase telemetry pairs preserved)
+  and `x-release` (2812 → 111 lines, approval gate telemetry preserved, full
+  VALIDATE-DEEP matrix in slim body, comprehensive `references/full-protocol.md`
+  with exact `### Step N — Title` headers for 27 test class compatibility). Test suite
+  updated: 20 test classes now read SKILL.md + references/full-protocol.md
+  concatenated. 3887 tests green.
+
+- **EPIC-0054 story-0054-0002 (ADR-0012 rollout — medium orchestrators):** slim
+  rewrite of `x-task-implement` (824 → 100 lines, 4 telemetry marker pairs preserved),
+  `x-security-pipeline` (576 → 73 lines, 3-platform YAML in references), and
+  `x-git-worktree` (569 → 66 lines, 5-operation contract in references). Each skill
+  body contains only 5 canonical ADR-0012 sections. Baseline exemptions removed for
+  all 3. `Epic0054CompressionSmokeTest` extended with medium-skills assertion.
+
+- **EPIC-0054 story-0054-0001 (ADR-0012 rollout — PR-domain skills):** slim
+  rewrite of `x-pr-fix-epic` (1297 → 69 lines) and `x-pr-merge-train`
+  (873 → 73 lines) per ADR-0012 flipped-orientation contract. Each skill body
+  now contains only 5 canonical sections (Triggers, Parameters, Output Contract,
+  Error Envelope, Full Protocol) with full operational detail carved to
+  `references/full-protocol.md` sibling. Baseline exemptions removed for both
+  skills. `Epic0054CompressionSmokeTest` added to validate the ADR-0012
+  invariant for all 17 profiles.
+
 - **EPIC-0051 (Knowledge Packs fora de `.claude/skills/`):** structural
   refactor that separates invocable skills from reference knowledge.
   Knowledge Packs (architecture, security, testing, coding-standards, etc.)

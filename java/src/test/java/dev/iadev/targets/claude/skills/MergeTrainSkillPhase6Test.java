@@ -21,16 +21,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("MergeTrainSkill — Phase 6 Final Verification and Phase 7 Report + Cleanup")
 class MergeTrainSkillPhase6Test {
 
-    private static final String GOLDEN_RELATIVE_PATH =
+    private static final String GOLDEN_FULL_PROTOCOL_RELATIVE_PATH =
             "src/test/resources/golden/java-spring-hexagonal"
-                    + "/.claude/skills/x-pr-merge-train/SKILL.md";
+                    + "/.claude/skills/x-pr-merge-train/references/full-protocol.md";
 
     @Test
     @DisplayName("phase6_section_present_in_golden_skillmd: "
             + "golden SKILL.md contains Phase 6 with SMOKE_TEST_FAILED error code")
     void phase6_section_present_in_golden_skillmd() throws IOException {
         Path javaModuleDir = Path.of(System.getProperty("user.dir"));
-        Path goldenFile = javaModuleDir.resolve(GOLDEN_RELATIVE_PATH);
+        Path goldenFile = javaModuleDir.resolve(GOLDEN_FULL_PROTOCOL_RELATIVE_PATH);
 
         assertThat(goldenFile)
                 .as("Golden SKILL.md must exist at " + goldenFile)
@@ -53,7 +53,7 @@ class MergeTrainSkillPhase6Test {
             + "TRAIN_OWNS_WORKTREE cleanup, and failure preservation")
     void phase7_section_present_in_golden_skillmd() throws IOException {
         Path javaModuleDir = Path.of(System.getProperty("user.dir"));
-        Path goldenFile = javaModuleDir.resolve(GOLDEN_RELATIVE_PATH);
+        Path goldenFile = javaModuleDir.resolve(GOLDEN_FULL_PROTOCOL_RELATIVE_PATH);
 
         assertThat(goldenFile)
                 .as("Golden SKILL.md must exist at " + goldenFile)

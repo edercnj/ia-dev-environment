@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.testutil.SkillContentReader;
 import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
@@ -213,9 +214,8 @@ class LazyKpLoadingTest {
                     config,
                     new TemplateEngine(),
                     outputDir);
-            Path storyPlan = outputDir.resolve(
-                    "skills/x-story-plan/SKILL.md");
-            return Files.readString(storyPlan);
+            return SkillContentReader
+                    .readSkillWithReferences(outputDir, "x-story-plan");
         }
     }
 }

@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "coverageDelta": {
+    "line": null,
+    "branch": null,
+    "lineThreshold": 95,
+    "branchThreshold": 90,
+    "lineDelta": null,
+    "branchDelta": null,
+    "note": "N/A — markdown-only story (RULE-054-05); no Java production code introduced"
+  },
+  "failures": [],
+  "acCheckResults": [
+    {"scenario": "Happy path — ambas skills slim + references criadas + goldens verdes", "hasTest": true},
+    {"scenario": "Erro — baseline staleness test falha por entry dead-letter", "hasTest": true},
+    {"scenario": "Erro — golden diff mismatch por frontmatter alterado", "hasTest": true},
+    {"scenario": "Erro — Rule 13 violation no slim body", "hasTest": true},
+    {"scenario": "Boundary at-max — SKILL.md em exatamente 500 linhas passa WARN, nao ERROR", "hasTest": true},
+    {"scenario": "Boundary past-max — SKILL.md em 501 linhas sem references falha hard", "hasTest": true},
+    {"scenario": "Degenerado — SKILL.md vazio ou sem 5 secoes falha a story", "hasTest": true}
+  ],
+  "metrics": {
+    "xPrFixEpicLines": 69,
+    "xPrMergeTrainLines": 73,
+    "xPrFixEpicReferencesLines": 310,
+    "xPrMergeTrainReferencesLines": 318,
+    "totalHotPathLinesRemoved": 2028,
+    "baselineEntriesRemoved": 2,
+    "goldensRegenerated": 17,
+    "testRunsGreen": ["Epic0054CompressionSmokeTest", "SkillSizeLinterAcceptanceTest", "GoldenFileTest"]
+  }
+}

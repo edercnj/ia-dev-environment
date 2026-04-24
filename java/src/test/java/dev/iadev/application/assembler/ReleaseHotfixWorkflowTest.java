@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.testutil.SkillContentReader;
 import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.template.TemplateEngine;
@@ -240,10 +241,8 @@ class ReleaseHotfixWorkflowTest {
     private String generateClaudeContent(Path tempDir)
             throws IOException {
         Path outputDir = generateOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-release/SKILL.md"),
-                StandardCharsets.UTF_8);
+        return SkillContentReader.readSkillWithReferences(
+                outputDir, "x-release");
     }
 
     private String extractHotfixSection(String content) {
