@@ -29,5 +29,4 @@ core/dev/x-task-implement/SKILL.md
 core/git/x-git-worktree/SKILL.md
 core/plan/x-epic-orchestrate/SKILL.md
 core/plan/x-story-create/SKILL.md
-core/pr/x-pr-fix-epic/SKILL.md
 core/security/x-security-pipeline/SKILL.md
