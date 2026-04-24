@@ -45,6 +45,8 @@ When all three flags are absent, behavior is identical to EPIC-0048 (backward co
 - `/x-story-implement story-XXXX-YYYY --worktree` — standalone opt-in worktree (ADR-0004 Mode 2)
 - `/x-story-implement story-XXXX-YYYY --non-interactive` — skip interactive gate menus (CI / orchestrated calls)
 
+## Review Policy — `MANDATORY — NON-NEGOTIABLE`: Specialist (`x-review`) + Tech-Lead (`x-review-pr`) reviews in Step 3.2 MUST execute unless `--skip-verification` / `--skip-review`; silent omission is a `PROTOCOL_VIOLATION` and subagents MUST abort with `"REVIEW_SKIPPED_WITHOUT_FLAG"`.
+
 ## Parameters
 
 | Flag | Type | Default | Description |
@@ -57,7 +59,7 @@ When all three flags are absent, behavior is identical to EPIC-0048 (backward co
 | `--task` | String | — | Execute only `TASK-XXXX-YYYY-NNN`. |
 | `--resume` | Boolean | `false` | Delegates resume-point detection to `x-internal-story-resume`. |
 | `--skip-verification` | Boolean | `false` | **Recovery-only.** Skips Phase 3; flagged outside `## Recovery` blocks. |
-| `--skip-smoke`, `--skip-review` | Boolean | `false` | Bypass smoke gate / specialist + TL reviews. |
+| `--skip-smoke`, `--skip-review` | Boolean | `false` | Bypass smoke gate / specialist + TL reviews (the only supported per-review bypass path). |
 | `--full-lifecycle`, `--worktree`, `--non-interactive` | Boolean | `false` | Full execution / standalone worktree / CI mode. |
 | `--no-auto-remediation`, `--no-ci-watch` | Boolean | `false` | Skip Step 3.5 remediation / Rule 21 CI-watch. |
 
@@ -245,8 +247,7 @@ The sub-skill identifies files touched by the story, runs the scoped test suite 
 Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverageBranch}`. On `passed=false` → exit with code `VERIFY_FAILED` and include `failures[0]` in the message.
 
 ### 3.2 Specialist + Tech-Lead reviews (unless `--skip-review`)
-
-MANDATORY TOOL CALLS — emit both in sequence; each MUST persist its evidence file (checked by CI audit):
+> **MANDATORY — NON-NEGOTIABLE TOOL CALLS:** Both `x-review` and `x-review-pr` MUST execute in sequence (each persisting its evidence file, checked by CI audit) unless `--skip-verification` / `--skip-review`. Subagents reaching this point without the corresponding `Skill(...)` call MUST abort and emit `"PROTOCOL_VIOLATION: Step 3.2 specialist review skipped without --skip-verification"` (for `x-review`) or `"PROTOCOL_VIOLATION: Step 3.2 tech-lead review skipped without --skip-verification"` (for `x-review-pr`).
 
     Skill(skill: "x-review", model: "sonnet", args: "<STORY-ID>")
     Skill(skill: "x-review-pr", model: "sonnet", args: "<STORY-ID>")
