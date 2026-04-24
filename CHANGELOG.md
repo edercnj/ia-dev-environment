@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **EPIC-0054 story-0054-0001 (ADR-0012 rollout — PR-domain skills):** slim
+  rewrite of `x-pr-fix-epic` (1297 → 69 lines) and `x-pr-merge-train`
+  (873 → 73 lines) per ADR-0012 flipped-orientation contract. Each skill body
+  now contains only 5 canonical sections (Triggers, Parameters, Output Contract,
+  Error Envelope, Full Protocol) with full operational detail carved to
+  `references/full-protocol.md` sibling. Baseline exemptions removed for both
+  skills. `Epic0054CompressionSmokeTest` added to validate the ADR-0012
+  invariant for all 17 profiles.
+
 - **EPIC-0051 (Knowledge Packs fora de `.claude/skills/`):** structural
   refactor that separates invocable skills from reference knowledge.
   Knowledge Packs (architecture, security, testing, coding-standards, etc.)
