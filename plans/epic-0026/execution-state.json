@@ -32,7 +32,9 @@
       "summary": "Extended SKILL.md with batch comment fetching, classification engine (5 categories), cross-PR deduplication via SHA-256 fingerprint, and consolidated data structure.",
       "retries": 0,
       "duration": 161,
-      "blockedBy": ["story-0026-0001"],
+      "blockedBy": [
+        "story-0026-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/170",
       "prNumber": 170,
       "prMergeStatus": "MERGED"
@@ -46,7 +48,9 @@
       "summary": "Extended SKILL.md with consolidated findings report generation, theme detection (7 categories), persistence (RULE-004), and dry-run integration (RULE-007).",
       "retries": 0,
       "duration": 193,
-      "blockedBy": ["story-0026-0002"],
+      "blockedBy": [
+        "story-0026-0002"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/171",
       "prNumber": 171,
       "prMergeStatus": "MERGED"
@@ -60,7 +64,9 @@
       "summary": "Extended SKILL.md with fix orchestration engine, golden file handling, post-correction verification with bisect, and PR creation (RULE-003, RULE-009, RULE-010).",
       "retries": 0,
       "duration": 205,
-      "blockedBy": ["story-0026-0003"],
+      "blockedBy": [
+        "story-0026-0003"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/172",
       "prNumber": 172,
       "prMergeStatus": "MERGED"
@@ -74,7 +80,9 @@
       "summary": "Added reply engine with pt-BR templates (RULE-008), idempotency checks (RULE-010), rate limiting, --skip-replies flag, and status tracking.",
       "retries": 0,
       "duration": 333,
-      "blockedBy": ["story-0026-0004"],
+      "blockedBy": [
+        "story-0026-0004"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/173",
       "prNumber": 173,
       "prMergeStatus": "MERGED"
@@ -88,7 +96,9 @@
       "summary": "Added source template (Claude + GitHub Copilot), registered in SkillGroupRegistry, updated tests, regenerated golden files for all 17 profiles. 5383 tests pass.",
       "retries": 0,
       "duration": 1130,
-      "blockedBy": ["story-0026-0004"],
+      "blockedBy": [
+        "story-0026-0004"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/174",
       "prNumber": 174,
       "prMergeStatus": "MERGED"
@@ -102,7 +112,10 @@
       "summary": "Added Phase 4 PR Comment Remediation hook to x-dev-epic-implement with --skip-pr-comments flag, dry-run + confirmation, prCommentRemediation checkpoint schema. All 5383 tests pass.",
       "retries": 0,
       "duration": 397,
-      "blockedBy": ["story-0026-0005", "story-0026-0006"],
+      "blockedBy": [
+        "story-0026-0005",
+        "story-0026-0006"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/175",
       "prNumber": 175,
       "prMergeStatus": "MERGED"
@@ -123,5 +136,8 @@
     "4": "a8c17cd4",
     "5": "b90c4f7b"
   },
-  "reportPath": "plans/epic-0026/epic-execution-report.md"
+  "reportPath": "plans/epic-0026/epic-execution-report.md",
+  "taskTracking": {
+    "enabled": false
+  }
 }

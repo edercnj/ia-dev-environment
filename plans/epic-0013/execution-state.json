@@ -8,38 +8,314 @@
     "skipReview": false
   },
   "stories": {
-    "story-0013-0001": { "id": "story-0013-0001", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "5018969", "findingsCount": 0, "summary": "Added PrIssueTemplateAssembler generating 4 GitHub PR/Issue templates. 27th assembler in pipeline. 2412 tests pass.", "duration": null },
-    "story-0013-0002": { "id": "story-0013-0002", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "68b3e714225766cd547c268168150066a16da935", "findingsCount": 0, "summary": "Added ci-cd-patterns knowledge pack with SKILL.md template, 3 reference files, registered in SkillRegistry. 2339 tests pass.", "duration": null },
-    "story-0013-0003": { "id": "story-0013-0003", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4fa84fe", "findingsCount": 0, "summary": "Added 3 new rules (07-operations, 08-release, 09-data-management). Rule 09 conditional on database config. 2424 tests pass.", "duration": null },
-    "story-0013-0006": { "id": "story-0013-0006", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4406f84", "findingsCount": 0, "summary": "Added incident response and postmortem templates with IncidentTemplatesAssembler. 2377 tests pass.", "duration": null },
-    "story-0013-0008": { "id": "story-0013-0008", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "0c89e75bfb5308eefdebe8c58bb7572b27f84820", "findingsCount": 0, "summary": "Added sre-practices KP with 6 sections, 3 reference files. Registered in SkillRegistry and SkillGroupRegistry.", "duration": null },
-    "story-0013-0012": { "id": "story-0013-0012", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "81fc35923d54d4f7a60fe2f31870f6cf79c83c7d", "findingsCount": 0, "summary": "Added release-management KP with 8 sections, 3 reference files. Registered in SkillRegistry and SkillGroupRegistry.", "duration": null },
-    "story-0013-0015": { "id": "story-0013-0015", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "fbba6ba", "findingsCount": 0, "summary": "Added data-management KP with 7 sections, 3 reference files. Registered in SkillRegistry (15) and SkillGroupRegistry (12).", "duration": null },
-    "story-0013-0018": { "id": "story-0013-0018", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "0529727", "findingsCount": 0, "summary": "Added performance-engineering KP with 7 sections, 3 reference files. Registered in SkillRegistry (16) and SkillGroupRegistry (13). 2381 tests pass.", "duration": null },
-    "story-0013-0020": { "id": "story-0013-0020", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "5cf1657", "findingsCount": 0, "summary": "Added feature-flags KP with 7 sections, 2 reference files. Registered in SkillRegistry (17) and SkillGroupRegistry (14). 2424 tests pass.", "duration": null },
-    "story-0013-0021": { "id": "story-0013-0021", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "c65cf7e", "findingsCount": 0, "summary": "Extended security KP with SBOM/supply chain sections. Extended x-dependency-audit with SBOM generation. Fixed SkillsCopyHelper merge bug. 2453 tests pass.", "duration": null },
-    "story-0013-0022": { "id": "story-0013-0022", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4cedca3", "findingsCount": 0, "summary": "Added x-threat-model invocable skill with STRIDE methodology, 7-step workflow. Registered in review group (9 skills). 2480 tests pass.", "duration": null },
-    "story-0013-0024": { "id": "story-0013-0024", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "78b6bdc", "findingsCount": 0, "summary": "Extended API Design KP with deprecation/versioning. Added conditional FinOps KP. 2503 tests pass.", "duration": null },
-    "story-0013-0025": { "id": "story-0013-0025", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "503d736", "findingsCount": 0, "summary": "Added x-setup-dev-environment skill and contributing guide template with DocsContributingAssembler. 2517 tests pass.", "duration": null },
-    "story-0013-0004": { "id": "story-0013-0004", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "217793ed", "findingsCount": 0, "summary": "Added CdWorkflowAssembler with 4 templates (release, deploy-staging, deploy-production, rollback). 2533 tests pass.", "duration": null },
-    "story-0013-0007": { "id": "story-0013-0007", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "7ed5afe2", "findingsCount": 0, "summary": "Added Operational Runbook template with OperationalRunbookAssembler. Added message_broker context variable. 2592 tests pass.", "duration": null },
-    "story-0013-0009": { "id": "story-0013-0009", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "5489ab13", "findingsCount": 0, "summary": "Added SRE Engineer agent persona with 20-point checklist, severity classification. 7 core agents total.", "duration": null },
-    "story-0013-0011": { "id": "story-0013-0011", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "1aeb44bb", "findingsCount": 0, "summary": "Added SLO/SLI template with SloSliTemplateAssembler. Extended observability KP with SLO/SLI framework, error budgets, alerting. 2686 tests pass.", "duration": null },
-    "story-0013-0013": { "id": "story-0013-0013", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "c27979bf", "findingsCount": 0, "summary": "Added Release Checklist template with ReleaseChecklistAssembler. 6 mandatory + 3 conditional sections.", "duration": null },
-    "story-0013-0016": { "id": "story-0013-0016", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "1db97c4d", "findingsCount": 0, "summary": "Added Data Migration Plan template with conditional DataMigrationPlanAssembler. Added migration_name context var. 2686 tests pass.", "duration": null },
-    "story-0013-0017": { "id": "story-0013-0017", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "5b57c3ce", "findingsCount": 0, "summary": "Extended DB Patterns KP with 5 governance/backup sections. Created conditional database-engineer agent with 18-point checklist.", "duration": null },
-    "story-0013-0019": { "id": "story-0013-0019", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "86ba2ad8", "findingsCount": 0, "summary": "Created x-perf-profile skill with 7-step workflow. Extended run-perf-test with regression detection. 2741 tests pass.", "duration": null },
-    "story-0013-0023": { "id": "story-0013-0023", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "62a62e38", "findingsCount": 0, "summary": "Extended resilience KP with chaos engineering. Created conditional disaster-recovery KP. 2741 tests pass.", "duration": null },
-    "story-0013-0005": { "id": "story-0013-0005", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "2bea4ff9", "findingsCount": 0, "summary": "Created x-ci-cd-generate skill with 5-step workflow, 6 capabilities, stack detection. Registered in dev group.", "duration": null },
-    "story-0013-0010": { "id": "story-0013-0010", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "ea8b6d41", "findingsCount": 0, "summary": "Created x-ops-incident skill with 6-step workflow, SEV1-SEV4 classification, communication templates.", "duration": null },
-    "story-0013-0014": { "id": "story-0013-0014", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "cda144d7", "findingsCount": 0, "summary": "Created x-release skill with 8-step workflow, version auto-detection, dry-run mode. 2834 tests pass.", "duration": null },
-    "story-0013-0026": { "id": "story-0013-0026", "phase": 4, "status": "SUCCESS", "retries": 0, "commitSha": "40e5ca2f", "findingsCount": 2, "summary": "Integration validation: fixed missing x-release templates and stale assembler count. All 32 assemblers registered. 2834 tests pass.", "duration": null }
+    "story-0013-0001": {
+      "id": "story-0013-0001",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "5018969",
+      "findingsCount": 0,
+      "summary": "Added PrIssueTemplateAssembler generating 4 GitHub PR/Issue templates. 27th assembler in pipeline. 2412 tests pass.",
+      "duration": null
+    },
+    "story-0013-0002": {
+      "id": "story-0013-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "68b3e714225766cd547c268168150066a16da935",
+      "findingsCount": 0,
+      "summary": "Added ci-cd-patterns knowledge pack with SKILL.md template, 3 reference files, registered in SkillRegistry. 2339 tests pass.",
+      "duration": null
+    },
+    "story-0013-0003": {
+      "id": "story-0013-0003",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "4fa84fe",
+      "findingsCount": 0,
+      "summary": "Added 3 new rules (07-operations, 08-release, 09-data-management). Rule 09 conditional on database config. 2424 tests pass.",
+      "duration": null
+    },
+    "story-0013-0006": {
+      "id": "story-0013-0006",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "4406f84",
+      "findingsCount": 0,
+      "summary": "Added incident response and postmortem templates with IncidentTemplatesAssembler. 2377 tests pass.",
+      "duration": null
+    },
+    "story-0013-0008": {
+      "id": "story-0013-0008",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "0c89e75bfb5308eefdebe8c58bb7572b27f84820",
+      "findingsCount": 0,
+      "summary": "Added sre-practices KP with 6 sections, 3 reference files. Registered in SkillRegistry and SkillGroupRegistry.",
+      "duration": null
+    },
+    "story-0013-0012": {
+      "id": "story-0013-0012",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "81fc35923d54d4f7a60fe2f31870f6cf79c83c7d",
+      "findingsCount": 0,
+      "summary": "Added release-management KP with 8 sections, 3 reference files. Registered in SkillRegistry and SkillGroupRegistry.",
+      "duration": null
+    },
+    "story-0013-0015": {
+      "id": "story-0013-0015",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "fbba6ba",
+      "findingsCount": 0,
+      "summary": "Added data-management KP with 7 sections, 3 reference files. Registered in SkillRegistry (15) and SkillGroupRegistry (12).",
+      "duration": null
+    },
+    "story-0013-0018": {
+      "id": "story-0013-0018",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "0529727",
+      "findingsCount": 0,
+      "summary": "Added performance-engineering KP with 7 sections, 3 reference files. Registered in SkillRegistry (16) and SkillGroupRegistry (13). 2381 tests pass.",
+      "duration": null
+    },
+    "story-0013-0020": {
+      "id": "story-0013-0020",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "5cf1657",
+      "findingsCount": 0,
+      "summary": "Added feature-flags KP with 7 sections, 2 reference files. Registered in SkillRegistry (17) and SkillGroupRegistry (14). 2424 tests pass.",
+      "duration": null
+    },
+    "story-0013-0021": {
+      "id": "story-0013-0021",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "c65cf7e",
+      "findingsCount": 0,
+      "summary": "Extended security KP with SBOM/supply chain sections. Extended x-dependency-audit with SBOM generation. Fixed SkillsCopyHelper merge bug. 2453 tests pass.",
+      "duration": null
+    },
+    "story-0013-0022": {
+      "id": "story-0013-0022",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "4cedca3",
+      "findingsCount": 0,
+      "summary": "Added x-threat-model invocable skill with STRIDE methodology, 7-step workflow. Registered in review group (9 skills). 2480 tests pass.",
+      "duration": null
+    },
+    "story-0013-0024": {
+      "id": "story-0013-0024",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "78b6bdc",
+      "findingsCount": 0,
+      "summary": "Extended API Design KP with deprecation/versioning. Added conditional FinOps KP. 2503 tests pass.",
+      "duration": null
+    },
+    "story-0013-0025": {
+      "id": "story-0013-0025",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "503d736",
+      "findingsCount": 0,
+      "summary": "Added x-setup-dev-environment skill and contributing guide template with DocsContributingAssembler. 2517 tests pass.",
+      "duration": null
+    },
+    "story-0013-0004": {
+      "id": "story-0013-0004",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "217793ed",
+      "findingsCount": 0,
+      "summary": "Added CdWorkflowAssembler with 4 templates (release, deploy-staging, deploy-production, rollback). 2533 tests pass.",
+      "duration": null
+    },
+    "story-0013-0007": {
+      "id": "story-0013-0007",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "7ed5afe2",
+      "findingsCount": 0,
+      "summary": "Added Operational Runbook template with OperationalRunbookAssembler. Added message_broker context variable. 2592 tests pass.",
+      "duration": null
+    },
+    "story-0013-0009": {
+      "id": "story-0013-0009",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "5489ab13",
+      "findingsCount": 0,
+      "summary": "Added SRE Engineer agent persona with 20-point checklist, severity classification. 7 core agents total.",
+      "duration": null
+    },
+    "story-0013-0011": {
+      "id": "story-0013-0011",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "1aeb44bb",
+      "findingsCount": 0,
+      "summary": "Added SLO/SLI template with SloSliTemplateAssembler. Extended observability KP with SLO/SLI framework, error budgets, alerting. 2686 tests pass.",
+      "duration": null
+    },
+    "story-0013-0013": {
+      "id": "story-0013-0013",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "c27979bf",
+      "findingsCount": 0,
+      "summary": "Added Release Checklist template with ReleaseChecklistAssembler. 6 mandatory + 3 conditional sections.",
+      "duration": null
+    },
+    "story-0013-0016": {
+      "id": "story-0013-0016",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "1db97c4d",
+      "findingsCount": 0,
+      "summary": "Added Data Migration Plan template with conditional DataMigrationPlanAssembler. Added migration_name context var. 2686 tests pass.",
+      "duration": null
+    },
+    "story-0013-0017": {
+      "id": "story-0013-0017",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "5b57c3ce",
+      "findingsCount": 0,
+      "summary": "Extended DB Patterns KP with 5 governance/backup sections. Created conditional database-engineer agent with 18-point checklist.",
+      "duration": null
+    },
+    "story-0013-0019": {
+      "id": "story-0013-0019",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "86ba2ad8",
+      "findingsCount": 0,
+      "summary": "Created x-perf-profile skill with 7-step workflow. Extended run-perf-test with regression detection. 2741 tests pass.",
+      "duration": null
+    },
+    "story-0013-0023": {
+      "id": "story-0013-0023",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "62a62e38",
+      "findingsCount": 0,
+      "summary": "Extended resilience KP with chaos engineering. Created conditional disaster-recovery KP. 2741 tests pass.",
+      "duration": null
+    },
+    "story-0013-0005": {
+      "id": "story-0013-0005",
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "2bea4ff9",
+      "findingsCount": 0,
+      "summary": "Created x-ci-cd-generate skill with 5-step workflow, 6 capabilities, stack detection. Registered in dev group.",
+      "duration": null
+    },
+    "story-0013-0010": {
+      "id": "story-0013-0010",
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "ea8b6d41",
+      "findingsCount": 0,
+      "summary": "Created x-ops-incident skill with 6-step workflow, SEV1-SEV4 classification, communication templates.",
+      "duration": null
+    },
+    "story-0013-0014": {
+      "id": "story-0013-0014",
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "cda144d7",
+      "findingsCount": 0,
+      "summary": "Created x-release skill with 8-step workflow, version auto-detection, dry-run mode. 2834 tests pass.",
+      "duration": null
+    },
+    "story-0013-0026": {
+      "id": "story-0013-0026",
+      "phase": 4,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "40e5ca2f",
+      "findingsCount": 2,
+      "summary": "Integration validation: fixed missing x-release templates and stale assembler count. All 32 assemblers registered. 2834 tests pass.",
+      "duration": null
+    }
   },
   "phases": {
-    "1": { "status": "PENDING", "stories": ["story-0013-0001","story-0013-0002","story-0013-0003","story-0013-0006","story-0013-0008","story-0013-0012","story-0013-0015","story-0013-0018","story-0013-0020","story-0013-0021","story-0013-0022","story-0013-0024","story-0013-0025"] },
-    "2": { "status": "PENDING", "stories": ["story-0013-0004","story-0013-0007","story-0013-0009","story-0013-0011","story-0013-0013","story-0013-0016","story-0013-0017","story-0013-0019","story-0013-0023"] },
-    "3": { "status": "PENDING", "stories": ["story-0013-0005","story-0013-0010","story-0013-0014"] },
-    "4": { "status": "PENDING", "stories": ["story-0013-0026"] }
+    "1": {
+      "status": "PENDING",
+      "stories": [
+        "story-0013-0001",
+        "story-0013-0002",
+        "story-0013-0003",
+        "story-0013-0006",
+        "story-0013-0008",
+        "story-0013-0012",
+        "story-0013-0015",
+        "story-0013-0018",
+        "story-0013-0020",
+        "story-0013-0021",
+        "story-0013-0022",
+        "story-0013-0024",
+        "story-0013-0025"
+      ]
+    },
+    "2": {
+      "status": "PENDING",
+      "stories": [
+        "story-0013-0004",
+        "story-0013-0007",
+        "story-0013-0009",
+        "story-0013-0011",
+        "story-0013-0013",
+        "story-0013-0016",
+        "story-0013-0017",
+        "story-0013-0019",
+        "story-0013-0023"
+      ]
+    },
+    "3": {
+      "status": "PENDING",
+      "stories": [
+        "story-0013-0005",
+        "story-0013-0010",
+        "story-0013-0014"
+      ]
+    },
+    "4": {
+      "status": "PENDING",
+      "stories": [
+        "story-0013-0026"
+      ]
+    }
   },
   "metrics": {
     "storiesCompleted": 26,
@@ -50,5 +326,8 @@
   "integrityGates": {},
   "prUrl": null,
   "reportPath": null,
-  "finalStatus": null
+  "finalStatus": null,
+  "taskTracking": {
+    "enabled": false
+  }
 }
