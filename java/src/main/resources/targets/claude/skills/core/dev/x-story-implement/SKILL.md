@@ -114,6 +114,12 @@ Print markers between phases:
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-0-Prepare`
 
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-story-implement --phase Phase-0-Context")
+
+Open phase tracker (close with `TaskUpdate(id: phase0TaskId, status: "completed")` after §0.4):
+
+    TaskCreate(subject: "{STORY_ID} › Phase 0 - Context", activeForm: "Loading story context and resume state")
+
 ### 0.1 Args normalization
 
 Invoke via Rule 13 Pattern 1 (INLINE-SKILL) against the embedded schema:
@@ -149,19 +155,56 @@ When `--resume=true`, invoke:
 
 Consume the envelope `{resumePoint, tasksCompleted[], tasksPending[], lastCommitSha, staleWarnings[]}`. Use `tasksPending` as the iteration filter for Phase 2 — tasks in `tasksCompleted` are skipped. Print each `staleWarning` once.
 
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-story-implement --phase Phase-0-Context")
+
+TaskUpdate(id: phase0TaskId, status: "completed")
+
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-0-Prepare ok`
 
 >>> Phase 0 completed. Proceeding to Phase 1 (Plan)...
 
+<!-- phase-no-gate: API-First is conditional — only activates for stories with contract interfaces; gates live inside the conditional block -->
 ## Phase 0.5 — API-First Contract Generation (Conditional)
 
-Activates ONLY when `has_contract_interfaces=True` (story declares interfaces of type `rest`, `grpc`, `event-consumer`, `event-producer`, or `websocket`). Generates draft OpenAPI 3.1 / Protobuf 3 / AsyncAPI 2.6 in `contracts/{STORY_ID}-*.yaml|proto`, validates via `x-test-contract-lint`, and pauses at **Step 0.5.4** via `AskUserQuestion` (EPIC-0043 gate — replaces legacy `CONTRACT PENDING APPROVAL` text). Full interface-to-format mapping table and generator details live in `references/full-protocol.md` §2.
+Activates ONLY when `has_contract_interfaces=True` (story declares interfaces of type `rest`, `grpc`, `event-consumer`, `event-producer`, or `websocket`). Open phase tracker when active:
+
+    TaskCreate(subject: "{STORY_ID} › Phase 0 - API Contract", activeForm: "Generating API-first contracts")
+
+Generates draft OpenAPI 3.1 / Protobuf 3 / AsyncAPI 2.6 in `contracts/{STORY_ID}-*.yaml|proto`, validates via `x-test-contract-lint`, and pauses at **Step 0.5.4** via `AskUserQuestion` (EPIC-0043 gate — replaces legacy `CONTRACT PENDING APPROVAL` text). Full interface-to-format mapping table and generator details live in `references/full-protocol.md` §2.
+
+    TaskUpdate(id: phase05TaskId, status: "completed")
 
 ## Phase 1 — Plan
 
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-1-Plan`
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-story-implement --phase Phase-1-Plan")
+
+Open phase tracker (close with `TaskUpdate(id: phase1TaskId, status: "completed")` after parallelism gate):
+
+    TaskCreate(subject: "{STORY_ID} › Phase 1 - Plan", activeForm: "Orchestrating parallel planning wave")
+
+**Batch A — emit planning wave task trackers in ONE message (SIMPLE scope skips security + compliance):**
+
+    TaskCreate(subject: "{STORY_ID} › Phase 1 › Arch plan",              activeForm: "Running arch plan")
+    TaskCreate(subject: "{STORY_ID} › Phase 1 › Impl plan",              activeForm: "Running impl plan")
+    TaskCreate(subject: "{STORY_ID} › Phase 1 › Test plan",              activeForm: "Running test plan")
+    TaskCreate(subject: "{STORY_ID} › Phase 1 › Task breakdown",         activeForm: "Running task breakdown")
+    TaskCreate(subject: "{STORY_ID} › Phase 1 › Security assessment",    activeForm: "Running security assessment")
+    TaskCreate(subject: "{STORY_ID} › Phase 1 › Compliance assessment",  activeForm: "Running compliance assessment")
+
+Store planner IDs: `plannerTasks = {arch: id, impl: id, test: id, tasks: id, security: id, compliance: id}`.
+
+**Batch B — after x-internal-story-build-plan returns (all 6 TaskUpdate in ONE message):**
+
+    TaskUpdate(id: plannerTasks.arch,       status: "completed")
+    TaskUpdate(id: plannerTasks.impl,       status: "completed")
+    TaskUpdate(id: plannerTasks.test,       status: "completed")
+    TaskUpdate(id: plannerTasks.tasks,      status: "completed")
+    TaskUpdate(id: plannerTasks.security,   status: "completed")
+    TaskUpdate(id: plannerTasks.compliance, status: "completed")
 
 **Skipped entirely when `planningMode=PRE_PLANNED`** (all 7 artifacts fresh — logged `"[phase-1] skipped — PRE_PLANNED"` and proceeding to Phase 2).
 
@@ -177,6 +220,14 @@ Consume the envelope `{artifacts: [{name, path, status}], planningMode, scopeRes
 
 Invoke `Skill(skill: "x-parallel-eval", args: "--scope=story --story=<STORY-ID>")` (EPIC-0041 / story-0041-0006). On detected hard/regen collision, degrade the affected wave to serial and record `ExecutionState.parallelismDowngrades`. Full matrix in `references/full-protocol.md` §3.
 
+Wave gate — all planning artifacts produced:
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode wave --skill x-story-implement --phase Phase-1-Plan --expected-tasks {planner-task-ids} --expected-artifacts {arch-path},{impl-path},{test-path},{tasks-path},{security-path},{compliance-path}")
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-story-implement --phase Phase-1-Plan")
+
+TaskUpdate(id: phase1TaskId, status: "completed")
+
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-1-Plan ok`
 
@@ -187,7 +238,22 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-2-Implement`
 
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-story-implement --phase Phase-2-Execute")
+
+Open phase tracker (close with `TaskUpdate(id: phase2TaskId, status: "completed")` after story-level PR):
+
+    TaskCreate(subject: "{STORY_ID} › Phase 2 - Execute", activeForm: "Running task execution loop")
+
 Read tasks from `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (Section 8 fallback when absent). Apply the `tasksPending` filter from Phase 0.4 when resuming. For each `TASK-XXXX-YYYY-NNN` not in `DONE`/`BLOCKED`:
+
+**Per-task tracking (sequential, chained via `addBlockedBy`):**
+
+    currentTaskId = TaskCreate(subject: "{STORY_ID} › Phase 2 › TASK-XXXX-YYYY-NNN", activeForm: "Executing TASK-XXXX-YYYY-NNN")
+    [if previous task exists]: TaskUpdate(id: previousTaskId, addBlockedBy: [currentTaskId])
+
+    ... dispatch x-task-implement + x-pr-create ...
+
+    TaskUpdate(id: currentTaskId, status: "completed")
 
 ### 2.1 Per-task dispatch
 
@@ -224,6 +290,10 @@ When `--auto-approve-pr` was set, every task PR targeted the parent story branch
 
 Without `--auto-approve-pr`, each task PR is the unit of delivery — no story-level PR is created. On `x-pr-create` non-zero exit → `PR_CREATE_FAILED`. Fallback G1-G7 (no test plan / no formal tasks) lives in `references/full-protocol.md` §4.
 
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-story-implement --phase Phase-2-Execute")
+
+TaskUpdate(id: phase2TaskId, status: "completed")
+
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-2-Implement ok`
 
@@ -234,23 +304,48 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-3-Verify`
 
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-story-implement --phase Phase-3-Verify")
+
+Open phase tracker (close with `TaskUpdate(id: phase3TaskId, status: "completed")` at FINAL gate):
+
+    TaskCreate(subject: "{STORY_ID} › Phase 3 - Verify", activeForm: "Running verify gate and reviews")
+
+Sub-task trackers (emit before each sub-skill invocation; close after it returns):
+
+    TaskCreate(subject: "{STORY_ID} › Phase 3 › Verify gate",          activeForm: "Running story verify gate")
+    TaskCreate(subject: "{STORY_ID} › Phase 3 › Specialist reviews",   activeForm: "Running specialist reviews")
+    TaskCreate(subject: "{STORY_ID} › Phase 3 › Tech lead review",     activeForm: "Running tech lead review")
+    TaskCreate(subject: "{STORY_ID} › Phase 3 › Report",               activeForm: "Generating story completion report")
+    TaskCreate(subject: "{STORY_ID} › Phase 3 › Status finalize",      activeForm: "Finalizing story status")
+    TaskCreate(subject: "{STORY_ID} › Phase 3 › Worktree cleanup",     activeForm: "Cleaning up worktree")
+
+Store sub-task IDs: `p3Tasks = {verify, specialist, techLead, report, status, cleanup}`.
+
 **Skipped only under `--skip-verification`** (recovery-only — see Rule 22). Every `Skill(...)` below is a **MANDATORY TOOL CALL** (Rule 24); inlining is a violation and the CI audit (`scripts/audit-execution-integrity.sh`) fails merges lacking evidence artifacts.
 
 ### 3.1 Verify gate
 
 MANDATORY TOOL CALL — emit before proceeding to 3.2:
 
+    TaskUpdate(id: p3Tasks.verify, status: "in_progress")
     Skill(skill: "x-internal-story-verify", args: "--story-id <STORY-ID> --epic-id <EPIC-ID> [--coverage-threshold-line 95] [--coverage-threshold-branch 90]")
 
 The sub-skill identifies files touched by the story, runs the scoped test suite + coverage, performs cross-file consistency checks (constructor / return-type uniformity per role), runs smoke (unless `--skip-smoke`), validates every Section 7 Gherkin scenario has a matching acceptance test, and MUST persist its envelope to `plans/epic-XXXX/reports/verify-envelope-STORY-ID.json`.
 
 Consume `{passed, coverageDelta, failures, acCheckResults, coverageLine, coverageBranch}`. On `passed=false` → exit with code `VERIFY_FAILED` and include `failures[0]` in the message.
 
+    TaskUpdate(id: p3Tasks.verify, status: "completed")
+
 ### 3.2 Specialist + Tech-Lead reviews (unless `--skip-review`)
 > **MANDATORY — NON-NEGOTIABLE TOOL CALLS:** Both `x-review` and `x-review-pr` MUST execute in sequence (each persisting its evidence file, checked by CI audit) unless `--skip-verification` / `--skip-review`. Subagents reaching this point without the corresponding `Skill(...)` call MUST abort and emit `"PROTOCOL_VIOLATION: Step 3.2 specialist review skipped without --skip-verification"` (for `x-review`) or `"PROTOCOL_VIOLATION: Step 3.2 tech-lead review skipped without --skip-verification"` (for `x-review-pr`).
 
+    TaskUpdate(id: p3Tasks.specialist, status: "in_progress")
     Skill(skill: "x-review", model: "sonnet", args: "<STORY-ID>")
+    TaskUpdate(id: p3Tasks.specialist, status: "completed")
+
+    TaskUpdate(id: p3Tasks.techLead, status: "in_progress")
     Skill(skill: "x-review-pr", model: "sonnet", args: "<STORY-ID>")
+    TaskUpdate(id: p3Tasks.techLead, status: "completed")
 
 On Tech-Lead GO, optionally run PR-comment remediation via `Skill(skill: "x-pr-fix", args: "<prNumber>")` unless `--no-auto-remediation`. On NO-GO, fix-and-review up to 2 cycles; persistent NO-GO keeps `verifyPassed=true` but flags the story with a WARNING in the final report (human gate downstream).
 
@@ -258,13 +353,18 @@ On Tech-Lead GO, optionally run PR-comment remediation via `Skill(skill: "x-pr-f
 
 MANDATORY TOOL CALL — emit before Status finalize:
 
+    TaskUpdate(id: p3Tasks.report, status: "in_progress")
     Skill(skill: "x-internal-story-report", args: "--story-id <STORY-ID> --epic-id <EPIC-ID> --output plans/epic-XXXX/reports/story-completion-report-STORY-ID.md")
 
 The sub-skill reads `execution-state.json`, collects per-task status + commitSha + PR metadata, coverage delta, and review findings, then renders via `x-internal-report-write` with `_TEMPLATE-STORY-COMPLETION-REPORT.md`.
 
 Consume `{status, path}`. Record `reportPath` in the final envelope.
 
+    TaskUpdate(id: p3Tasks.report, status: "completed")
+
 ### 3.4 Status finalize
+
+    TaskUpdate(id: p3Tasks.status, status: "in_progress")
 
 Finalize story state atomically via `x-internal-status-update`:
 
@@ -273,7 +373,11 @@ Finalize story state atomically via `x-internal-status-update`:
 - Jira transition (if key present) → `Done`
 - `execution-state.json` story-level status → `COMPLETE`
 
+    TaskUpdate(id: p3Tasks.status, status: "completed")
+
 ### 3.5 Worktree cleanup (standalone Mode 2 only)
+
+    TaskUpdate(id: p3Tasks.cleanup, status: "in_progress")
 
 Gated by `STORY_OWNS_WORKTREE` from Phase 0.3:
 
@@ -281,7 +385,13 @@ Gated by `STORY_OWNS_WORKTREE` from Phase 0.3:
 - `true` + verify failed → preserve worktree for diagnosis (Rule 14 §4).
 - `false` (Modes 1 / 3) → skip removal.
 
+    TaskUpdate(id: p3Tasks.cleanup, status: "completed")
+
 Full decision table in `references/full-protocol.md` §5.
+
+Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode final --skill x-story-implement --phase Phase-3-Verify --expected-artifacts plans/epic-XXXX/reports/verify-envelope-STORY-ID.json,plans/epic-XXXX/plans/review-story-STORY-ID.md,plans/epic-XXXX/plans/techlead-review-story-STORY-ID.md,plans/epic-XXXX/reports/story-completion-report-STORY-ID.md")
+
+TaskUpdate(id: phase3TaskId, status: "completed")
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-3-Verify ok`
