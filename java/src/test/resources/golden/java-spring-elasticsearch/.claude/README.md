@@ -318,7 +318,7 @@ See the files directly for current configuration.
 | Skills (.claude) | 66 |
 | Knowledge Packs (.claude) | 12 |
 | Agents (.claude) | 11 |
-| Hooks (.claude) | 10 |
+| Hooks (.claude) | 12 |
 | Settings (.claude) | 2 |
 | Plan Templates (.claude) | 22 |
 

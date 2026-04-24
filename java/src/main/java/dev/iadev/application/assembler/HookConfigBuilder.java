@@ -61,8 +61,7 @@ public final class HookConfigBuilder {
         if (telemetryEnabled) {
             appendTelemetryEvent(sb, "SessionStart",
                     "telemetry-session.sh", false, false);
-            appendTelemetryEvent(sb, "PreToolUse",
-                    "telemetry-pretool.sh", true, false);
+            appendPreToolUseWithPhaseSequence(sb);
         }
         appendPostToolUseArray(
                 sb, hasLegacy, telemetryEnabled);
@@ -169,10 +168,40 @@ public final class HookConfigBuilder {
                 .append("\"hooks\": [\n");
         appendStopHookEntry(sb, "telemetry-stop.sh", true);
         appendStopHookEntry(sb,
-                "verify-story-completion.sh", false);
+                "verify-story-completion.sh", true);
+        appendStopHookEntry(sb,
+                "verify-phase-gates.sh", false);
         sb.append(JsonHelpers.indent(4)).append("]\n");
         sb.append(JsonHelpers.indent(3)).append("}\n");
         sb.append(JsonHelpers.indent(2)).append("]\n");
+    }
+
+    /**
+     * Appends the {@code PreToolUse} event with TWO hooks
+     * (Rule 25 Layer 3 + telemetry): {@code telemetry-pretool.sh}
+     * for the SessionStart-sibling lifecycle marker, AND
+     * {@code enforce-phase-sequence.sh} for phase-gate sequencing.
+     *
+     * <p>Both run under the same wildcard matcher; the
+     * {@code enforce-phase-sequence.sh} script short-circuits
+     * when {@code tool_name != "Skill"}, so the added overhead
+     * on non-Skill tool calls is one stdin read + one jq lookup.</p>
+     */
+    private static void appendPreToolUseWithPhaseSequence(
+            StringBuilder sb) {
+        sb.append(JsonHelpers.indent(2))
+                .append("\"PreToolUse\": [\n");
+        sb.append(JsonHelpers.indent(3)).append("{\n");
+        sb.append(JsonHelpers.indent(4))
+                .append("\"matcher\": \"*\",\n");
+        sb.append(JsonHelpers.indent(4))
+                .append("\"hooks\": [\n");
+        appendStopHookEntry(sb, "telemetry-pretool.sh", true);
+        appendStopHookEntry(sb,
+                "enforce-phase-sequence.sh", false);
+        sb.append(JsonHelpers.indent(4)).append("]\n");
+        sb.append(JsonHelpers.indent(3)).append("}\n");
+        sb.append(JsonHelpers.indent(2)).append("],\n");
     }
 
     private static void appendStopHookEntry(

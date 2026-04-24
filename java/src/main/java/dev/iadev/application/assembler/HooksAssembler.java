@@ -65,7 +65,9 @@ public final class HooksAssembler implements Assembler {
             "telemetry-posttool.sh",
             "telemetry-subagent.sh",
             "telemetry-stop.sh",
-            "verify-story-completion.sh");
+            "verify-story-completion.sh",
+            "verify-phase-gates.sh",
+            "enforce-phase-sequence.sh");
 
     private final Path resourcesDir;
 
