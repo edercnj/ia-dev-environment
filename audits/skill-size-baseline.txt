@@ -31,4 +31,3 @@ core/plan/x-epic-orchestrate/SKILL.md
 core/plan/x-story-create/SKILL.md
 core/pr/x-pr-fix-epic/SKILL.md
 core/pr/x-pr-merge-train/SKILL.md
-core/security/x-security-pipeline/SKILL.md
