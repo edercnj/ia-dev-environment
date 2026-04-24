@@ -166,19 +166,19 @@ check_skill() {
   #
   # SKILL.md files are documentation/templates and frequently carry
   # `{PLACEHOLDER}` tokens (e.g., `{STORY_ID}`) that the LLM resolves at
-  # runtime. Skip subjects that contain `{...}` — the canonical regex
-  # applies to the substituted form, validated at runtime by the
-  # x-internal-phase-gate skill, not at SKILL.md lint time.
+  # runtime. Normalize placeholders to a regex-safe canonical surrogate
+  # (`task-0000-0000`) before validating — this preserves enforcement of
+  # separator `›`, hierarchy depth, and allowed characters in the rest
+  # of the subject, instead of skipping the check entirely.
   while IFS= read -r grep_line; do
     [ -z "$grep_line" ] && continue
-    local ln body subject
+    local ln body subject normalized
     ln="${grep_line%%:*}"
     body="${grep_line#*:}"
     subject=$(printf '%s' "$body" | sed -E 's/.*subject:[[:space:]]*"([^"]+)".*/\1/')
-    if printf '%s' "$subject" | grep -qE '\{[A-Za-z_][A-Za-z0-9_]*\}'; then
-      continue
-    fi
-    if ! printf '%s' "$subject" | grep -qE "$SUBJECT_REGEX"; then
+    normalized=$(printf '%s' "$subject" \
+        | sed -E 's/\{[A-Za-z_][A-Za-z0-9_]*\}/task-0000-0000/g')
+    if ! printf '%s' "$normalized" | grep -qE "$SUBJECT_REGEX"; then
       violations+=("$skill_file:$ln:subject regex violation — '$subject'")
     fi
   done < <(grep -nE 'subject:[[:space:]]*"[^"]+"' "$skill_file" 2>/dev/null)

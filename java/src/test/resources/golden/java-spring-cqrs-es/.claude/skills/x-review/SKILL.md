@@ -41,7 +41,7 @@ Perform parallel specialist code reviews across multiple engineering dimensions 
 
 Open a phase tracker (close with `TaskUpdate(id: phase0TaskId, status: "completed")` after Step 5):
 
-    TaskCreate(subject: "{STORY_ID} › Review › Phase 0 — Idempotency", activeForm: "Checking review idempotency")
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 0 - Idempotency", activeForm: "Checking review idempotency")
 
 Before executing a review, check if reports already exist and are still valid.
 
@@ -66,7 +66,7 @@ Before executing a review, check if reports already exist and are still valid.
 
 Open a phase tracker (close with `TaskUpdate(id: phase1TaskId, status: "completed")` after Step 4):
 
-    TaskCreate(subject: "{STORY_ID} › Review › Phase 1 — Detect", activeForm: "Detecting review context")
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 1 - Detect", activeForm: "Detecting review context")
 
 1. Extract story ID from argument or branch name
 2. Get diff against main:
@@ -214,7 +214,7 @@ PARTIAL:
 
 Open a phase tracker (close with `TaskUpdate(id: phase3TaskId, status: "completed")` after Step 3g):
 
-    TaskCreate(subject: "{STORY_ID} › Review › Phase 3 — Consolidate", activeForm: "Consolidating review findings")
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 3 - Consolidate", activeForm: "Consolidating review findings")
 
 ### 3a. Collect & Score
 
@@ -378,7 +378,7 @@ Only include rows for specialists that were active in Phase 2. Replace placehold
 
 Open a phase tracker only when this phase runs — see Step 4a (close with `TaskUpdate(id: phase4TaskId, status: "completed")` after Step 4c):
 
-    TaskCreate(subject: "{STORY_ID} › Review › Phase 4 — Correction story", activeForm: "Generating correction story")
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 4 - Correction story", activeForm: "Generating correction story")
 
 This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
