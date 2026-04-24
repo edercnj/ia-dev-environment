@@ -31,7 +31,8 @@ set -u
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 DEFAULT_SKILLS_ROOT="${REPO_ROOT}/java/src/main/resources/targets/claude/skills/core"
 DEFAULT_BASELINE="${REPO_ROOT}/audits/task-hierarchy-baseline.txt"
-DEFAULT_RULE="${REPO_ROOT}/.claude/rules/25-task-hierarchy.md"
+DEFAULT_RULE_SOURCE="${REPO_ROOT}/java/src/main/resources/targets/claude/rules/25-task-hierarchy.md"
+DEFAULT_RULE_GENERATED="${REPO_ROOT}/.claude/rules/25-task-hierarchy.md"
 
 SKILLS_ROOT="$DEFAULT_SKILLS_ROOT"
 BASELINE="$DEFAULT_BASELINE"
@@ -71,7 +72,13 @@ parse_args() {
 
 self_check() {
   local broken=0
-  [ -f "$DEFAULT_RULE" ] || { echo "missing: $DEFAULT_RULE" >&2; broken=1; }
+  # Rule 25 is the source of truth in java/src/main/resources/; the
+  # generated copy under .claude/rules/ is optional (gitignored in this
+  # project). Pass when EITHER form exists.
+  if [ ! -f "$DEFAULT_RULE_SOURCE" ] && [ ! -f "$DEFAULT_RULE_GENERATED" ]; then
+    echo "missing: $DEFAULT_RULE_SOURCE (nor $DEFAULT_RULE_GENERATED)" >&2
+    broken=1
+  fi
   [ -f "$DEFAULT_BASELINE" ] || { echo "missing: $DEFAULT_BASELINE" >&2; broken=1; }
   [ -d "$DEFAULT_SKILLS_ROOT" ] || { echo "missing: $DEFAULT_SKILLS_ROOT" >&2; broken=1; }
   if [ "$broken" -ne 0 ]; then
