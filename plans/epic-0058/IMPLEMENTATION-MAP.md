@@ -302,7 +302,7 @@ Se 0058-0006 passar review, os 3 scripts bash (Fase 1) estão validados por cont
 | 11 | TASK-0058-0008-001 | 0058-0008 | — | 4 |
 | 12 | TASK-0058-0008-002 | 0058-0008 | — | 4 |
 
-**Total: 40 tasks em 5 fases de execução (números exatos por story: 5+5+5+5+6+7+4+6 = 43; nem todas detalhadas acima — visão resumida).**
+**Total: 43 tasks em 5 fases de execução (distribuição por story: 5+5+5+5+6+7+4+6 = 43; nem todas detalhadas acima — visão resumida).**
 
 ### 8.3 Grafo de Dependências entre Tasks (Mermaid)
 

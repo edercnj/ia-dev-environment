@@ -9,16 +9,16 @@
 As Rules 19, 21, 22, 23 e 24 referenciam 5 scripts de auditoria CI como mecanismo de enforcement, mas o catálogo está em estado inconsistente:
 
 - **3 dos 5 scripts não existem fisicamente no repositório:**
-  - `scripts/audit-flow-version.sh` (citado em `.claude/rules/19-backward-compatibility.md:103`) — ausente.
-  - `scripts/audit-epic-branches.sh` (citado em `.claude/rules/21-epic-branch-model.md:71`) — ausente.
-  - `scripts/audit-skill-visibility.sh` (citado em `.claude/rules/22-skill-visibility.md:76,93`) — ausente.
-  - `scripts/audit-model-selection.sh` (Rule 23:90) — existe.
-  - `scripts/audit-execution-integrity.sh` (Rule 24:34,65,77,105) — existe.
+  - `scripts/audit-flow-version.sh` (citado em `java/src/main/resources/targets/claude/rules/19-backward-compatibility.md:103`) — ausente.
+  - `scripts/audit-epic-branches.sh` (citado em `java/src/main/resources/targets/claude/rules/21-epic-branch-model.md:71`) — ausente.
+  - `scripts/audit-skill-visibility.sh` (citado em `java/src/main/resources/targets/claude/rules/22-skill-visibility.md:76,93`) — ausente.
+  - `scripts/audit-model-selection.sh` (citado em `java/src/main/resources/targets/claude/rules/23-model-selection.md:90`) — existe.
+  - `scripts/audit-execution-integrity.sh` (citado em `java/src/main/resources/targets/claude/rules/24-execution-integrity.md:34,65,77,105`) — existe.
 
 - **Nenhum dos 5 scripts é gerado pelo `ia-dev-env`.** O pipeline de geração (22 assemblers em `AssemblerFactory.java`) produz `.claude/hooks/` via `HooksAssembler` (para Claude Code hooks de runtime) e `.github/workflows/` via `CicdAssembler`, mas **não produz nenhum diretório `scripts/` ou `.claude/scripts/`**. Os dois scripts existentes (`audit-model-selection.sh` e `audit-execution-integrity.sh`) vivem apenas em `/scripts/` na raiz deste repositório, manuscritos, versionados direto — e portanto **nenhum projeto gerado por `ia-dev-env` herda esses gates de CI.** Quebra a simetria com outros artefatos (hooks, rules, skills, templates).
 
 - **Fragmentação sem catálogo canônico.** Os gates de governance deste repositório estão espalhados em 4 lugares distintos sem um documento mestre que cruze `gate → rule → tipo → localização → exit code`:
-  - Hooks runtime: `.claude/hooks/verify-story-completion.sh` (Stop hook, Rule 24 Camada 2).
+  - Hooks runtime: `java/src/main/resources/targets/claude/hooks/verify-story-completion.sh` (Stop hook, Rule 24 Camada 2).
   - CI scripts: `scripts/audit-*.sh` (Rules 22/23/24, Camada 3).
   - Java tests: `LifecycleIntegrityAuditTest.java` (EPIC-0046), `TelemetryMarkerLint.java` (Rule 13).
   - CI workflows: `.github/workflows/*.yml` (parcial — invoca alguns dos scripts).
