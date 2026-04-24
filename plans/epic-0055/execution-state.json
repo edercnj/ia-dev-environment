@@ -6,22 +6,23 @@
   "autoMergeStrategy": "merge",
   "startedAt": "2026-04-24T00:00:00Z",
   "resumedAt": "2026-04-24T00:00:00Z",
+  "completedAt": "2026-04-24T00:00:00Z",
   "taskTracking": {
     "enabled": true
   },
   "storyStatuses": {
     "story-0055-0001": { "status": "SUCCESS", "phase": 0, "prNumber": 633, "prMergeStatus": "MERGED" },
     "story-0055-0002": { "status": "SUCCESS", "phase": 0, "prNumber": 633, "prMergeStatus": "MERGED" },
-    "story-0055-0003": { "status": "PENDING", "phase": 1 },
-    "story-0055-0004": { "status": "PENDING", "phase": 1 },
-    "story-0055-0005": { "status": "PENDING", "phase": 1 },
+    "story-0055-0003": { "status": "SUCCESS", "phase": 1, "commitSha": "86677d1cd" },
+    "story-0055-0004": { "status": "SUCCESS", "phase": 1, "commitSha": "23166c4a0" },
+    "story-0055-0005": { "status": "SUCCESS", "phase": 1, "commitSha": "e9b8290f4" },
     "story-0055-0006": { "status": "SUCCESS", "phase": 2, "prNumber": 636, "prMergeStatus": "MERGED", "note": "implemented ahead of 0005 dep — pragmatic" },
     "story-0055-0007": { "status": "SUCCESS", "phase": 2, "prNumber": 637, "prMergeStatus": "MERGED", "note": "implemented ahead of 0005 dep — pragmatic" },
-    "story-0055-0008": { "status": "PENDING", "phase": 2 },
-    "story-0055-0009": { "status": "PENDING", "phase": 2 },
-    "story-0055-0010": { "status": "PENDING", "phase": 2 },
-    "story-0055-0011": { "status": "SUCCESS", "phase": 3, "prNumber": 635, "prMergeStatus": "MERGED", "note": "escopo ajustado — subset assertions; full expansion after 0008-0010" },
-    "story-0055-0012": { "status": "PENDING", "phase": 3 }
+    "story-0055-0008": { "status": "SUCCESS", "phase": 2, "commitSha": "b3a31c2cb" },
+    "story-0055-0009": { "status": "SUCCESS", "phase": 2, "commitSha": "b3a31c2cb" },
+    "story-0055-0010": { "status": "SUCCESS", "phase": 2, "commitSha": "b3a31c2cb" },
+    "story-0055-0011": { "status": "SUCCESS", "phase": 3, "prNumber": 635, "prMergeStatus": "MERGED", "note": "escopo ajustado — foundation assertions; full audit via story 0012" },
+    "story-0055-0012": { "status": "SUCCESS", "phase": 3, "commitSha": "539f7dd0c" }
   },
   "executionOrder": [
     "story-0055-0001",
@@ -37,5 +38,6 @@
     "story-0055-0011",
     "story-0055-0012"
   ],
-  "parallelismDowngrades": []
+  "parallelismDowngrades": [],
+  "epicStatus": "COMPLETE"
 }
