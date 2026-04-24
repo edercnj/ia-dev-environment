@@ -91,6 +91,26 @@ New fields added to `execution-state.json` (e.g., `parallelismDowngrades` in EPI
 2. Be documented in the companion ADR and in this rule's fallback matrix.
 3. Have a fallback entry defined here before any orchestrator reads them in production.
 
+### `taskTracking` Field (EPIC-0055)
+
+Added by EPIC-0055 (Rule 25 — Task Hierarchy & Phase Gate Enforcement). Controls whether orchestrators emit `TaskCreate`/`TaskUpdate` calls and invoke `x-internal-phase-gate`.
+
+| Condition on `taskTracking` | Resolved behavior | Warning? |
+| :--- | :--- | :--- |
+| Field absent (legacy state file pre-EPIC-0055) | `enabled=false` — tracking skipped, gates are no-ops | **Yes** — emitted once per orchestrator run |
+| `taskTracking.enabled = false` (explicit) | Tracking skipped, gates are no-ops | No |
+| `taskTracking.enabled = true` (explicit) | Full tracking active — `TaskCreate`/`TaskUpdate` emitted, gates enforced | No |
+
+**Warning format (when field is absent):**
+
+```
+WARN [taskTracking-fallback] execution-state.json has no taskTracking field;
+     defaulting to disabled (legacy behavior). To enable Rule 25 task hierarchy,
+     add {"taskTracking": {"enabled": true}} to the state file.
+```
+
+**Migration:** Run `scripts/migrate-task-tracking.sh` to add `{"taskTracking": {"enabled": false}}` to all existing `execution-state.json` files that lack the field. This is a safe, additive, idempotent migration (performed by story-0055-0012 for all pre-EPIC-0055 epics).
+
 ## Forbidden
 
 - Removing `flowVersion` resolution logic from orchestrators during the deprecation window.

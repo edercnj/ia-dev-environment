@@ -193,7 +193,7 @@ On `passed=false`: remediation agent (or `--revert-on-failure` revert) + one ret
 
 Optional post-gate PR-comment remediation (unless `--skip-pr-comments`):
 
-    Skill(skill: "x-pr-fix-epic", args: "<EPIC-ID>")
+    Skill(skill: "x-pr-fix-epic", model: "sonnet", args: "<EPIC-ID>")
 
 Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-epic-implement --phase Phase-4-Gate")
 
