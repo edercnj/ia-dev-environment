@@ -15,7 +15,6 @@
 x-task-implement # retirado-por: story-0055-0003
 x-story-implement # retirado-por: story-0055-0004
 x-epic-implement # retirado-por: story-0055-0005
-x-review-pr # retirado-por: story-0055-0007
 x-release # retirado-por: story-0055-0008
 x-epic-orchestrate # retirado-por: story-0055-0009
 x-pr-merge-train # retirado-por: story-0055-0010
