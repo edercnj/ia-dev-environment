@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **EPIC-0054 story-0054-0002 (ADR-0012 rollout — medium orchestrators):** slim
+  rewrite of `x-task-implement` (824 → 100 lines, 4 telemetry marker pairs preserved),
+  `x-security-pipeline` (576 → 73 lines, 3-platform YAML in references), and
+  `x-git-worktree` (569 → 66 lines, 5-operation contract in references). Each skill
+  body contains only 5 canonical ADR-0012 sections. Baseline exemptions removed for
+  all 3. `Epic0054CompressionSmokeTest` extended with medium-skills assertion.
+
 - **EPIC-0054 story-0054-0001 (ADR-0012 rollout — PR-domain skills):** slim
   rewrite of `x-pr-fix-epic` (1297 → 69 lines) and `x-pr-merge-train`
   (873 → 73 lines) per ADR-0012 flipped-orientation contract. Each skill body

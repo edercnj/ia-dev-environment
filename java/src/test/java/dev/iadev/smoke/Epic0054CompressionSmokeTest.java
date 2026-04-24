@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * with a non-empty {@code references/full-protocol.md} sibling.
  * Assertions grow incrementally as stories are merged:
  * story-0054-0001 covers PR-domain (x-pr-fix-epic, x-pr-merge-train);
+ * story-0054-0002 covers medium orchestrators (x-task-implement, x-security-pipeline, x-git-worktree);
  * subsequent stories add their respective skills.</p>
  *
  * @see Epic0047CompressionSmokeTest
@@ -52,6 +53,17 @@ class Epic0054CompressionSmokeTest extends SmokeTestBase {
             "x-pr-fix-epic",
             "x-pr-merge-train");
 
+    /**
+     * Medium orchestrator skills from story-0054-0002.
+     * x-task-implement: 824 → ≤ 250 lines
+     * x-security-pipeline: 576 → ≤ 250 lines
+     * x-git-worktree: 569 → ≤ 250 lines
+     */
+    private static final List<String> STORY_0002_MEDIUM_SKILLS = List.of(
+            "x-task-implement",
+            "x-security-pipeline",
+            "x-git-worktree");
+
     @ParameterizedTest(name = "[{0}]")
     @MethodSource("dev.iadev.smoke.SmokeProfiles#profiles")
     @DisplayName(
@@ -66,6 +78,58 @@ class Epic0054CompressionSmokeTest extends SmokeTestBase {
         Path skillsDir = getOutputDir(profile).resolve(".claude/skills");
 
         for (String leaf : STORY_0001_PR_DOMAIN_SKILLS) {
+            Path skillDir = skillsDir.resolve(leaf);
+            Path skillMd = skillDir.resolve("SKILL.md");
+
+            assertThat(Files.isRegularFile(skillMd))
+                    .as("profile %s: %s/SKILL.md must exist", profile, leaf)
+                    .isTrue();
+
+            String content = Files.readString(skillMd, StandardCharsets.UTF_8);
+            int lineCount = content.split("\n", -1).length;
+
+            assertThat(lineCount)
+                    .as("profile %s: %s/SKILL.md must be ≤ %d lines "
+                                    + "(ADR-0012 hard limit); got %d lines",
+                            profile, leaf, SLIM_HARD_LIMIT, lineCount)
+                    .isLessThanOrEqualTo(SLIM_HARD_LIMIT);
+
+            for (String header : REQUIRED_SLIM_HEADERS) {
+                assertThat(content)
+                        .as("profile %s: %s/SKILL.md must contain "
+                                        + "mandatory slim header '%s' (ADR-0012)",
+                                profile, leaf, header)
+                        .contains(header);
+            }
+
+            Path fullProtocol = skillDir.resolve("references/full-protocol.md");
+            assertThat(Files.isRegularFile(fullProtocol))
+                    .as("profile %s: %s/references/full-protocol.md must exist "
+                                    + "(ADR-0012 carve-out invariant)",
+                            profile, leaf)
+                    .isTrue();
+            assertThat(Files.size(fullProtocol))
+                    .as("profile %s: %s/references/full-protocol.md must "
+                                    + "be non-empty",
+                            profile, leaf)
+                    .isGreaterThan(0L);
+        }
+    }
+
+    @ParameterizedTest(name = "[{0}]")
+    @MethodSource("dev.iadev.smoke.SmokeProfiles#profiles")
+    @DisplayName(
+            "smoke_mediumSkillsSlimWithFullProtocol — "
+                    + "x-task-implement, x-security-pipeline, and x-git-worktree "
+                    + "have SKILL.md ≤ 500 lines, all 5 canonical headers, "
+                    + "and a non-empty references/full-protocol.md "
+                    + "(story-0054-0002 ADR-0012 invariant)")
+    void smoke_mediumSkillsSlimWithFullProtocol(String profile)
+            throws IOException {
+        runPipeline(profile);
+        Path skillsDir = getOutputDir(profile).resolve(".claude/skills");
+
+        for (String leaf : STORY_0002_MEDIUM_SKILLS) {
             Path skillDir = skillsDir.resolve(leaf);
             Path skillMd = skillDir.resolve("SKILL.md");
 
