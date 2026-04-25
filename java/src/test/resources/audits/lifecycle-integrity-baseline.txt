@@ -1,0 +1,75 @@
+# lifecycle-integrity-baseline.txt
+# Artifacts grandfathered before RA9 enforcement (EPIC-0056 / Rule-006).
+# All story/epic/task files under plans/epic-0001 through plans/epic-0058
+# are legacies and exempt from RA9_SECTIONS_MISSING, RA9_RATIONALE_EMPTY,
+# RA9_PACKAGES_MISSING.
+#
+# Note: epic-0056 itself is the introduction of RA9; its own planning files
+# are pre-RA9 and exempted. Epics 0057-0058 already existed in the repo
+# at the time RA9 enforcement was introduced and are also grandfathered.
+# Any NEW epic (0059+) must produce RA9-compliant artifacts.
+#
+# Format: one glob pattern per line (# = comment, blank = skip).
+# Any NEW artifact added after EPIC-0056 merges must NOT be added here.
+#
+# Immutability enforced by CI: adding entries after the merge of
+# feat/story-0056-0007* fails the build.
+
+plans/epic-0001/**
+plans/epic-0002/**
+plans/epic-0003/**
+plans/epic-0004/**
+plans/epic-0005/**
+plans/epic-0006/**
+plans/epic-0007/**
+plans/epic-0008/**
+plans/epic-0009/**
+plans/epic-0010/**
+plans/epic-0011/**
+plans/epic-0012/**
+plans/epic-0013/**
+plans/epic-0014/**
+plans/epic-0015/**
+plans/epic-0016/**
+plans/epic-0017/**
+plans/epic-0018/**
+plans/epic-0019/**
+plans/epic-0020/**
+plans/epic-0021/**
+plans/epic-0022/**
+plans/epic-0023/**
+plans/epic-0024/**
+plans/epic-0025/**
+plans/epic-0026/**
+plans/epic-0027/**
+plans/epic-0028/**
+plans/epic-0029/**
+plans/epic-0030/**
+plans/epic-0031/**
+plans/epic-0032/**
+plans/epic-0033/**
+plans/epic-0034/**
+plans/epic-0035/**
+plans/epic-0036/**
+plans/epic-0037/**
+plans/epic-0038/**
+plans/epic-0039/**
+plans/epic-0040/**
+plans/epic-0041/**
+plans/epic-0042/**
+plans/epic-0043/**
+plans/epic-0044/**
+plans/epic-0045/**
+plans/epic-0046/**
+plans/epic-0047/**
+plans/epic-0048/**
+plans/epic-0049/**
+plans/epic-0050/**
+plans/epic-0051/**
+plans/epic-0052/**
+plans/epic-0053/**
+plans/epic-0054/**
+plans/epic-0055/**
+plans/epic-0056/**
+plans/epic-0057/**
+plans/epic-0058/**

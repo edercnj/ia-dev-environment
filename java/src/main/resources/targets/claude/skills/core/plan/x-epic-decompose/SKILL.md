@@ -33,14 +33,21 @@ Orchestrate the full decomposition of a system specification into three delivera
 Read these files before starting:
 
 **Templates (output structure) — read all three:**
-- `.claude/templates/_TEMPLATE-EPIC.md`
-- `.claude/templates/_TEMPLATE-STORY.md`
+- `.claude/templates/_TEMPLATE-EPIC.md` (RA9 v2: 9 sections)
+- `.claude/templates/_TEMPLATE-STORY.md` (RA9 v2: 9 sections)
 - `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md`
+
+**RA9 planning contract (source of truth for 9-section model):**
+- `.claude/skills/planning-standards-kp/SKILL.md` — Defines all 9 RA9 sections, granularity per level (Epic/Story/Task), Packages catalog format, and Decision Rationale micro-template. Read before generating Sections 2 and 8.
 
 **Decomposition philosophy:**
 - `references/decomposition-guide.md` (bundled with this skill)
 
 If any template is missing, stop and tell the user.
+
+> **RA9 guidance (EPIC-0056):** For each generated Epic and Story, explicitly fill:
+> - **Section 2 (Packages Hexagonal):** Map packages from spec analysis to the 5 hexagonal layers. Propagate epic-level catalog as subsets to each story.
+> - **Section 8 (Decision Rationale):** Extract architectural decisions. Minimum 1 item per Epic/Story using the 4-line micro-template. Task accepts `N/A — <reason>`.
 
 ## Workflow Overview
 

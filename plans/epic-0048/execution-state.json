@@ -14,7 +14,7 @@
     "batchApproval": true,
     "taskTracking": true
   },
-  "currentPhase": "phase-4-complete",
+  "currentPhase": null,
   "stories": {
     "story-0048-0001": {
       "id": "story-0048-0001",
@@ -175,7 +175,7 @@
       "phase": 7,
       "status": "DEFERRED",
       "findingsCount": 0,
-      "summary": "Epic0048EndToEndTest + negative tests + @Disabled cleanup \u2014 DEFERRED: out of v4.0.0 scope (preserved in CHANGELOG \u00a7Deferred)",
+      "summary": "Epic0048EndToEndTest + negative tests + @Disabled cleanup — DEFERRED: out of v4.0.0 scope (preserved in CHANGELOG §Deferred)",
       "retries": 0,
       "blockedBy": [
         "story-0048-0009",
