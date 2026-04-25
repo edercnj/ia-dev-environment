@@ -34,7 +34,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>Files matching patterns in
  * {@code audits/lifecycle-integrity-baseline.txt} (resource)
- * are grandfathered (epics 0001–0055) and skipped.</p>
+ * are grandfathered (epics 0001–0058) and skipped. Epic-0056
+ * itself is the introduction of RA9, so its planning files
+ * predate RA9 and are exempted. Epics 0057-0058 already
+ * existed at the time RA9 was introduced and are likewise
+ * exempt.</p>
  *
  * <p>Files containing {@code <!-- audit-exempt -->} are also
  * skipped.</p>
@@ -42,8 +46,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("LifecycleIntegrityAuditTest — RA9 compliance")
 class LifecycleIntegrityAuditTest {
 
-    private static final Path PLANS_ROOT =
-            Path.of("..").resolve("plans").normalize();
+    /**
+     * Candidate locations for the {@code plans/} directory,
+     * ordered by check priority. Tests can be invoked from
+     * either the repo root (Maven via parent build) or the
+     * {@code java/} subdir (direct {@code mvn -f java/pom.xml}).
+     * Both must locate the same canonical {@code plans/}.
+     */
+    private static final List<Path> PLANS_CANDIDATES = List.of(
+            Path.of("plans").toAbsolutePath().normalize(),
+            Path.of("..").resolve("plans")
+                    .toAbsolutePath().normalize());
 
     private static final String BASELINE_RESOURCE =
             "/audits/lifecycle-integrity-baseline.txt";
@@ -62,18 +75,12 @@ class LifecycleIntegrityAuditTest {
     @DisplayName("audit_planningArtifacts_noRa9Violations")
     void audit_planningArtifacts_noRa9Violations()
             throws IOException {
-        if (!Files.isDirectory(PLANS_ROOT)) {
-            System.out.println(
-                    "[LifecycleIntegrityAuditTest] plans/ dir not found"
-                    + " at " + PLANS_ROOT.toAbsolutePath()
-                    + " — skipping audit (not a repo root run).");
-            return;
-        }
+        Path plansRoot = resolvePlansRoot();
 
         Set<String> baselinePatterns = loadBaseline();
         List<String> allViolations = new ArrayList<>();
 
-        try (Stream<Path> files = Files.walk(PLANS_ROOT)) {
+        try (Stream<Path> files = Files.walk(plansRoot)) {
             files.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".md"))
                     .filter(p -> isPlanningArtifact(p))
@@ -107,6 +114,26 @@ class LifecycleIntegrityAuditTest {
                 .isEmpty();
     }
 
+    /**
+     * Resolves the {@code plans/} directory across both supported
+     * working directories ({@code java/} subdir and repo root).
+     * Fails loudly when the directory cannot be located so the
+     * audit cannot silently skip in CI.
+     */
+    private Path resolvePlansRoot() {
+        for (Path candidate : PLANS_CANDIDATES) {
+            if (Files.isDirectory(candidate)) {
+                return candidate;
+            }
+        }
+        throw new IllegalStateException(
+                "[LifecycleIntegrityAuditTest] plans/ directory"
+                + " not found in any candidate location: "
+                + PLANS_CANDIDATES
+                + ". The CI gate cannot run — investigate the"
+                + " working directory setup.");
+    }
+
     private boolean isPlanningArtifact(Path path) {
         String name = path.getFileName().toString();
         return PLANNING_ARTIFACT_PREFIXES.stream()
@@ -122,14 +149,25 @@ class LifecycleIntegrityAuditTest {
                         normalized, pattern));
     }
 
+    /**
+     * Glob matcher with strict path-segment boundaries.
+     *
+     * <p>{@code prefix/**} matches only paths that contain the
+     * directory {@code prefix} as a complete path segment
+     * (followed by {@code /}). Prevents over-matching:
+     * {@code plans/epic-0001/**} no longer matches
+     * {@code plans/epic-00010/**}.</p>
+     */
     private boolean matchesGlob(
             String path, String pattern) {
         if (pattern.endsWith("/**")) {
-            String prefix = pattern.substring(
+            String dir = pattern.substring(
                     0, pattern.length() - 3);
-            return path.contains(prefix);
+            return path.contains("/" + dir + "/")
+                    || path.startsWith(dir + "/");
         }
-        return path.contains(pattern);
+        return path.endsWith(pattern)
+                || path.contains("/" + pattern);
     }
 
     private Set<String> loadBaseline() {

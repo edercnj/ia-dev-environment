@@ -54,7 +54,7 @@ public final class Ra9RationaleChecker {
         String sectionBody = extractSectionBody(
                 content, sectionStart);
 
-        if (isNaAccepted(sectionBody)) {
+        if (isTaskArtifact(filename) && isNaAccepted(sectionBody)) {
             return List.of();
         }
 
@@ -90,6 +90,21 @@ public final class Ra9RationaleChecker {
 
     private boolean isNaAccepted(String body) {
         return body.startsWith("N/A") || body.startsWith("n/a");
+    }
+
+    /**
+     * N/A is accepted only for Task artifacts. Epic and Story
+     * MUST provide the full 4-line micro-template (Rule-002 of
+     * EPIC-0056). Detection by filename: {@code task-*.md} or
+     * any path segment containing {@code /task-}.
+     */
+    private boolean isTaskArtifact(String filename) {
+        String normalized = filename.replace('\\', '/');
+        int lastSlash = normalized.lastIndexOf('/');
+        String base = lastSlash >= 0
+                ? normalized.substring(lastSlash + 1)
+                : normalized;
+        return base.startsWith("task-");
     }
 
     private boolean isEmptyOrInvalid(String body) {

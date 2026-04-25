@@ -20,14 +20,32 @@ public final class Ra9PackagesChecker {
     private static final String SECTION_2_HEADER =
             "## 2. Packages (Hexagonal)";
 
-    private static final Pattern LAYER_LINE_PATTERN =
-            Pattern.compile("^[-*]\\s+`[^`]+`", Pattern.MULTILINE);
+    /**
+     * Bullet-list form: {@code - `path/to/File.java`} or
+     * {@code * `path/to/File.java`} — used by Epic and Story templates.
+     */
+    private static final Pattern BULLET_LAYER_PATTERN =
+            Pattern.compile("^[-*]\\s+`[^`]+`",
+                    Pattern.MULTILINE);
 
-    private static final Pattern ALL_DASH_PATTERN =
-            Pattern.compile("(?m)^—\\s*$");
+    /**
+     * Markdown-table form (used by the Task template):
+     * {@code | <layer> | `path/to/File.java` | <action> |}.
+     * The row must contain a backticked path inside a table cell
+     * (line starts with `|` and contains a backtick-wrapped token).
+     */
+    private static final Pattern TABLE_LAYER_PATTERN =
+            Pattern.compile("^\\|[^\\n]*`[^`]+`[^\\n]*\\|",
+                    Pattern.MULTILINE);
 
     /**
      * Checks section 2 for at least one non-dash layer entry.
+     *
+     * <p>Accepts both formats used by RA9 v2 templates:
+     * <ul>
+     *   <li>Bullet list ({@code - `path`}) — Epic, Story.</li>
+     *   <li>Markdown table row with backticked path — Task.</li>
+     * </ul>
      *
      * @param content  the full markdown content
      * @param filename filename for error messages
@@ -46,10 +64,12 @@ public final class Ra9PackagesChecker {
         String sectionBody = extractSectionBody(
                 content, sectionStart);
 
-        boolean hasRealContent =
-                LAYER_LINE_PATTERN.matcher(sectionBody).find();
+        boolean hasBulletEntry =
+                BULLET_LAYER_PATTERN.matcher(sectionBody).find();
+        boolean hasTableEntry =
+                TABLE_LAYER_PATTERN.matcher(sectionBody).find();
 
-        if (!hasRealContent) {
+        if (!hasBulletEntry && !hasTableEntry) {
             return List.of(buildViolation(filename));
         }
 

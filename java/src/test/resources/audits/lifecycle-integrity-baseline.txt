@@ -1,8 +1,13 @@
 # lifecycle-integrity-baseline.txt
 # Artifacts grandfathered before RA9 enforcement (EPIC-0056 / Rule-006).
-# All story/epic/task files under plans/epic-0001 through plans/epic-0055
+# All story/epic/task files under plans/epic-0001 through plans/epic-0058
 # are legacies and exempt from RA9_SECTIONS_MISSING, RA9_RATIONALE_EMPTY,
 # RA9_PACKAGES_MISSING.
+#
+# Note: epic-0056 itself is the introduction of RA9; its own planning files
+# are pre-RA9 and exempted. Epics 0057-0058 already existed in the repo
+# at the time RA9 enforcement was introduced and are also grandfathered.
+# Any NEW epic (0059+) must produce RA9-compliant artifacts.
 #
 # Format: one glob pattern per line (# = comment, blank = skip).
 # Any NEW artifact added after EPIC-0056 merges must NOT be added here.

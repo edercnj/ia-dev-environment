@@ -86,6 +86,32 @@ class Ra9RationaleCheckerTest {
     }
 
     @Test
+    @DisplayName("check_storyWithNa_flagsViolation")
+    void check_storyWithNa_flagsViolation() {
+        String content = SECTION_HEADER
+                + "N/A — sem trade-off.\n";
+        List<String> violations = checker.check(
+                content, "story-0060-0001.md");
+        assertThat(violations)
+                .as("N/A is accepted only on Task artifacts."
+                        + " Story MUST use the 4-line micro-template.")
+                .isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("check_epicWithNa_flagsViolation")
+    void check_epicWithNa_flagsViolation() {
+        String content = SECTION_HEADER
+                + "N/A — sem trade-off.\n";
+        List<String> violations = checker.check(
+                content, "plans/epic-0060/epic-0060.md");
+        assertThat(violations)
+                .as("Epic must use the 4-line micro-template,"
+                        + " not N/A")
+                .isNotEmpty();
+    }
+
+    @Test
     @DisplayName("check_noSection8_noViolation")
     void check_noSection8_noViolation() {
         String content = "## 1. Contexto & Escopo\ncontent\n";
