@@ -1,0 +1,25 @@
+{
+  "flowVersion": "2",
+  "epicId": "EPIC-0057",
+  "epicBranch": "epic/0057",
+  "startedAt": "2026-04-25T15:03:00Z",
+  "taskTracking": {
+    "enabled": true
+  },
+  "storyStatuses": {
+    "story-0057-0001": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0002": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0003": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0004": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0005": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0006": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0007": { "status": "PENDING", "flowVersion": "2" },
+    "story-0057-0008": { "status": "PENDING", "flowVersion": "2" }
+  },
+  "phases": [
+    { "phase": 0, "name": "Foundation Rules", "stories": ["story-0057-0001", "story-0057-0003"], "mode": "parallel", "status": "PENDING" },
+    { "phase": 1, "name": "Core Enforcement", "stories": ["story-0057-0002"], "mode": "sequential", "status": "PENDING" },
+    { "phase": 2, "name": "Retrofit + Hooks", "stories": ["story-0057-0004", "story-0057-0005", "story-0057-0006"], "mode": "sequential", "status": "PENDING" },
+    { "phase": 3, "name": "Cross-cutting", "stories": ["story-0057-0007", "story-0057-0008"], "mode": "sequential", "status": "PENDING" }
+  ]
+}
