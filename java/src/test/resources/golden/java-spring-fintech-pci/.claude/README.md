@@ -86,8 +86,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 23 | `23-model-selection.md` | model selection |
 | 24 | `24-execution-integrity.md` | execution integrity |
 | 25 | `25-task-hierarchy.md` | task hierarchy |
+| 45 | `45-ci-watch-integrity.md` | ci watch integrity |
 
-**Total: 19 rules**
+**Total: 20 rules**
 
 ### Numbering
 
@@ -323,7 +324,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 19 |
+| Rules (.claude) | 20 |
 | Skills (.claude) | 72 |
 | Knowledge Packs (.claude) | 12 |
 | Agents (.claude) | 14 |
