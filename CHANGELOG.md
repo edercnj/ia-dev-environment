@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Rule 25 / Rule 19 — `taskTracking.enabled` default flipped to `true`.**
+  When the `taskTracking` field is absent from `plans/epic-XXXX/execution-state.json`,
+  orchestrators now resolve `enabled=true` (was `false`) — full hierarchical task
+  tracking and phase-gate enforcement are active by default. Explicit
+  `{"taskTracking": {"enabled": false}}` and `--legacy-flow` remain the documented
+  opt-out paths for legacy epics. Updated source-of-truth: `hooks/verify-phase-gates.sh`,
+  `hooks/enforce-phase-sequence.sh`, `rules/19-backward-compatibility.md`,
+  `rules/25-task-hierarchy.md`, `x-internal-phase-gate/SKILL.md` and its
+  `references/full-protocol.md`. All 9 goldens regenerated.
+
 ## [4.1.0] - 2026-04-25
 
 ### Added

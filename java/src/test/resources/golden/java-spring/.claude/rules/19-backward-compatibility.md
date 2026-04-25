@@ -97,19 +97,13 @@ Added by EPIC-0055 (Rule 25 — Task Hierarchy & Phase Gate Enforcement). Contro
 
 | Condition on `taskTracking` | Resolved behavior | Warning? |
 | :--- | :--- | :--- |
-| Field absent (legacy state file pre-EPIC-0055) | `enabled=false` — tracking skipped, gates are no-ops | **Yes** — emitted once per orchestrator run |
-| `taskTracking.enabled = false` (explicit) | Tracking skipped, gates are no-ops | No |
+| Field absent | `enabled=true` — full tracking active, gates enforced (current default) | No |
+| `taskTracking.enabled = false` (explicit) | Tracking skipped, gates are no-ops (legacy opt-out) | No |
 | `taskTracking.enabled = true` (explicit) | Full tracking active — `TaskCreate`/`TaskUpdate` emitted, gates enforced | No |
 
-**Warning format (when field is absent):**
+**Opt-out:** To preserve pre-EPIC-0055 behavior on a specific epic, set `{"taskTracking": {"enabled": false}}` explicitly in its `execution-state.json`. The `--legacy-flow` flag on `x-epic-implement` also forces this opt-out.
 
-```
-WARN [taskTracking-fallback] execution-state.json has no taskTracking field;
-     defaulting to disabled (legacy behavior). To enable Rule 25 task hierarchy,
-     add {"taskTracking": {"enabled": true}} to the state file.
-```
-
-**Migration:** Run `scripts/migrate-task-tracking.sh` to add `{"taskTracking": {"enabled": false}}` to all existing `execution-state.json` files that lack the field. This is a safe, additive, idempotent migration (performed by story-0055-0012 for all pre-EPIC-0055 epics).
+**Migration:** Existing `execution-state.json` files without the field automatically receive the new default (`enabled=true`) on the next orchestrator run. No migration script is required for the default flip.
 
 ## Forbidden
 
