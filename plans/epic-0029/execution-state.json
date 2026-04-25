@@ -80,7 +80,10 @@
       "summary": "Created x-commit skill with SKILL.md, README.md, and GitHub Copilot variant. Implements Conventional Commits with Task ID scope (TASK-XXXX-YYYY-NNN), TDD tags, and pre-commit chain orchestration (x-format -> x-lint -> compile -> commit). Registered in SkillGroupRegistry dev group. All 5521 tests pass.",
       "retries": 0,
       "duration": 598,
-      "blockedBy": ["story-0029-0003", "story-0029-0004"],
+      "blockedBy": [
+        "story-0029-0003",
+        "story-0029-0004"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/211",
       "prNumber": 211,
       "prMergeStatus": "MERGED"
@@ -108,7 +111,9 @@
       "summary": "Created x-plan-task skill with SKILL.md and README.md for individual task planning. Per-task TDD cycle mapping in TPP order, file impact analysis by architecture layer, security checklist by task type, idempotency via staleness check, integration with x-dev-lifecycle PRE_PLANNED mode. Registered in SkillGroupRegistry story group. All 5521 tests pass.",
       "retries": 0,
       "duration": 2999,
-      "blockedBy": ["story-0029-0001"],
+      "blockedBy": [
+        "story-0029-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/213",
       "prNumber": 213,
       "prMergeStatus": "MERGED"
@@ -122,7 +127,10 @@
       "summary": "Created x-tdd skill with Red-Green-Refactor cycle management, TPP ordering, Double-Loop TDD integration, atomic commits via x-commit with TDD tags, --from-cycle resume, --dry-run mode, coverage checks, and auto-revert on failed refactoring. Generated 72 golden files. All tests pass.",
       "retries": 0,
       "duration": 2738,
-      "blockedBy": ["story-0029-0005", "story-0029-0007"],
+      "blockedBy": [
+        "story-0029-0005",
+        "story-0029-0007"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/216",
       "prNumber": 216,
       "prMergeStatus": "MERGED"
@@ -136,7 +144,9 @@
       "summary": "Created x-pr-create skill with 5-phase workflow (validate branch, pre-check tests, format title, generate structured body, auto-labels, create PR via gh CLI). Supports --draft, --auto-approve-pr, --description flags. Registered in SkillGroupRegistry. All 5521 tests pass.",
       "retries": 0,
       "duration": 617,
-      "blockedBy": ["story-0029-0005"],
+      "blockedBy": [
+        "story-0029-0005"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/214",
       "prNumber": 214,
       "prMergeStatus": "MERGED"
@@ -178,7 +188,9 @@
       "summary": "Refactored x-review orchestrator SKILL.md to delegate review execution to individual skills via Skill tool. Removed 9 inline checklists. Added Specialist Reference Table with 9 entries. Updated GitHub Copilot variant, 70 golden files across 17 profiles. All 5544 tests pass.",
       "retries": 0,
       "duration": 2726,
-      "blockedBy": ["story-0029-0011"],
+      "blockedBy": [
+        "story-0029-0011"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/212",
       "prNumber": 212,
       "prMergeStatus": "MERGED"
@@ -192,7 +204,10 @@
       "summary": "Enhanced x-story-create with formal testable tasks (Section 8 with TASK-XXXX-YYYY-NNN IDs, 6 testability patterns, 4 anti-pattern detections, sizing constraints min 3/max 8 tasks) and mandatory Section 3.5 (Value Delivery). Updated source templates and all 70 golden files.",
       "retries": 0,
       "duration": 661,
-      "blockedBy": ["story-0029-0001", "story-0029-0007"],
+      "blockedBy": [
+        "story-0029-0001",
+        "story-0029-0007"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/215",
       "prNumber": 215,
       "prMergeStatus": "MERGED"
@@ -206,7 +221,10 @@
       "summary": "Added Section 8 (Task-Level Dependencies) to x-story-map SKILL.md with cross-story task dependency extraction, RULE-012 validation, topological sort merge order, and Mermaid task dependency graph. Updated template and all 68 golden files. All 5521 tests pass.",
       "retries": 0,
       "duration": 1202,
-      "blockedBy": ["story-0029-0001", "story-0029-0013"],
+      "blockedBy": [
+        "story-0029-0001",
+        "story-0029-0013"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/218",
       "prNumber": 218,
       "prMergeStatus": "MERGED"
@@ -220,7 +238,14 @@
       "summary": "Major rewrite of x-dev-lifecycle for task-centric workflow. Phase 2 rewritten as Task Execution Loop (per-task: branch -> x-tdd -> x-pr-create -> approval gate). Phase 3 absorbs old Phases 3-8 as Story-Level Verification. Added --auto-approve-pr with parent branch model, resume per task, delegation to atomic skills. Updated templates and 68 golden files. 35 new tests. All 5556 tests pass.",
       "retries": 0,
       "duration": 1703,
-      "blockedBy": ["story-0029-0002", "story-0029-0005", "story-0029-0007", "story-0029-0008", "story-0029-0009", "story-0029-0012"],
+      "blockedBy": [
+        "story-0029-0002",
+        "story-0029-0005",
+        "story-0029-0007",
+        "story-0029-0008",
+        "story-0029-0009",
+        "story-0029-0012"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/219",
       "prNumber": 219,
       "prMergeStatus": "MERGED"
@@ -234,7 +259,11 @@
       "summary": "Enhanced x-dev-epic-implement with --auto-approve-pr propagation, --batch-approval for consolidated prompts, --task-tracking for task-level state in execution-state.json, cross-story task dependency enforcement, enhanced resume with task-level PR reclassification, backward compatibility via schema version. Updated templates and 68 golden files. All 5521 tests pass.",
       "retries": 0,
       "duration": 857,
-      "blockedBy": ["story-0029-0002", "story-0029-0006", "story-0029-0015"],
+      "blockedBy": [
+        "story-0029-0002",
+        "story-0029-0006",
+        "story-0029-0015"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/220",
       "prNumber": 220,
       "prMergeStatus": "MERGED"
@@ -248,7 +277,10 @@
       "summary": "Updated x-git-push with task-centric branch naming (feat/task-XXXX-YYYY-NNN-short-desc), task commit scope, task PR title/body templates, parent branch naming for auto-approve mode, and x-commit/x-pr-create delegation. Updated all 73 golden files. All 5521 tests pass.",
       "retries": 0,
       "duration": 523,
-      "blockedBy": ["story-0029-0005", "story-0029-0009"],
+      "blockedBy": [
+        "story-0029-0005",
+        "story-0029-0009"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/217",
       "prNumber": 217,
       "prMergeStatus": "MERGED"
@@ -262,7 +294,25 @@
       "summary": "Registered x-worktree, x-tdd, x-review-qa, x-review-perf in SkillGroupRegistry. Created GitHub Copilot templates for 4 new skills. Synced x-story-create section numbering. Regenerated golden files for all 17 profiles and expected-artifacts.json. Full build passes: 5670 unit + 837 integration tests, 0 failures.",
       "retries": 0,
       "duration": 4425,
-      "blockedBy": ["story-0029-0001", "story-0029-0002", "story-0029-0003", "story-0029-0004", "story-0029-0005", "story-0029-0006", "story-0029-0007", "story-0029-0008", "story-0029-0009", "story-0029-0010", "story-0029-0011", "story-0029-0012", "story-0029-0013", "story-0029-0014", "story-0029-0015", "story-0029-0016", "story-0029-0017"],
+      "blockedBy": [
+        "story-0029-0001",
+        "story-0029-0002",
+        "story-0029-0003",
+        "story-0029-0004",
+        "story-0029-0005",
+        "story-0029-0006",
+        "story-0029-0007",
+        "story-0029-0008",
+        "story-0029-0009",
+        "story-0029-0010",
+        "story-0029-0011",
+        "story-0029-0012",
+        "story-0029-0013",
+        "story-0029-0014",
+        "story-0029-0015",
+        "story-0029-0016",
+        "story-0029-0017"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/221",
       "prNumber": 221,
       "prMergeStatus": "MERGED"
@@ -303,5 +353,8 @@
     "uniqueFindings": 91,
     "actionableCount": 52,
     "reportPath": "plans/epic-0029/reports/pr-comments-report.md"
+  },
+  "taskTracking": {
+    "enabled": false
   }
 }

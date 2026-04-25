@@ -579,4 +579,128 @@ class CopyHelpersTest {
             assertThat(result).isTrue();
         }
     }
+
+    @Nested
+    @DisplayName("error paths — IOException wrapping")
+    class ErrorPaths {
+
+        @Test
+        @DisplayName("copyTemplateFile wraps IOException"
+                + " from missing source")
+        void copyTemplateFile_missingSource_throwsUnchecked(
+                @TempDir Path tempDir) {
+            Path src = tempDir.resolve("missing.md");
+            Path dest = tempDir.resolve("dest.md");
+            TemplateEngine engine = new TemplateEngine();
+
+            assertThatThrownBy(() -> CopyHelpers.copyTemplateFile(
+                    src, dest, engine, Map.of()))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("Failed to copy"
+                            + " template");
+        }
+
+        @Test
+        @DisplayName("copyStaticFile wraps IOException"
+                + " from missing source")
+        void copyStaticFile_missingSource_throwsUnchecked(
+                @TempDir Path tempDir) {
+            Path src = tempDir.resolve("missing.bin");
+            Path dest = tempDir.resolve("dest.bin");
+
+            assertThatThrownBy(() -> CopyHelpers.copyStaticFile(
+                    src, dest))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("Failed to copy"
+                            + " file");
+        }
+
+        @Test
+        @DisplayName("copyDirectory wraps IOException"
+                + " from missing source")
+        void copyDirectory_missingSource_throwsUnchecked(
+                @TempDir Path tempDir) {
+            Path srcDir = tempDir.resolve("missing-dir");
+            Path destDir = tempDir.resolve("out");
+
+            assertThatThrownBy(() -> CopyHelpers.copyDirectory(
+                    srcDir, destDir))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("Failed to copy"
+                            + " directory");
+        }
+
+        @Test
+        @DisplayName("writeFile wraps IOException when"
+                + " parent is an existing regular file")
+        void writeFile_parentIsFile_throwsUnchecked(
+                @TempDir Path tempDir) throws IOException {
+            Path parentAsFile = tempDir.resolve("blocker");
+            Files.writeString(parentAsFile, "block",
+                    StandardCharsets.UTF_8);
+            Path target = parentAsFile.resolve("child.md");
+
+            assertThatThrownBy(() -> CopyHelpers.writeFile(
+                    target, "data"))
+                    .isInstanceOf(UncheckedIOException.class);
+        }
+
+        @Test
+        @DisplayName("readFile wraps IOException from"
+                + " missing source")
+        void readFile_missingSource_throwsUnchecked(
+                @TempDir Path tempDir) {
+            Path src = tempDir.resolve("no-such-file.txt");
+
+            assertThatThrownBy(() -> CopyHelpers.readFile(src))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("Failed to read"
+                            + " file");
+        }
+
+        @Test
+        @DisplayName("ensureParent wraps IOException when"
+                + " parent creation collides with a file")
+        void ensureParent_parentIsFile_throwsUnchecked(
+                @TempDir Path tempDir) throws IOException {
+            Path fileBlocker = tempDir.resolve("blocker");
+            Files.writeString(fileBlocker, "x",
+                    StandardCharsets.UTF_8);
+            Path target = fileBlocker.resolve("child.md");
+
+            assertThatThrownBy(() -> CopyHelpers.ensureParent(
+                    target))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("Failed to create"
+                            + " parent directory");
+        }
+
+        @Test
+        @DisplayName("ensureParent is no-op when target"
+                + " has no parent (filesystem root)")
+        void ensureParent_nullParent_noop() {
+            Path fsRoot = Path.of("/");
+
+            CopyHelpers.ensureParent(fsRoot);
+            // No exception thrown; method returns normally.
+            // This covers the null-parent branch explicitly.
+        }
+
+        @Test
+        @DisplayName("ensureDirectory wraps IOException"
+                + " when the target collides with a file")
+        void ensureDirectory_collidesWithFile_throwsUnchecked(
+                @TempDir Path tempDir) throws IOException {
+            Path fileBlocker = tempDir.resolve("blocker");
+            Files.writeString(fileBlocker, "x",
+                    StandardCharsets.UTF_8);
+            Path target = fileBlocker.resolve("nested");
+
+            assertThatThrownBy(() -> CopyHelpers.ensureDirectory(
+                    target))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("Failed to create"
+                            + " directory");
+        }
+    }
 }

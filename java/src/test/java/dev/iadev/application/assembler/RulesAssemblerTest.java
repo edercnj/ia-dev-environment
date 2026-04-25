@@ -847,9 +847,13 @@ class RulesAssemblerTest {
             String expected = loadGoldenFile(
                     "05-quality-gates.md");
 
+            // EPIC-0050 coverage remediation aligned the
+            // source-of-truth thresholds with the review-
+            // enforced values (95%/90%).
             assertThat(expected)
-                    .contains("85%")
-                    .contains("80%");
+                    .contains("95%")
+                    .contains("90%")
+                    .contains("Absolute-Gate Rule");
         }
 
         @Test

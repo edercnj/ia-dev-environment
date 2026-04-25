@@ -1,6 +1,6 @@
 # Rule 03 — Coding Standards (Quick Reference)
 
-> **Full reference:** Read `skills/coding-standards/SKILL.md` before writing code.
+> **Full reference:** Read `knowledge/coding-standards.md` before writing code.
 
 ## Hard Limits
 
@@ -64,8 +64,8 @@
 - Refactoring NEVER adds behavior — if behavior changes, write a new failing test first
 - Test-first commits: test must appear in git history before or in the same commit as its implementation
 
-> **Full TDD reference:** Read `skills/testing/SKILL.md` for Double-Loop TDD, Transformation Priority Premise, and advanced TDD patterns.
+> **Full TDD reference:** Read `knowledge/testing.md` for Double-Loop TDD, Transformation Priority Premise, and advanced TDD patterns.
 
 ## Language-Specific Conventions
 
-> Read `skills/coding-standards/SKILL.md` for {{LANGUAGE}} {{LANGUAGE_VERSION}}-specific idioms, constructor injection patterns, mapper conventions, and formatting rules.
+> Read `knowledge/coding-standards.md` for {{LANGUAGE}} {{LANGUAGE_VERSION}}-specific idioms, constructor injection patterns, mapper conventions, and formatting rules.

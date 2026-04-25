@@ -29,5 +29,8 @@
       "prUrl": null,
       "completedAt": "2026-04-16T17:05:00Z"
     }
+  },
+  "taskTracking": {
+    "enabled": false
   }
 }

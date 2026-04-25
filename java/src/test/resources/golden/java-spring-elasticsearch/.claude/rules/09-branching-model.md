@@ -8,14 +8,18 @@
 |--------|---------|----------|--------------|-------------|
 | `main` | Production-ready code | Permanent | — | — |
 | `develop` | Integration branch for next release | Permanent | `main` (initial) | — |
+| `epic/*` | Epic integration branch (EPIC-0049) | Temporary | `develop` | `develop` (manual PR gate) |
 | `feature/*` | New feature development | Temporary | `develop` | `develop` |
 | `release/*` | Release stabilization | Temporary | `develop` | `main` + `develop` |
 | `hotfix/*` | Critical production fix | Temporary | `main` | `main` + `develop` |
+
+> **Epic branches (Rule 21):** `epic/XXXX` branches are the single integration point for all story PRs of an epic. Stories auto-merge into `epic/XXXX` (not `develop`); the epic-to-develop PR is a manual gate. See Rule 21 for details.
 
 ## Naming Conventions
 
 | Branch Type | Pattern | Examples |
 |-------------|---------|----------|
+| Epic | `epic/{epic-id}` | `epic/0049` |
 | Feature | `feature/{ticket-id}-{short-desc}` | `feature/PROJ-123-add-auth` |
 | Release | `release/{version}` | `release/1.2.0` |
 | Hotfix | `hotfix/{ticket-id}-{short-desc}` | `hotfix/PROJ-456-fix-crash` |
@@ -104,4 +108,4 @@ feature:       ●──●│  ●──●
 - Releasing without a `release/*` branch (see Rule 08)
 - Skipping the back-merge of `release/*` or `hotfix/*` into `develop`
 
-> Read `skills/protocols/SKILL.md` for branching strategies, hotfix procedures, and CI/CD pipeline configuration.
+> Read `knowledge/protocols.md` for branching strategies, hotfix procedures, and CI/CD pipeline configuration.

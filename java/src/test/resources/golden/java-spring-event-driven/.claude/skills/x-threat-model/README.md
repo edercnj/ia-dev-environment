@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Security |
 | **Invocation** | `/x-threat-model [architecture-plan-path] [--format stride\|pasta\|linddun] [--output results/security/]` |
-| **Reads** | `skills/security/` |
+| **Reads** | `knowledge/security/` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 

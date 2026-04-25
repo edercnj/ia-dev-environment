@@ -55,6 +55,13 @@ jobs:
           fi
           shellcheck -S warning -e SC2034 "${SCRIPTS[@]}"
 
+      # EPIC-0050 (Rule 23): audit model selection (Opus/Sonnet/Haiku)
+      # enforcement. Fails the PR when a SKILL.md, Agent() dispatch,
+      # Skill() dispatch, or agent metadata violates Rule 23.
+      - name: Audit Model Selection (Rule 23)
+        working-directory: ${{ github.workspace }}
+        run: scripts/audit-model-selection.sh
+
       - name: mvn -B verify
         run: mvn -B verify
 

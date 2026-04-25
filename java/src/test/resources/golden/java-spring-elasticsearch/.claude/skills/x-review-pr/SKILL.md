@@ -33,17 +33,14 @@ Execute a senior-level holistic review with a 45-point rubric. This is the stand
 
 ## Workflow
 
-```
-0. PRE-CHECK   -> Idempotency: skip if report exists and code unchanged (inline)
-1. DETECT      -> Identify branch, diff, story context (inline)
-2. GATHER      -> Read KPs, check existing artifacts (inline)
-3. TEMPLATE    -> Detect Tech Lead review template (inline)
-4. REVIEW      -> Execute 45-point Tech Lead review (inline)
-5. DASHBOARD   -> Update consolidated dashboard with Tech Lead Score (inline)
-6. REMEDIATION -> Update remediation tracking with FIXED/new findings (inline)
-7. RESULT      -> Process and display result (inline)
-8. NO-GO       -> Handle NO-GO decision (inline)
-```
+Five phases (Rule 25 REGRA-001, EPIC-0055). Each opens with `TaskCreate` + `--mode pre` gate, closes with `TaskUpdate(completed)` + POST/FINAL gate. P3 iterates sub-tasks per cycle. Mapping: P0 Context (Steps 0-3) · P1 Review (Step 4) · P2 Verdict (Steps 5,7) · P3 Remediation (Steps 6,8, iterative) · P4 Final approval.
+
+<!-- phase-no-gate: read-only pre-check + context gathering; no artifact produced until Phase 1 -->
+## Phase 0 — Context & idempotency
+
+Open (close with `TaskUpdate(id: phase0TaskId, status: "completed")` after Step 3):
+
+    TaskCreate(subject: "{STORY_ID} › Review-PR › Phase 0 - Context", activeForm: "Loading PR context")
 
 ### Step 0 — Idempotency Pre-Check (RULE-002 — Artifact reuse)
 
@@ -90,10 +87,10 @@ git diff [BASE_BRANCH] --name-only
 ### Step 2 — Gather Context
 
 Read knowledge packs to calibrate the review:
-- `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
-- `skills/architecture/references/architecture-principles.md` — layer boundaries, dependency direction
+- `knowledge/coding-standards/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
+- `knowledge/architecture/architecture-principles.md` — layer boundaries, dependency direction
 - `rules/05-quality-gates.md` — coverage thresholds, merge checklist
-- `skills/testing/references/testing-philosophy.md` — TDD workflow, Double-Loop TDD, TPP ordering
+- `knowledge/testing/testing-philosophy.md` — TDD workflow, Double-Loop TDD, TPP ordering
 
 Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from story ID):
 - Specialist review reports (`plans/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)
@@ -113,6 +110,17 @@ test -f .claude/templates/_TEMPLATE-TECH-LEAD-REVIEW.md && echo "TL_TEMPLATE_AVA
 - If `TL_TEMPLATE_MISSING`: log warning `Template not found, using inline format` and use the inline format as fallback (RULE-012 — Graceful template fallback). Dashboard and remediation updates are skipped when template is absent.
 
 > **Fallback (RULE-012 — Graceful template fallback):** When template is not available (pre-EPIC-0024 projects), the current inline format is used as fallback. Skip dashboard and remediation updates since they depend on template-based artifacts.
+
+## Phase 1 — Execute 45-point review
+
+Open a phase tracker; PRE gate ensures Phase 0 completed:
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-review-pr --phase Phase-1-Review")
+    TaskCreate(subject: "{STORY_ID} › Review-PR › Phase 1 - Review", activeForm: "Running 45-point tech-lead review")
+
+Close with `TaskUpdate(id: phase1TaskId, status: "completed")` + POST gate after Step 4 finishes (the rubric execution is the evidence):
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-review-pr --phase Phase-1-Review --expected-artifacts plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md")
 
 ### Step 4 — Execute Tech Lead Review
 
@@ -135,6 +143,7 @@ The Tech Lead review covers:
    ```
    - If line coverage < 95% or branch coverage < 90%: record as CRITICAL finding in report
    - Include coverage percentages in the **Test Execution Results** section
+   - **Absolute-gate note (Rule 05 RULE-005-01):** the gate fires regardless of whether the deficit was caused by this PR or was pre-existing on the base branch. The Tech Lead MUST NOT override NO-GO with a "pre-existing" justification. The only permitted escape paths are: (a) close the gap in this PR, (b) close it in a predecessor PR, or (c) merge an approved ADR that temporarily lowers the gate for a specific package (with sunset date).
 8. **Execute smoke tests** (CONDITIONAL — EPIC-0042, only when `testing.smoke_tests == true`):
    ```bash
    {{SMOKE_COMMAND}}
@@ -166,7 +175,18 @@ The Tech Lead review covers:
 | >= 38/45 + zero issues | GO              |
 | < 38/45 OR any issue   | NO-GO           |
 | ANY test failure (unit, integration, or smoke) | NO-GO (automatic, overrides score) |
-| Coverage below 95% line OR 90% branch  | NO-GO (automatic, overrides score) |
+| Coverage below 95% line OR 90% branch  | NO-GO (automatic, overrides score — **absolute gate per Rule 05 RULE-005-01; pre-existing deficits are NOT an excuse**) |
+
+## Phase 2 — Compile verdict & publish dashboard
+
+Open a phase tracker (PRE gate: Phase 1 must have completed):
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-review-pr --phase Phase-2-Verdict")
+    TaskCreate(subject: "{STORY_ID} › Review-PR › Phase 2 - Verdict", activeForm: "Compiling GO/NO-GO verdict")
+
+Close with `TaskUpdate(id: phase2TaskId, status: "completed")` + POST gate after Step 7:
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-review-pr --phase Phase-2-Verdict --expected-artifacts plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md")
 
 ### Step 5 — Update Consolidated Dashboard
 
@@ -196,6 +216,18 @@ The dashboard is **cumulative** (RULE-006): created by `/x-review` (specialist s
    - If template available: read template and create `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` with only the Tech Lead Score populated (specialist scores marked as `--` / `Pending`)
    - If template missing: skip dashboard creation with warning
 
+<!-- phase-no-gate: remediation is iterative by nature; each cycle K emits its own sub-task. Gate would fire inside the loop. -->
+## Phase 3 — Remediation loop (iterative)
+
+Runs only on NO-GO (or `--no-auto-remediation` bypass at Step 8.4). Each cycle chained via `addBlockedBy`, cap 3 per Rule 20:
+
+    TaskCreate(subject: "{STORY_ID} › Review-PR › Phase 3 - Remediation cycle 1", activeForm: "Running remediation cycle 1")
+    TaskUpdate(id: cycle1Id, status: "completed")
+    TaskCreate(subject: "{STORY_ID} › Review-PR › Phase 3 - Remediation cycle 2", activeForm: "Running remediation cycle 2") /* addBlockedBy: [cycle1Id] */
+    TaskUpdate(id: cycle2Id, status: "completed")
+
+On convergence (GO) or exhaustion (`REVIEW_REMEDIATION_EXHAUSTED` / `REVIEW_FIX_LOOP_EXCEEDED`), proceed to Phase 4.
+
 ### Step 6 — Update Remediation Tracking
 
 After updating the dashboard, update the remediation tracking file.
@@ -221,6 +253,17 @@ After updating the dashboard, update the remediation tracking file.
      ```
    - If template available: read template and create `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` with only findings from the Tech Lead review (all as `Open`)
    - If template missing: skip remediation creation with warning
+
+## Phase 4 — Final approval & report
+
+Open a phase tracker (PRE gate: Phase 2 verdict must be resolved; Phase 3 may have run):
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-review-pr --phase Phase-4-Approval")
+    TaskCreate(subject: "{STORY_ID} › Review-PR › Phase 4 - Approval", activeForm: "Finalizing approval and report")
+
+Close with `TaskUpdate(id: phase4TaskId, status: "completed")` + FINAL gate (composes with Rule 24 mandatory-artifact scan):
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode final --skill x-review-pr --phase Phase-4-Approval --expected-artifacts plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md,plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md,plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md")
 
 ### Step 7 — Process Result
 

@@ -12,7 +12,7 @@ Senior Site Reliability Engineer specialized in production readiness, service re
 **REVIEWER** — Evaluates code changes for reliability, operability, and production-readiness.
 
 ## Recommended Model
-**Adaptive** — Sonnet for standard reliability checks, Opus for SLO design, capacity planning, incident response patterns, or chaos engineering analysis.
+**Sonnet** — Reliability review against SRE checklists (SLO adherence, toil reduction, incident response posture) is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Expertise Areas
 

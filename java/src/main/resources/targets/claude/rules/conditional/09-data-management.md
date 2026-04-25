@@ -1,6 +1,6 @@
 # Rule 09 — Data Management
 
-> **Full reference:** Read `skills/database-patterns/SKILL.md` for detailed database patterns and migration strategies.
+> **Full reference:** Read `knowledge/database-patterns/index.md` for detailed database patterns and migration strategies.
 
 ## Database: {DATABASE_NAME}
 
@@ -69,4 +69,4 @@
 - Queries without timeout configuration
 - Orphaned data (foreign key references to deleted records)
 
-> Read `skills/database-patterns/SKILL.md` for ORM patterns, connection pool tuning, and query optimization.
+> Read `knowledge/database-patterns/index.md` for ORM patterns, connection pool tuning, and query optimization.

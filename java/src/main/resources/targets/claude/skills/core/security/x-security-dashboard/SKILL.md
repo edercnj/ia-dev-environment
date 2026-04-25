@@ -373,8 +373,8 @@ If a user needs fresh scan data, run the individual scanning skills first, then 
 
 | # | Knowledge Pack | Path | Purpose |
 |---|----------------|------|---------|
-| 1 | Security Scoring | `skills/security/references/security-scoring.md` | Scoring model and grade thresholds |
-| 2 | Security Skill Template | `skills/security/references/security-skill-template.md` | Output conventions for scan results |
+| 1 | Security Scoring | `knowledge/security/security-scoring.md` | Scoring model and grade thresholds |
+| 2 | Security Skill Template | `knowledge/security/security-skill-template.md` | Output conventions for scan results |
 
 ## Integration Notes
 

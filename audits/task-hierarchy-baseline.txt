@@ -1,0 +1,14 @@
+# Task Hierarchy Baseline — Rule 25 grandfather list
+#
+# Orchestrators listed here are exempted from audit-task-hierarchy.sh
+# and audit-phase-gates.sh during the deprecation window. Each entry
+# MUST cite the retrofit story that will remove it.
+#
+# IMMUTABLE after EPIC-0055 merges into main. CI rejects additions
+# post-merge (separate immutability check in audit-task-hierarchy.sh
+# --self-check).
+#
+# Format: <skill-name> # retirado-por: story-XXXX-YYYY
+#
+# See: .claude/rules/25-task-hierarchy.md §Audit Contract
+

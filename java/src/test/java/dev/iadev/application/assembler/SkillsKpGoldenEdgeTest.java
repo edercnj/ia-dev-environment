@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for SkillsAssembler — knowledge packs,
  * golden file parity, and edge cases.
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("SkillsAssembler — KP + golden + edge")
 class SkillsKpGoldenEdgeTest {
 
@@ -207,29 +209,6 @@ class SkillsKpGoldenEdgeTest {
         }
 
         @Test
-        @DisplayName("ci-cd-patterns SKILL.md has valid"
-                + " frontmatter")
-        void assemble_ciCdPatterns_hasValidFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/ci-cd-patterns/"
-                                    + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("name: ci-cd-patterns")
-                    .contains("user-invocable: false");
-        }
-
-        @Test
         @DisplayName("ci-cd-patterns contains pipeline"
                 + " patterns section")
         void assemble_ciCdPatterns_hasPipelinePatterns(
@@ -260,29 +239,6 @@ class SkillsKpGoldenEdgeTest {
     @Nested
     @DisplayName("assemble — release-management KP")
     class ReleaseManagementKp {
-
-        @Test
-        @DisplayName("release-management has valid"
-                + " frontmatter")
-        void assemble_releaseManagement_hasValidFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/release-management/"
-                                    + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("name: release-management")
-                    .contains("user-invocable: false");
-        }
 
         @Test
         @DisplayName("release-management has all 8 sections")
@@ -374,30 +330,6 @@ class SkillsKpGoldenEdgeTest {
     @Nested
     @DisplayName("assemble — performance-engineering KP")
     class PerformanceEngineeringKp {
-
-        @Test
-        @DisplayName("performance-engineering has valid"
-                + " frontmatter")
-        void assemble_perfEng_hasValidFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/performance-engineering/"
-                                    + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains(
-                            "name: performance-engineering")
-                    .contains("user-invocable: false");
-        }
 
         @Test
         @DisplayName("performance-engineering has all"
@@ -493,28 +425,6 @@ class SkillsKpGoldenEdgeTest {
     @Nested
     @DisplayName("assemble — sre-practices KP")
     class SrePracticesKp {
-
-        @Test
-        @DisplayName("sre-practices has user-invocable false")
-        void assemble_srePractices_frontmatterCorrect(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/sre-practices/SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("user-invocable: false");
-            assertThat(content)
-                    .contains("name: sre-practices");
-        }
 
         @Test
         @DisplayName("sre-practices has all 6 sections")
@@ -706,33 +616,6 @@ class SkillsKpGoldenEdgeTest {
                             + " per Component");
         }
 
-        @Test
-        @DisplayName("disaster-recovery SKILL.md has"
-                + " valid frontmatter")
-        void assemble_dr_hasValidFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .container("docker")
-                            .build();
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/disaster-recovery/"
-                            + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("name: disaster-recovery");
-            assertThat(content)
-                    .contains("user-invocable: false");
-        }
     }
 
     @Nested

@@ -1,9 +1,10 @@
 ---
 name: x-epic-decompose
+model: sonnet
 description: "Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
-argument-hint: "[SPEC-FILE-PATH] [--jira <PROJECT_KEY>] [--no-jira]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion, Skill
+argument-hint: "[SPEC-FILE-PATH] [--jira <PROJECT_KEY>] [--no-jira] [--dry-run]"
 context-budget: medium
 ---
 
@@ -45,14 +46,22 @@ If any template is missing, stop and tell the user.
 ## Workflow Overview
 
 ```
-1. ANALYSIS      -> Read spec, identify rules, stories, dependencies, phases (inline)
-1.5. JIRA        -> Determine Jira integration mode (conditional, inline)
-2. EPIC          -> Generate Epic file with rules, story index, DoR/DoD (inline)
-3. STORIES       -> Generate one story file per story with contracts, Gherkin, sub-tasks (inline)
-4. MAP           -> Generate Implementation Map with dependency graph, phases, critical path (inline)
-4.5. JIRA LINKS  -> Create Jira dependency links (conditional, inline)
-5. REPORT        -> Save all files, validate quality, report summary (inline)
+P1. DETECT        -> x-git-worktree detect-context (EPIC-0049 / RULE-001, inline)
+P2. ENSURE BRANCH -> x-internal-epic-branch-ensure --epic-id XXXX (RULE-001, inline)
+1.  ANALYSIS      -> Read spec, identify rules, stories, dependencies, phases (inline)
+1.5. JIRA         -> Determine Jira integration mode (conditional, inline)
+2.  EPIC          -> Generate Epic file with rules, story index, DoR/DoD (inline)
+3.  STORIES       -> Generate one story file per story with contracts, Gherkin, sub-tasks (inline)
+4.  MAP           -> Generate Implementation Map with dependency graph, phases, critical path (inline)
+4.5. JIRA LINKS   -> Create Jira dependency links (conditional, inline)
+P4. CONSOLIDATED  -> x-planning-commit --scope chore --subject "full decomposition (...)"  (RULE-007, inline)
+P5. PUSH          -> x-git-push --branch epic/XXXX (optional, inline)
+5.  REPORT        -> Save all files, validate quality, report summary (inline)
 ```
+
+### Note on consolidated commit vs individual commits
+
+Per story-0049-0021 Section 3.2, `x-epic-decompose` uses a **single consolidated commit** in Step P4 covering the full batch (epic + N stories + implementation map) rather than letting each sub-skill (`x-epic-create`, `x-story-create`, `x-epic-map`) commit individually. The sub-skills are called in this orchestrator with their own `--dry-run` effectively set — they WRITE the artifacts but do NOT invoke their own P4 / P5 steps (the orchestrator owns the commit). This yields `git log --oneline` containing one audit-trail entry per decomposition instead of N+2, matching the operator expectation that `x-epic-decompose foo --spec bar.md` is a single logical mutation.
 
 ## Decomposition Philosophy
 
@@ -70,6 +79,34 @@ The guide also covers:
 - Dependency mapping (structural, data, pattern dependencies)
 - Phase computation (DAG-based, parallel within phases)
 - Sizing heuristics (too big, too small, just right)
+
+## Phase P1 — Detect Worktree Context (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-P1-Worktree-Detect`
+
+Invoke `x-git-worktree detect-context` so subsequent phases know whether the current checkout is already inside an epic worktree.
+
+    Skill(skill: "x-git-worktree", args: "detect-context")
+
+Fail-open (RULE-006): any detect-context failure is logged and Phase P2 proceeds.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-P1-Worktree-Detect ok`
+
+## Phase P2 — Ensure `epic/<ID>` Branch (EPIC-0049 / RULE-001)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-P2-Epic-Branch-Ensure`
+
+Resolve the effective epic ID (next-available auto-increment when not supplied, as in Phase 2 below), then ensure the canonical `epic/<ID>` branch exists locally AND on origin:
+
+    Skill(skill: "x-internal-epic-branch-ensure", args: "--epic-id <XXXX>")
+
+Abort with `EPIC_BRANCH_ENSURE_FAILED` on any non-zero exit — a consolidated audit trail cannot be produced without the canonical branch.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-P2-Epic-Branch-Ensure ok`
 
 ## Phase 1 — Analysis
 
@@ -291,6 +328,43 @@ This step is best-effort — Jira links are a convenience, not a hard requiremen
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-4_5-Jira-Links ok`
 
+## Phase P4 — Consolidated Planning Commit (EPIC-0049 / RULE-007)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-P4-Consolidated-Commit`
+
+If `--dry-run` is set, log `"dry-run, skipping commit"` and skip this phase entirely.
+
+Otherwise, collect the full path set produced by Phases 2, 3, and 4 (epic file + all story files + implementation map + any templates newly written) and issue a **single consolidated commit** via `x-planning-commit`:
+
+    Skill(skill: "x-planning-commit",
+          args: "--scope chore --epic-id <XXXX> --paths plans/epic-<XXXX>/epic-<XXXX>.md,plans/epic-<XXXX>/story-<XXXX>-0001.md,...,plans/epic-<XXXX>/IMPLEMENTATION-MAP.md --subject \"full decomposition (epic + <N> stories + map)\"")
+
+Rationale for consolidation over per-sub-skill commits (see Workflow Overview note above): the operator experiences `x-epic-decompose` as one logical mutation; history reads as `chore(epic-XXXX): full decomposition (epic + 22 stories + map)` rather than 24 interleaved commits.
+
+Idempotency: re-running an identical decomposition yields `commitSha=null` + `noOp=true` from `x-planning-commit`. No additional diff check is required in this phase.
+
+On `COMMIT_FAILED` (exit 4 from `x-planning-commit`), abort with the same error code.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-P4-Consolidated-Commit ok`
+
+## Phase P5 — Push to Origin (optional, EPIC-0049)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-P5-Push`
+
+If `--dry-run` is set, log `"dry-run, skipping push"` and skip.
+
+Otherwise, push the canonical epic branch so the full decomposition is observable on origin:
+
+    Skill(skill: "x-git-push", args: "--branch epic/<XXXX>")
+
+On push failure, log a WARNING and continue. Do NOT abort — the local commit is preserved.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-P5-Push ok`
+
 ## Phase 5 — Save and Report
 
 <!-- TELEMETRY: phase.start -->
@@ -350,6 +424,11 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-d
 | Jira Story creation fails for a story | Warn, set `<CHAVE-JIRA>` to `—` for that story, continue with remaining stories |
 | Circular dependency detected in story graph | Abort with message listing the cycle and affected stories |
 | Story fails quality validation (Phase 5) | Fix the story before saving — do not skip validation |
+| `x-internal-epic-branch-ensure` fails (Phase P2) | Abort with `EPIC_BRANCH_ENSURE_FAILED`; canonical branch is required for the consolidated commit |
+| `x-planning-commit` exit 4 (Phase P4) | Abort with `COMMIT_FAILED`; artifacts written but not versioned |
+| `x-planning-commit` exit 0 + `noOp=true` (Phase P4) | Silent no-op — re-execution idempotency confirmed; continue to Phase P5 |
+| `x-git-push` fails (Phase P5) | WARN only; local commit preserved; operator re-runs manually |
+| `--dry-run` set | Phases P4 and P5 become no-ops with log line `"dry-run, skipping commit"` / `"dry-run, skipping push"` |
 
 ## Template Fallback
 
@@ -387,6 +466,10 @@ Before delivering, verify:
 | `references/decomposition-guide.md` | Reads | Decomposition philosophy and layer-by-layer approach |
 | `mcp__atlassian__createJiraIssue` | Calls (conditional) | Jira Epic and Story creation when `jiraContext.enabled` |
 | `mcp__atlassian__createIssueLink` | Calls (conditional) | Jira dependency linking in Phase 4.5 |
+| `x-git-worktree` | Calls (Phase P1) | Detect-context (EPIC-0049 / RULE-001) |
+| `x-internal-epic-branch-ensure` | Calls (Phase P2) | Ensure `epic/<ID>` exists locally + origin (EPIC-0049 / RULE-001) |
+| `x-planning-commit` | Calls (Phase P4) | Single consolidated commit (epic + N stories + map) without code pre-commit chain (EPIC-0049 / RULE-007) |
+| `x-git-push` | Calls (Phase P5) | Push canonical epic branch to origin (optional) |
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 

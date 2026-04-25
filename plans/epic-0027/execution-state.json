@@ -44,7 +44,9 @@
       "summary": "Updated x-git-push SKILL.md: replaced 6 main refs with develop in feature flow, added --base develop, added Hotfix Workflow section, updated branch strategy diagram. 10 new tests. Golden files regenerated for 17 profiles.",
       "retries": 0,
       "duration": 654,
-      "blockedBy": ["story-0027-0001"],
+      "blockedBy": [
+        "story-0027-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/188",
       "prNumber": 188,
       "prMergeStatus": "MERGED"
@@ -58,7 +60,9 @@
       "summary": "Updated x-dev-lifecycle: Phase 0 uses develop, Phase 6 PR uses --base develop, version bump documented as release-only, Phase 8 returns to develop. 70 golden files updated. 5,476 tests pass.",
       "retries": 0,
       "duration": 453,
-      "blockedBy": ["story-0027-0002"],
+      "blockedBy": [
+        "story-0027-0002"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/191",
       "prNumber": 191,
       "prMergeStatus": "MERGED"
@@ -72,7 +76,9 @@
       "summary": "Updated x-dev-epic-implement: develop base, no-merge default, --interactive-merge flag, baseBranch schema, auto-rebase with develop. 30+ main refs replaced in Claude template, 5 in Copilot. 70 golden files updated.",
       "retries": 0,
       "duration": 907,
-      "blockedBy": ["story-0027-0003"],
+      "blockedBy": [
+        "story-0027-0003"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/192",
       "prNumber": 192,
       "prMergeStatus": "MERGED"
@@ -86,7 +92,9 @@
       "summary": "Rewrote x-release skill template with full Git Flow release branch workflow (11 steps). Added hotfix release section, SNAPSHOT handling, dual merge. Updated Claude and GitHub Copilot templates. 48 tests pass. Golden files regenerated.",
       "retries": 0,
       "duration": 583,
-      "blockedBy": ["story-0027-0001"],
+      "blockedBy": [
+        "story-0027-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/186",
       "prNumber": 186,
       "prMergeStatus": "MERGED"
@@ -100,7 +108,9 @@
       "summary": "Updated CI/CD workflow templates for Git Flow: CI triggers [develop, release/**, hotfix/**], CD Staging develop-only, CD Production main+tags. Added Git Flow YAML comments. 9 new tests. 109 total CI/CD tests pass.",
       "retries": 0,
       "duration": 1321,
-      "blockedBy": ["story-0027-0001"],
+      "blockedBy": [
+        "story-0027-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/190",
       "prNumber": 190,
       "prMergeStatus": "MERGED"
@@ -114,7 +124,9 @@
       "summary": "Updated x-fix-epic-pr-comments SKILL.md: --base main to --base develop, added baseBranch resolution logic from execution-state.json. 10 new tests. 68 golden files updated across 17 profiles.",
       "retries": 0,
       "duration": 466,
-      "blockedBy": ["story-0027-0001"],
+      "blockedBy": [
+        "story-0027-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/185",
       "prNumber": 185,
       "prMergeStatus": "MERGED"
@@ -128,7 +140,9 @@
       "summary": "Repositioned Git Flow as recommended default in release-management knowledge pack. Updated strategy tables, decision matrix, branching guides. Added Rule 09 cross-references. 22 new tests, 5409 total passing. 140 golden files updated.",
       "retries": 0,
       "duration": 577,
-      "blockedBy": ["story-0027-0001"],
+      "blockedBy": [
+        "story-0027-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/187",
       "prNumber": 187,
       "prMergeStatus": "MERGED"
@@ -142,7 +156,9 @@
       "summary": "Added BranchingModel enum (GITFLOW/TRUNK), ProjectConfig parsing with case-insensitive matching and GITFLOW default, StackValidator validation, ContextBuilder placeholder resolution (base_branch, branching_model). Updated 18 profile + 8 test config templates. 5411 tests passing.",
       "retries": 0,
       "duration": 913,
-      "blockedBy": ["story-0027-0001"],
+      "blockedBy": [
+        "story-0027-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/189",
       "prNumber": 189,
       "prMergeStatus": "MERGED"
@@ -156,7 +172,16 @@
       "summary": "Cross-cutting validation: regenerated all golden files, added 33 GitFlow validation tests + 13 trunk fallback tests. 5,522 total tests, 0 failures. 95.80% line / 90.84% branch coverage.",
       "retries": 0,
       "duration": 1374,
-      "blockedBy": ["story-0027-0002", "story-0027-0003", "story-0027-0004", "story-0027-0005", "story-0027-0006", "story-0027-0007", "story-0027-0008", "story-0027-0009"],
+      "blockedBy": [
+        "story-0027-0002",
+        "story-0027-0003",
+        "story-0027-0004",
+        "story-0027-0005",
+        "story-0027-0006",
+        "story-0027-0007",
+        "story-0027-0008",
+        "story-0027-0009"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/193",
       "prNumber": 193,
       "prMergeStatus": "MERGED"
@@ -164,5 +189,8 @@
   },
   "integrityGates": {},
   "versionBumps": {},
-  "prCommentRemediation": null
+  "prCommentRemediation": null,
+  "taskTracking": {
+    "enabled": false
+  }
 }

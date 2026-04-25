@@ -15,7 +15,7 @@ Senior Observability Engineer with expertise in distributed tracing, metrics des
 **Active when:** `observability != "none"`
 
 ## Recommended Model
-**Adaptive** — Sonnet for standard instrumentation reviews, Opus for distributed tracing topology or custom metric design.
+**Sonnet** — Instrumentation review against tracing + metrics + structured-logging checklists is structured work; Sonnet-appropriate (Rule 23 RULE-004).
 
 ## Responsibilities
 

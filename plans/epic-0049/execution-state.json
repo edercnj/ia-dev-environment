@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "epicId": "0049",
+  "startedAt": "2026-04-22T00:00:00Z",
+  "finishedAt": "2026-04-23T02:36:00Z",
+  "finalStatus": "COMPLETE",
+  "baseBranch": "develop",
+  "autoApprovePr": false,
+  "batchApproval": true,
+  "taskTracking": false,
+  "mode": {
+    "parallel": false,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "auto"
+  },
+  "totalPhases": 4,
+  "mainShaBeforePhase": {"0": "3a466ffaac861cf76d24f57f215b3488c334e4f2", "1": "8d7425b2aa9d70e3b4e5ff45a4115bdade525be5", "2": "d6ba2d61e0eb9c2e81bb684cc1d6cff6005ed929", "3": "b5803544522177d2296a937af525fcf1922e7745"},
+  "integrityGates": {"0": {"status": "PASS", "testCount": 4113, "coverage": 95, "note": "baseline restored after subagent deletion"}, "1": {"status": "PASS", "testCount": 4113, "coverage": 95, "note": "golden regen hotfix PR #581 merged"}, "2": {"status": "PASS", "testCount": 4113, "coverage": 95, "note": "critical refactors 0018+0019 merged, each passed CI"}, "3": {"status": "PASS", "testCount": 4113, "coverage": 95, "note": "all 22 stories merged; threshold hotfix PR #586 for Epic0047CompressionSmokeTest"}},
+  "parallelismDowngrades": [],
+  "metrics": {
+    "storiesCompleted": 22,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 22
+  },
+  "stories": {
+    "story-0049-0001": { "id": "story-0049-0001", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-git-branch", "retries": 0, "commitSha": "04692e43b", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/563", "prNumber": 563, "prMergeStatus": "MERGED" },
+    "story-0049-0002": { "id": "story-0049-0002", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-git-merge", "retries": 0, "commitSha": "b843c1067", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/564", "prNumber": 564, "prMergeStatus": "MERGED" },
+    "story-0049-0003": { "id": "story-0049-0003", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-pr-merge", "retries": 0, "commitSha": "b8f5bb218", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/565", "prNumber": 565, "prMergeStatus": "MERGED" },
+    "story-0049-0004": { "id": "story-0049-0004", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-planning-commit", "retries": 0, "commitSha": "14d7b9b84", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/566", "prNumber": 566, "prMergeStatus": "MERGED" },
+    "story-0049-0005": { "id": "story-0049-0005", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-status-update (PILOTO)", "retries": 0, "commitSha": "2168713d2", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/567", "prNumber": 567, "prMergeStatus": "MERGED" },
+    "story-0049-0006": { "id": "story-0049-0006", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-report-write", "retries": 0, "commitSha": "7ad12c8e3", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/568", "prNumber": 568, "prMergeStatus": "MERGED" },
+    "story-0049-0007": { "id": "story-0049-0007", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-args-normalize", "retries": 0, "commitSha": "087eca4c4", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/569", "prNumber": 569, "prMergeStatus": "MERGED" },
+    "story-0049-0011": { "id": "story-0049-0011", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-story-load-context", "retries": 0, "commitSha": "2abd86109", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/570", "prNumber": 570, "prMergeStatus": "MERGED" },
+    "story-0049-0012": { "id": "story-0049-0012", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-story-build-plan", "retries": 0, "commitSha": "dde8317b7", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/571", "prNumber": 571, "prMergeStatus": "MERGED" },
+    "story-0049-0014": { "id": "story-0049-0014", "phase": 0, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-story-verify", "retries": 0, "commitSha": "9e849d3b9", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/572", "prNumber": 572, "prMergeStatus": "MERGED" },
+    "story-0049-0008": { "id": "story-0049-0008", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-epic-branch-ensure", "retries": 0, "blockedBy": ["story-0049-0001"], "commitSha": "41e79ea88", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/573", "prNumber": 573, "prMergeStatus": "MERGED" },
+    "story-0049-0009": { "id": "story-0049-0009", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-epic-build-plan", "retries": 0, "blockedBy": ["story-0049-0006"], "commitSha": "76a9e9e92", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/574", "prNumber": 574, "prMergeStatus": "MERGED" },
+    "story-0049-0010": { "id": "story-0049-0010", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-epic-integrity-gate", "retries": 0, "blockedBy": ["story-0049-0006"], "commitSha": "cb30bb598", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/575", "prNumber": 575, "prMergeStatus": "MERGED" },
+    "story-0049-0013": { "id": "story-0049-0013", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-story-resume", "retries": 0, "blockedBy": ["story-0049-0005"], "commitSha": "0c244d726", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/576", "prNumber": 576, "prMergeStatus": "MERGED" },
+    "story-0049-0015": { "id": "story-0049-0015", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-internal-story-report", "retries": 0, "blockedBy": ["story-0049-0006"], "commitSha": "664693583", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/577", "prNumber": 577, "prMergeStatus": "MERGED" },
+    "story-0049-0016": { "id": "story-0049-0016", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-pr-create extension", "retries": 1, "blockedBy": ["story-0049-0003"], "commitSha": "7a524f96e", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/578", "prNumber": 578, "prMergeStatus": "MERGED" },
+    "story-0049-0017": { "id": "story-0049-0017", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "x-task-plan --no-commit", "retries": 0, "commitSha": "10453b75c", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/579", "prNumber": 579, "prMergeStatus": "MERGED" },
+    "story-0049-0020": { "id": "story-0049-0020", "phase": 1, "status": "SUCCESS", "findingsCount": 0, "summary": "Rules 09/14/19/20/21", "retries": 0, "commitSha": "c941592e2", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/580", "prNumber": 580, "prMergeStatus": "MERGED" },
+    "story-0049-0018": { "id": "story-0049-0018", "phase": 2, "status": "SUCCESS", "findingsCount": 0, "summary": "Refator x-epic-implement (CRÍTICA)", "retries": 0, "blockedBy": ["story-0049-0005","story-0049-0007","story-0049-0008","story-0049-0009","story-0049-0010","story-0049-0016"], "commitSha": "3cdb5c998", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/582", "prNumber": 582, "prMergeStatus": "MERGED" },
+    "story-0049-0019": { "id": "story-0049-0019", "phase": 2, "status": "SUCCESS", "findingsCount": 0, "summary": "Refator x-story-implement (CRÍTICA)", "retries": 0, "blockedBy": ["story-0049-0005","story-0049-0007","story-0049-0011","story-0049-0012","story-0049-0013","story-0049-0014","story-0049-0015","story-0049-0016"], "commitSha": "ec04053ab", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/583", "prNumber": 583, "prMergeStatus": "MERGED" },
+    "story-0049-0021": { "id": "story-0049-0021", "phase": 3, "status": "SUCCESS", "findingsCount": 0, "summary": "Versionamento x-epic-create/decompose/map", "retries": 0, "blockedBy": ["story-0049-0004","story-0049-0008"], "commitSha": "b2cda833f", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/584", "prNumber": 584, "prMergeStatus": "MERGED" },
+    "story-0049-0022": { "id": "story-0049-0022", "phase": 3, "status": "SUCCESS", "findingsCount": 0, "summary": "Versionamento x-epic-orchestrate/story-create/plan/task-plan", "retries": 0, "blockedBy": ["story-0049-0004","story-0049-0008","story-0049-0017"], "commitSha": "dff627dca", "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/585", "prNumber": 585, "prMergeStatus": "MERGED" }
+  }
+}

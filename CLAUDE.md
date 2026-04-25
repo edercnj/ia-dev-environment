@@ -22,6 +22,13 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > Delivered `x-pr-watch-ci` skill (CI polling + Copilot review detection, 8 stable exit codes — RULE-045-05), Rule 21 (CI-Watch, RULE-045-01) with fallback matrix and opt-out via `--no-ci-watch`, and retrofits to `x-story-implement` (Phase 2.2.8.5), `x-task-implement --worktree` (Step 4.5), and `x-release` (flag `--ci-watch`). `Epic0045SmokeTest` validates end-to-end contract. `PrWatchStatusClassifier` + `PrWatchExitCode` (zero-I/O, fully testable). All 6 stories merged to develop.
 > - Story index: [`plans/epic-0045/`](plans/epic-0045/)
 
+> **Concluded — EPIC-0055 (Task Hierarchy & Phase Gate Enforcement).**
+> Introduces Rule 25 (hierarchical task tracking, 4-level depth via `›` separator: Epic › Story › Phase › Wave/Cycle), skill `x-internal-phase-gate` (internal, `haiku`, 4 modes: pre/post/wave/final), and ADR-0014. Phase gates block `## Phase N` transitions until child tasks are `completed` AND expected artifacts exist on disk. Operators can see `"EPIC-0065 › Phase 3 › story-0065-0001 (in_progress)"` during execution. 4-layer enforcement: normative (Rule 25 + CLAUDE.md), Stop hook (`verify-phase-gates.sh`), PreToolUse hook (`enforce-phase-sequence.sh`), CI audit (`audit-task-hierarchy.sh` + `audit-phase-gates.sh`). All 8 canonical orchestrators retrofitted: `x-task-implement`, `x-story-implement`, `x-epic-implement`, `x-release`, `x-epic-orchestrate`, `x-review`, `x-review-pr`, `x-pr-merge-train`. Backward compatible via Rule 19: `taskTracking.enabled` defaults `false` for legacy epics (gates become no-ops); 28 legacy execution-state.json files migrated. `Epic0055FoundationSmokeTest` validates end-to-end.
+> - Rule: [`.claude/rules/25-task-hierarchy.md`](.claude/rules/25-task-hierarchy.md)
+> - Skill (internal): `x-internal-phase-gate` (not user-invocable)
+> - Decision record: [`adr/ADR-0014-task-hierarchy-and-phase-gates.md`](adr/ADR-0014-task-hierarchy-and-phase-gates.md)
+> - Epic index: [`plans/epic-0055/`](plans/epic-0055/)
+
 > **In progress — EPIC-0046 (Lifecycle Integrity Phase 2 — CI enforcement).**
 > Story-0046-0007 ships `LifecycleIntegrityAuditTest` (Maven CI-blocking). The audit scans every `SKILL.md` under `java/src/main/resources/targets/claude/skills/` for three Rule 22 regressions: `ORPHAN_PHASE` (dotted sub-section documented but not referenced elsewhere), `WRITE_WITHOUT_COMMIT` (write to `plans/epic-*/reports/` with no `x-git-commit` in the next 20 lines), and `SKIP_IN_HAPPY_PATH` (`--skip-verification` / `--skip-status-sync` used outside `## Recovery` / `## Error Handling`). Baseline at `audits/lifecycle-integrity-baseline.txt` tolerates current TOC-style sub-sections; any NEW violation fails the build with `LIFECYCLE_AUDIT_REGRESSION`. Escape hatch: place `<!-- audit-exempt -->` on the line immediately before (or on) the intentional violation; keep usage rare (reviewed exceptions only). Standalone CLI: `java -cp target/test-classes:target/classes dev.iadev.adapter.inbound.cli.LifecycleAuditCli scan [--skills-root <path>] [--json]` (exit 0 / 11 / 2).
 > - Story: [`plans/epic-0046/story-0046-0007.md`](plans/epic-0046/story-0046-0007.md)
@@ -76,8 +83,10 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 08 | `08-release-process.md` | release process |
 | 09 | `09-branching-model.md` | branching model (Git Flow) |
 | 13 | `13-skill-invocation-protocol.md` | skill invocation protocol (delegation syntax) |
+| 23 | `23-model-selection.md` | model selection strategy (Opus/Sonnet/Haiku tiers, enforcement points, CI audit contract) |
+| 25 | `25-task-hierarchy.md` | task hierarchy (4-level) + phase gates contract (EPIC-0055) |
 
-**Total: 10 rules** (gaps at 10, 11, 12 reserved for conditional rules: `10-anti-patterns.*`, `11-security-pci`, `12-security-anti-patterns`)
+**Total: 12 rules** (gaps at 10, 11, 12 reserved for conditional rules: `10-anti-patterns.*`, `11-security-pci`, `12-security-anti-patterns`; gap at 24 reserved for Rule 24 "Execution Integrity" tracked separately)
 
 ### Numbering
 

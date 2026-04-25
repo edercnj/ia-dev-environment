@@ -3,33 +3,194 @@
   "branch": "feat/epic-0016-full-implementation",
   "startedAt": "2026-04-04T12:00:00Z",
   "finishedAt": "2026-04-04T15:30:00Z",
-  "mode": { "parallel": true, "skipReview": false },
+  "mode": {
+    "parallel": true,
+    "skipReview": false
+  },
   "stories": {
-    "story-0016-0001": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "32cad592", "findingsCount": 0, "summary": "Compliance field in ProjectConfig", "duration": null },
-    "story-0016-0004": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "3f4ce184", "findingsCount": 0, "summary": "x-spec-drift-check skill template", "duration": null },
-    "story-0016-0006": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "5f338f61", "findingsCount": 0, "summary": "Quality Gate scoring engine", "duration": null },
-    "story-0016-0008": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "c4b473f0", "findingsCount": 0, "summary": "Traceability domain package", "duration": null },
-    "story-0016-0002": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4301285e", "findingsCount": 0, "summary": "ConstitutionAssembler + template", "duration": null },
-    "story-0016-0005": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "d179a55f", "findingsCount": 0, "summary": "x-spec-drift-check inline mode", "duration": null },
-    "story-0016-0007": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "a57b1ea4", "findingsCount": 0, "summary": "Quality gate in x-story-create", "duration": null },
-    "story-0016-0009": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "36794c65", "findingsCount": 0, "summary": "Traceability matrix in x-test-run", "duration": null },
-    "story-0016-0003": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "15d2fb91", "findingsCount": 0, "summary": "CONSTITUTION.md preservation", "duration": null },
-    "story-0016-0010": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "f3e8c2e0", "findingsCount": 0, "summary": "java-spring-fintech-pci profile", "duration": null },
-    "story-0016-0013": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "eebfca38", "findingsCount": 0, "summary": "Scope Assessment engine", "duration": null },
-    "story-0016-0011": { "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "70d2c7cf", "findingsCount": 0, "summary": "PCI-DSS knowledge pack", "duration": null },
-    "story-0016-0012": { "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "cf979f82", "findingsCount": 0, "summary": "x-review-compliance skill + PCI rules", "duration": null },
-    "story-0016-0014": { "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "8d74a77c", "findingsCount": 0, "summary": "Scope Assessment in x-dev-lifecycle", "duration": null },
-    "story-0016-0015": { "phase": 4, "status": "SUCCESS", "retries": 0, "commitSha": "3839255c", "findingsCount": 0, "summary": "Golden files + integration tests for fintech-pci", "duration": null }
+    "story-0016-0001": {
+      "phase": 0,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "32cad592",
+      "findingsCount": 0,
+      "summary": "Compliance field in ProjectConfig",
+      "duration": null
+    },
+    "story-0016-0004": {
+      "phase": 0,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "3f4ce184",
+      "findingsCount": 0,
+      "summary": "x-spec-drift-check skill template",
+      "duration": null
+    },
+    "story-0016-0006": {
+      "phase": 0,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "5f338f61",
+      "findingsCount": 0,
+      "summary": "Quality Gate scoring engine",
+      "duration": null
+    },
+    "story-0016-0008": {
+      "phase": 0,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "c4b473f0",
+      "findingsCount": 0,
+      "summary": "Traceability domain package",
+      "duration": null
+    },
+    "story-0016-0002": {
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "4301285e",
+      "findingsCount": 0,
+      "summary": "ConstitutionAssembler + template",
+      "duration": null
+    },
+    "story-0016-0005": {
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "d179a55f",
+      "findingsCount": 0,
+      "summary": "x-spec-drift-check inline mode",
+      "duration": null
+    },
+    "story-0016-0007": {
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "a57b1ea4",
+      "findingsCount": 0,
+      "summary": "Quality gate in x-story-create",
+      "duration": null
+    },
+    "story-0016-0009": {
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "36794c65",
+      "findingsCount": 0,
+      "summary": "Traceability matrix in x-test-run",
+      "duration": null
+    },
+    "story-0016-0003": {
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "15d2fb91",
+      "findingsCount": 0,
+      "summary": "CONSTITUTION.md preservation",
+      "duration": null
+    },
+    "story-0016-0010": {
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "f3e8c2e0",
+      "findingsCount": 0,
+      "summary": "java-spring-fintech-pci profile",
+      "duration": null
+    },
+    "story-0016-0013": {
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "eebfca38",
+      "findingsCount": 0,
+      "summary": "Scope Assessment engine",
+      "duration": null
+    },
+    "story-0016-0011": {
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "70d2c7cf",
+      "findingsCount": 0,
+      "summary": "PCI-DSS knowledge pack",
+      "duration": null
+    },
+    "story-0016-0012": {
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "cf979f82",
+      "findingsCount": 0,
+      "summary": "x-review-compliance skill + PCI rules",
+      "duration": null
+    },
+    "story-0016-0014": {
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "8d74a77c",
+      "findingsCount": 0,
+      "summary": "Scope Assessment in x-dev-lifecycle",
+      "duration": null
+    },
+    "story-0016-0015": {
+      "phase": 4,
+      "status": "SUCCESS",
+      "retries": 0,
+      "commitSha": "3839255c",
+      "findingsCount": 0,
+      "summary": "Golden files + integration tests for fintech-pci",
+      "duration": null
+    }
   },
   "phases": {
-    "0": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3460 } },
-    "1": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3514 } },
-    "2": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3613 } },
-    "3": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3654 } },
-    "4": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3656 } }
+    "0": {
+      "status": "SUCCESS",
+      "integrityGate": {
+        "status": "PASS",
+        "testCount": 3460
+      }
+    },
+    "1": {
+      "status": "SUCCESS",
+      "integrityGate": {
+        "status": "PASS",
+        "testCount": 3514
+      }
+    },
+    "2": {
+      "status": "SUCCESS",
+      "integrityGate": {
+        "status": "PASS",
+        "testCount": 3613
+      }
+    },
+    "3": {
+      "status": "SUCCESS",
+      "integrityGate": {
+        "status": "PASS",
+        "testCount": 3654
+      }
+    },
+    "4": {
+      "status": "SUCCESS",
+      "integrityGate": {
+        "status": "PASS",
+        "testCount": 3656
+      }
+    }
   },
-  "metrics": { "storiesCompleted": 15, "storiesFailed": 0, "storiesBlocked": 0, "storiesTotal": 15 },
+  "metrics": {
+    "storiesCompleted": 15,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 15
+  },
   "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/133",
   "reportPath": null,
-  "finalStatus": "COMPLETE"
+  "finalStatus": "COMPLETE",
+  "taskTracking": {
+    "enabled": false
+  }
 }

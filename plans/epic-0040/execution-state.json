@@ -52,5 +52,8 @@
       "description": "HooksSmokeIT end-to-end Java smoke test"
     }
   },
-  "storyStatus": "PR_CREATED"
+  "storyStatus": "PR_CREATED",
+  "taskTracking": {
+    "enabled": false
+  }
 }

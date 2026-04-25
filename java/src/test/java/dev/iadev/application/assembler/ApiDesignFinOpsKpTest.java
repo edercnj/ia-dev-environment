@@ -4,6 +4,7 @@ import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * with deprecation/versioning sections and FinOps KP
  * conditional generation.
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("API Design + FinOps KP")
 class ApiDesignFinOpsKpTest {
 
@@ -250,25 +252,6 @@ class ApiDesignFinOpsKpTest {
                     .contains("Reserved Capacity")
                     .contains("Cost Alerting")
                     .contains("FinOps Practices");
-        }
-
-        @Test
-        @DisplayName("has correct frontmatter")
-        void finOps_whenGenerated_hasCorrectFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            ProjectConfig config = TestConfigBuilder.builder()
-                    .cloudProvider("aws")
-                    .build();
-            new SkillsAssembler().assemble(
-                    config, new TemplateEngine(), outputDir);
-            String content = readSkill(outputDir,
-                    "finops/SKILL.md");
-            assertThat(content)
-                    .contains("name: finops")
-                    .contains("user-invocable: false");
         }
 
         @Test

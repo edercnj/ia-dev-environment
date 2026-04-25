@@ -1,6 +1,6 @@
 # Rule 06 — Security Baseline
 
-> **Full reference:** Read `skills/security/SKILL.md` for OWASP Top 10, cryptography, and pentest readiness.
+> **Full reference:** Read `knowledge/security/index.md` for OWASP Top 10, cryptography, and pentest readiness.
 
 ## Secure Defaults (Non-Negotiable)
 
@@ -26,4 +26,4 @@
 - Filename sanitization: multi-pass until idempotent (single pass of `..` removal is insufficient)
 - Temp directories: always set explicit permissions, always clean up in `finally` / `defer`
 
-> Read `skills/security/SKILL.md` for input validation patterns, secrets management, and security headers.
+> Read `knowledge/security/index.md` for input validation patterns, secrets management, and security headers.

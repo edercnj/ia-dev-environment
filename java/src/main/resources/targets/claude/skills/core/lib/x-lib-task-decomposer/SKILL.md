@@ -59,8 +59,8 @@ Before any decomposition work, verify whether a valid task breakdown already exi
 ### Step 0.5 — Read Architecture Context
 
 Before decomposing, read the project's architecture and layer definitions:
-- `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction, package organization
-- `skills/layer-templates/SKILL.md` — complete layer catalog with package locations, code templates, and checklist per layer
+- `knowledge/architecture/architecture-principles.md` — layer structure, dependency direction, package organization
+- `knowledge/layer-templates.md` — complete layer catalog with package locations, code templates, and checklist per layer
 
 These files define the available layers for YOUR project. The Layer Task Catalog below is derived from them.
 
@@ -212,7 +212,7 @@ Save to: `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX 
 > `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
 > Prefer test-driven decomposition when test plan is available.
 
-Derive the task catalog from the **layer-templates knowledge pack** (`skills/layer-templates/SKILL.md`). Each section in the knowledge pack corresponds to one task type. The table below shows the **generic structure** — adapt layer names and packages to match YOUR project's architecture rules (`skills/architecture/references/architecture-principles.md`).
+Derive the task catalog from the **layer-templates knowledge pack** (`knowledge/layer-templates.md`). Each section in the knowledge pack corresponds to one task type. The table below shows the **generic structure** — adapt layer names and packages to match YOUR project's architecture rules (`knowledge/architecture/architecture-principles.md`).
 
 | Task Type                     | Architecture Layer      | Tier   | Budget | Group |
 | ----------------------------- | ----------------------- | ------ | ------ | ----- |
@@ -238,7 +238,7 @@ Derive the task catalog from the **layer-templates knowledge pack** (`skills/lay
 | API Tests                     | test                    | Mid    | M      | G7    |
 | E2E Tests                     | test                    | Mid    | M      | G7    |
 
-> **Note:** The exact package names (e.g., `domain.model`, `adapter.outbound.entity`) are defined in `skills/architecture/references/architecture-principles.md`. Consult that file for your project's specific package structure.
+> **Note:** The exact package names (e.g., `domain.model`, `adapter.outbound.entity`) are defined in `knowledge/architecture/architecture-principles.md`. Consult that file for your project's specific package structure.
 
 ## Fallback: Layer Dependency Graph (G1-G7)
 
@@ -258,7 +258,7 @@ G6: OBSERVABILITY — SEQUENTIAL, depends on G4, G5
 G7: TESTS — PARALLEL (max 4 concurrent), depends on ALL previous
 ```
 
-> **Note:** Group contents may vary by project architecture. The principle is: **inner layers first, then outer layers**. Verify against `skills/architecture/references/architecture-principles.md` for your project.
+> **Note:** Group contents may vary by project architecture. The principle is: **inner layers first, then outer layers**. Verify against `knowledge/architecture/architecture-principles.md` for your project.
 
 ## Context Budget Sizes
 

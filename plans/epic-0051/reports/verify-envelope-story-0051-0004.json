@@ -1,0 +1,60 @@
+{
+  "storyId": "story-0051-0004",
+  "epicId": "0051",
+  "verifiedAt": "2026-04-23T21:00:00Z",
+  "verifier": "x-internal-story-verify (Rule 24 evidence)",
+  "passed": true,
+  "coverage": {
+    "line": null,
+    "branch": null,
+    "note": "Retrofit-only scope; no production Java code added or modified. The 1 new test class is a structural invariant (grep-based) and not a subject of line/branch coverage. Coverage gate applies to producer code (KnowledgeAssembler, story-0051-0001) and downstream cleanup (story-0051-0006)."
+  },
+  "testSuiteResults": {
+    "total": 4163,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "delta": {
+      "baseline": 4162,
+      "added": 1,
+      "note": "Net delta of +1: RuleKpRetrofitInvariantTest adds one new invariant method (noOldKpReferences_inRules)."
+    }
+  },
+  "acceptanceCriteriaCheckResults": [
+    {
+      "scenario": "inventário baseline (degenerate)",
+      "result": "PASS",
+      "evidence": "Pre-retrofit grep identified 7 core rule files + 2 conditional rule files referencing the legacy skills/{kp}/SKILL.md path pattern. Inventory recorded in the story File Footprint section."
+    },
+    {
+      "scenario": "retrofit completo (happy path)",
+      "result": "PASS",
+      "evidence": "9 rule files retrofitted (01-project-identity.md, 03-coding-standards.md, 04-architecture-summary.md, 05-quality-gates.md, 06-security-baseline.md, 07-operations-baseline.md, 08-release-process.md, 09-branching-model.md, conditional/09-data-management.md). Post-retrofit grep on skills/{kp}/SKILL.md returns 0 lines in targets/claude/rules/. grep on knowledge/{kp}.md returns >= 7 lines."
+    },
+    {
+      "scenario": "preservação da Rule 02 (boundary)",
+      "result": "PASS",
+      "evidence": "rules/02-domain.md contains only {PLACEHOLDER} tokens, no KP references. Regex whitelist (32 literal KP names) does not match placeholder syntax. File byte-identical to pre-retrofit state."
+    },
+    {
+      "scenario": "preservação de referências a skills reais (error path invertido)",
+      "result": "PASS",
+      "evidence": "rules/13-skill-invocation-protocol.md references public skill names (e.g., x-pr-fix, x-pr-watch-ci), not KPs. Regex whitelist targets only KP names (architecture, security, testing, etc.), so skill-name references are out of scope. File byte-identical to pre-retrofit state. Rules 20 and 21 similarly unaffected."
+    }
+  ],
+  "crossFileConsistency": {
+    "passed": true,
+    "checks": [
+      "All 9 retrofitted rule files use the knowledge/ prefix uniformly",
+      "Rules 02, 13, 20, 21 byte-identical to pre-retrofit state (no KP references to rewrite)",
+      "No residual skills/{kp}/SKILL.md or skills/{kp}/references/ references anywhere under targets/claude/rules/",
+      "Regex scope (32-element KP_NAMES whitelist) prevents overreach into legitimate public skill-name references"
+    ]
+  },
+  "smokeResult": {
+    "ran": true,
+    "passed": true,
+    "note": "mvn test: BUILD SUCCESS at 4163 tests / 0 failures / 0 errors / 0 skipped. RuleKpRetrofitInvariantTest green. KnowledgeMigrationInvariantTest and SkillConsumerRetrofitInvariantTest unchanged and green."
+  },
+  "failures": []
+}

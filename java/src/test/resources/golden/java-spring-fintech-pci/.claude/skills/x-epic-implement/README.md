@@ -1,428 +1,142 @@
-# x-epic-implement — Execution Flow
+# x-epic-implement — Execution Flow (EPIC-0049 refactor)
 
-> Visual reference for the complete orchestration flow, skill invocations, and decision points.
+> Visual reference for the thin-orchestrator flow delivered by story-0049-0018.
+> The main SKILL.md is now ~460 lines and delegates every substantive
+> responsibility to six specialized sub-skills. This README illustrates the
+> delegation topology; prose specifics live in `SKILL.md` and
+> `references/full-protocol.md`.
 
-## 1. High-Level Orchestration Flow
+## 1. High-Level Orchestration Flow (new default)
 
 ```mermaid
 flowchart TD
     START(["/x-epic-implement EPIC-ID"]) --> P0
 
-    subgraph P0["Phase 0 — Preparation (Inline)"]
-        P0A[Parse args + flags] --> P0B[Prerequisites check]
-        P0B --> P0C[Read IMPLEMENTATION-MAP.md]
-        P0C --> P0D[Read EPIC-XXXX.md]
-        P0D --> P0E[Discover story files]
-        P0E --> P0F{--single-pr?}
-        P0F -->|Yes| LEGACY[Legacy flow: epic branch + mega-PR]
-        P0F -->|No| P0G{--dry-run?}
-        P0G -->|Yes| DRYRUN([Print execution plan + STOP])
-        P0G -->|No| P0H{--resume?}
-        P0H -->|Yes| RESUME[Resume Workflow]
-        P0H -->|No| P0I[Initialize execution state]
-        RESUME --> P0I
+    P0["Phase 0 — Args<br/>x-internal-args-normalize"] --> FLOW{flowVersion?}
+    FLOW -->|"1 (legacy)"| P1L["Phase 1 (legacy) — Load & Plan<br/>x-internal-epic-build-plan --mode sequential"]
+    FLOW -->|"2 (default)"| P1N["Phase 1 — Load & Plan<br/>x-internal-epic-build-plan"]
+
+    P1L --> P3L
+    P1N --> P2["Phase 2 — Branch Setup<br/>x-internal-epic-branch-ensure<br/>(creates epic/XXXX)"]
+    P2 --> P3N
+
+    subgraph P3N["Phase 3 — Execution Loop (v2)"]
+        P3N_SEQ{"Parallel?"}
+        P3N_SEQ -->|"No (default)"| SEQ["Sequential: one story at a time<br/>x-story-implement --target-branch epic/XXXX --auto-merge=merge"]
+        P3N_SEQ -->|"--parallel"| PAR["Parallel within phase batch<br/>(siblings in ONE assistant message)"]
     end
 
-    P0I --> PHASELOOP
-
-    subgraph PHASELOOP["Phase Loop (for each phase 0..N)"]
-        direction TB
-        PH05{--sequential?}
-        PH05 -->|Yes| SKIP05[Skip pre-flight]
-        PH05 -->|No| PREFLIGHT["Phase 0.5: Pre-flight Analysis"]
-        SKIP05 --> CAPTURE
-        PREFLIGHT --> CAPTURE
-
-        CAPTURE["Capture mainShaBeforePhase"] --> EXEC
-
-        subgraph EXEC["Story Execution"]
-            GET[getExecutableStories] --> WAIT{Dependencies merged?}
-            WAIT -->|Not yet| MERGEWAIT["PR Merge Wait Loop"]
-            MERGEWAIT --> GET
-            WAIT -->|Yes| DISPATCH{--sequential?}
-            DISPATCH -->|Yes| SEQ["1.4: Sequential Dispatch"]
-            DISPATCH -->|No| PAR["1.4a: Parallel Worktree Dispatch"]
-            SEQ --> VALIDATE
-            PAR --> VALIDATE
-            VALIDATE["1.5: Validate SubagentResult"] --> CHECKPOINT
-            CHECKPOINT["1.6: Update Checkpoint"] --> SYNC
-            SYNC["1.6b: Markdown Status Sync"]
-        end
-
-        SYNC --> REBASE{Open PRs in phase?}
-        REBASE -->|Yes| AUTOREBASE["1.4e: Auto-Rebase remaining PRs"]
-        REBASE -->|No| GATE
-        AUTOREBASE --> GATE
-
-        GATE["Integrity Gate: compile + test + coverage + smoke"]
-        GATE --> NEXTPHASE{More phases?}
-        NEXTPHASE -->|Yes| PH05
+    subgraph P3L["Phase 3 — Execution Loop (legacy)"]
+        P3L_SEQ["Sequential<br/>x-story-implement --target-branch develop"]
     end
 
-    NEXTPHASE -->|No| P2
+    P3N --> P4["Phase 4 — Integrity Gate + Report<br/>x-internal-epic-integrity-gate +<br/>x-internal-report-write"]
+    P3L --> P4
 
-    subgraph P2["Phase 2 — Epic Progress Report"]
-        P2A[Generate PR_LINKS_TABLE] --> P2B[Resolve template placeholders]
-        P2B --> P2C[Write epic-execution-report.md]
-        P2C --> P2D[Finalize checkpoint]
-    end
+    P4 --> P4B{"--skip-pr-comments?"}
+    P4B -->|"No"| P4C["Phase 4b — PR-comment remediation<br/>x-pr-fix-epic"]
+    P4B -->|"Yes"| FLOW2{"flowVersion?"}
+    P4C --> FLOW2
 
-    P2 --> P3
+    FLOW2 -->|"2"| P5N["Phase 5 — Final PR<br/>x-git-merge develop→epic/XXXX +<br/>x-pr-create (no auto-merge)"]
+    FLOW2 -->|"1"| SKIPFINAL["Skip Phase 5<br/>(legacy: stories already in develop)"]
 
-    subgraph P3["Phase 3 — Verification"]
-        P3A[Run full test suite on main] --> P3B[DoD Checklist]
-        P3B --> P3C{All stories SUCCESS + PRs merged?}
-        P3C -->|Yes| COMPLETE([COMPLETE])
-        P3C -->|Critical path OK| PARTIAL([PARTIAL])
-        P3C -->|Critical path failed| FAILED([FAILED])
-    end
+    P5N --> DONE(["Return envelope"])
+    SKIPFINAL --> DONE
 
-    style LEGACY fill:#e94560,color:#fff
-    style DRYRUN fill:#533483,color:#fff
-    style COMPLETE fill:#2d6a4f,color:#fff
-    style PARTIAL fill:#e9c46a,color:#000
-    style FAILED fill:#e94560,color:#fff
+    style P0 fill:#16213e,color:#fff
+    style P1N fill:#16213e,color:#fff
+    style P2 fill:#16213e,color:#fff
+    style P3N fill:#16213e,color:#fff
+    style P4 fill:#16213e,color:#fff
+    style P5N fill:#2d6a4f,color:#fff
+    style P1L fill:#533483,color:#fff
+    style P3L fill:#533483,color:#fff
+    style SKIPFINAL fill:#533483,color:#fff
+    style DONE fill:#2d6a4f,color:#fff
 ```
 
-## 2. Per-Story Subagent Dispatch
-
-```mermaid
-flowchart LR
-    ORCH["Orchestrator<br/>(stays on main)"] -->|"metadata only<br/>(RULE-001)"| SUB
-
-    subgraph SUB["Subagent (worktree or sequential)"]
-        direction TB
-        INVOKE["/x-story-implement {storyId}"] --> LIFECYCLE
-    end
-
-    LIFECYCLE -->|SubagentResult JSON| ORCH
-
-    subgraph RESULT["SubagentResult"]
-        direction TB
-        R1["status: SUCCESS | FAILED | PARTIAL"]
-        R2["commitSha, findingsCount, summary"]
-        R3["prUrl, prNumber"]
-        R4["reviewScores: specialist + techLead"]
-        R5["coverageLine, coverageBranch, tddCycles"]
-    end
-
-    SUB -.-> RESULT
-```
-
-## 3. x-story-implement — Per-Story Execution (9 Phases)
-
-This is what happens **inside each subagent** when a story is dispatched.
-
-```mermaid
-flowchart TD
-    ENTRY(["/x-story-implement {storyId}"]) --> PH0
-
-    subgraph PH0["Phase 0 — Preparation"]
-        PH0A[Read story file] --> PH0B[Create branch: feat/storyId-desc]
-        PH0B --> PH0C[Scope Assessment]
-        PH0C --> TIER{Tier?}
-        TIER -->|SIMPLE| SIMPLE["Skip 1B-1E, 4"]
-        TIER -->|STANDARD| STANDARD["All phases"]
-        TIER -->|COMPLEX| COMPLEX["All phases + pause after 4"]
-    end
-
-    PH0 --> PH05C{Has API interfaces?}
-    PH05C -->|Yes| PH05["Phase 0.5: API Contract Generation + Approval Gate"]
-    PH05C -->|No| PH1
-    PH05 --> PH1
-
-    subgraph PH1["Phase 1 — Planning"]
-        PH1A["/x-arch-plan"] --> PH1PARALLEL
-        subgraph PH1PARALLEL["Parallel Planning (SINGLE message)"]
-            PH1B["/x-test-plan"]
-            PH1C["/x-lib-task-decomposer"]
-            PH1D["Event Schema Design<br/>(if event-driven)"]
-            PH1E["Compliance Assessment<br/>(if compliance)"]
-        end
-    end
-
-    PH1 --> PH2
-
-    subgraph PH2["Phase 2 — TDD Implementation"]
-        PH2A["Write Acceptance Test (AT-N)"] --> PH2B
-        PH2B["RED: Write failing unit test"] --> PH2C
-        PH2C["GREEN: Minimum code to pass"] --> PH2D
-        PH2D["REFACTOR: Improve design"] --> PH2E{More tests?}
-        PH2E -->|Yes| PH2B
-        PH2E -->|No| PH2F["Verify AT-N passes"]
-    end
-
-    PH2 --> PH3["Phase 3 — Documentation"]
-    PH3 --> PH4
-
-    subgraph PH4["Phase 4 — Specialist Review"]
-        PH4A["/x-review"] --> PH4B
-        subgraph PH4B["Parallel Specialists"]
-            SEC["Security"]
-            QA["QA"]
-            PERF["Performance"]
-            DB["Database"]
-            OBS["Observability"]
-            DEVOPS["DevOps"]
-            API["API"]
-            EVENT["Event"]
-        end
-    end
-
-    PH4 --> PH5["Phase 5 — Fix review findings"]
-
-    PH5 --> PH6
-
-    subgraph PH6["Phase 6 — PR Creation"]
-        PH6A["git push -u origin feat/storyId-desc"]
-        PH6A --> PH6B["gh pr create --base main"]
-        PH6B --> PH6C["Body: 'Part of EPIC-{epicId}'"]
-    end
-
-    PH6 --> PH7
-
-    subgraph PH7["Phase 7 — Tech Lead Review"]
-        PH7A["/x-review-pr"] --> PH7B{40/40?}
-        PH7B -->|GO| PH8
-        PH7B -->|NO-GO| PH7C["Fix + re-review<br/>(max 2 cycles)"]
-        PH7C --> PH7A
-    end
-
-    PH7 --> PH8
-
-    subgraph PH8["Phase 8 — Final Verification"]
-        PH8A[Update IMPLEMENTATION-MAP status] --> PH8B
-        PH8B[Update story file status] --> PH8C
-        PH8C[Jira transition to Done] --> PH8D
-        PH8D[DoD Checklist: 24+ items] --> PH8E
-        PH8E["git checkout main"]
-    end
-
-    PH8 --> DONE(["Return SubagentResult"])
-
-    style SIMPLE fill:#2d6a4f,color:#fff
-    style STANDARD fill:#16213e,color:#fff
-    style COMPLEX fill:#e94560,color:#fff
-```
-
-## 4. Complete Skills Dependency Graph
+## 2. Delegation Map
 
 ```mermaid
 graph TD
-    EPIC["/x-epic-implement"] -->|per story| LIFE["/x-story-implement"]
+    EPIC["x-epic-implement<br/>(thin orchestrator, ~460 lines)"] -->|Phase 0| ARGS["x-internal-args-normalize"]
+    EPIC -->|Phase 1| PLAN["x-internal-epic-build-plan"]
+    EPIC -->|Phase 2| BRANCH["x-internal-epic-branch-ensure"]
+    EPIC -->|Phase 3 per story| STORY["x-story-implement"]
+    EPIC -->|Phase 4| GATE["x-internal-epic-integrity-gate"]
+    EPIC -->|Phase 4 report| REPORT["x-internal-report-write"]
+    EPIC -->|Phase 5.1| MERGE["x-git-merge<br/>(sync develop→epic)"]
+    EPIC -->|Phase 5.2| PR["x-pr-create<br/>(final PR, no auto-merge)"]
+    EPIC -->|all phases| STATE["x-internal-status-update<br/>(atomic state writes)"]
+    EPIC -->|Phase 4b optional| PRFIX["x-pr-fix-epic"]
 
-    LIFE -->|Phase 1A| ARCH["/x-arch-plan"]
-    LIFE -->|Phase 1B| TEST["/x-test-plan"]
-    LIFE -->|Phase 1C| TASK["/x-lib-task-decomposer"]
-    LIFE -->|Phase 2| IMPL["/x-task-implement<br/>(TDD implementation)"]
-    LIFE -->|Phase 3| ARCHUP["/x-arch-update"]
-    LIFE -->|Phase 4| REVIEW["/x-review"]
-    LIFE -->|Phase 6| PR["gh pr create<br/>(PR targeting develop)"]
-    LIFE -->|Phase 7| LTREVIEW["/x-review-pr"]
-    LIFE -->|Phase 8| E2E["/x-test-e2e<br/>(smoke tests)"]
+    BRANCH -->|delegates creation| GITBRANCH["x-git-branch"]
+    PLAN -->|renders via| REPORT
+    PLAN -->|collision eval| PAREV["x-parallel-eval"]
+    STORY -->|per task| TDD["x-test-tdd + x-pr-create + x-git-commit"]
 
-    REVIEW -->|parallel| S1["Security Engineer"]
-    REVIEW -->|parallel| S2["QA Engineer"]
-    REVIEW -->|parallel| S3["Performance Engineer"]
-    REVIEW -->|parallel| S4["Database Engineer"]
-    REVIEW -->|parallel| S5["Observability Engineer"]
-    REVIEW -->|parallel| S6["DevOps Engineer"]
-    REVIEW -->|parallel| S7["API Engineer"]
-    REVIEW -->|parallel| S8["Data Modeling Engineer"]
+    classDef thin fill:#16213e,stroke:#0f3460,color:#fff
+    classDef internal fill:#533483,stroke:#e94560,color:#fff
+    classDef primitive fill:#2d6a4f,stroke:#1b4332,color:#fff
 
-    EPIC -->|integrity gate| GATE["Integrity Gate Subagent<br/>(compile + test + coverage + smoke)"]
-    EPIC -->|conflict resolution| CONFLICT["Conflict Resolution Subagent<br/>(Section 1.4c)"]
-    EPIC -->|report| REPORT["Epic Progress Report<br/>(Phase 2)"]
-    EPIC -->|status sync| JIRA["Jira API<br/>(MCP Atlassian)"]
-
-    classDef skill fill:#16213e,stroke:#0f3460,color:#fff
-    classDef specialist fill:#533483,stroke:#e94560,color:#fff
-    classDef infra fill:#1a1a2e,stroke:#e94560,color:#fff
-
-    class EPIC,LIFE,ARCH,TEST,TASK,IMPL,ARCHUP,REVIEW,LTREVIEW,E2E skill
-    class S1,S2,S3,S4,S5,S6,S7,S8 specialist
-    class PR,GATE,CONFLICT,REPORT,JIRA infra
+    class EPIC,STORY thin
+    class ARGS,PLAN,BRANCH,GATE,REPORT,STATE internal
+    class MERGE,PR,GITBRANCH,PAREV,PRFIX,TDD primitive
 ```
 
-## 5. Flag Decision Matrix
+## 3. Flow Version Decision
 
 ```mermaid
 flowchart TD
-    FLAGS([Flags Received]) --> F1{--single-pr?}
-    F1 -->|Yes| LEGACY["LEGACY MODE<br/>Epic branch + mega-PR<br/>Skip all per-story PR logic"]
-    F1 -->|No| F2{--sequential?}
+    START(["--resume OR first run"]) --> STATE{"execution-state.json<br/>exists?"}
+    STATE -->|"No"| FLAGCHK{"--legacy-flow<br/>on argv?"}
+    STATE -->|"Yes"| READVER["Read flowVersion field"]
 
-    F2 -->|Yes| SEQMODE["SEQUENTIAL MODE<br/>Skip Phase 0.5<br/>One story at a time<br/>Skip auto-rebase"]
-    F2 -->|No| F3{--strict-overlap?}
+    READVER --> VERCHK{"flowVersion == 1<br/>or absent?"}
+    VERCHK -->|"Yes"| FORCELEG["Force --legacy-flow<br/>warn operator"]
+    VERCHK -->|"No (== 2)"| NEWFLOW["flowVersion=2"]
 
-    F3 -->|Yes| STRICT["STRICT MODE<br/>Pre-flight partitions stories<br/>High-overlap → sequential queue<br/>Low-overlap → parallel batch"]
-    F3 -->|No| ADVISORY["DEFAULT (ADVISORY)<br/>Pre-flight warns only<br/>All stories in parallel<br/>Auto-rebase resolves conflicts"]
+    FLAGCHK -->|"Yes"| LEGACY["flowVersion=1"]
+    FLAGCHK -->|"No"| NEWFLOW
 
-    FLAGS --> F4{--auto-merge?}
-    F4 -->|Yes| AUTO["AUTO-MERGE<br/>gh pr merge after approval<br/>Critical path order"]
-    F4 -->|No| POLL["POLLING<br/>Wait for manual merge<br/>60s interval, 24h timeout"]
+    FORCELEG --> LEGACY
+    LEGACY --> RUNLEGACY(["Run legacy flow<br/>(no epic branch, no final PR)"])
+    NEWFLOW --> RUNNEW(["Run new flow<br/>(epic/XXXX + final PR)"])
 
-    FLAGS --> F5{--skip-review?}
-    F5 -->|Yes| NOREVIEW["SKIP REVIEWS<br/>x-story-implement skips<br/>Phases 4 and 7"]
-    F5 -->|No| FULLREVIEW["FULL REVIEWS<br/>Specialist (Phase 4)<br/>Tech Lead (Phase 7)"]
-
-    FLAGS --> F6["SMOKE GATE<br/>(MANDATORY - EPIC-0042)<br/>--skip-smoke-gate REMOVED"]
-    F6 --> FULLSMOKE["FULL GATE<br/>Steps 1-5<br/>Including smoke tests"]
-
-    style LEGACY fill:#e94560,color:#fff
-    style ADVISORY fill:#2d6a4f,color:#fff
-    style STRICT fill:#e9c46a,color:#000
-    style SEQMODE fill:#16213e,color:#fff
+    style RUNLEGACY fill:#533483,color:#fff
+    style RUNNEW fill:#2d6a4f,color:#fff
 ```
 
-## 6. Integrity Gate Flow
+## 4. Default-change summary
 
-```mermaid
-flowchart TD
-    TRIGGER(["All phase stories complete<br/>+ All PRs merged"]) --> PRE
+| Aspect | EPIC-0042 | EPIC-0049 (this refactor) |
+|--------|-----------|---------------------------|
+| SKILL.md size | ~2000 lines | ~460 lines (77% drop) |
+| References size | ~1300 lines | ~280 lines |
+| Parallelism | default on (`--sequential` opts out) | default off (`--parallel` opts in) |
+| Auto-merge target | `develop` | `epic/<EPIC-ID>` |
+| Final PR | N/A (every story merges to develop) | `epic/<EPIC-ID> → develop` (manual gate) |
+| Inline `git`/`gh`/`jq`/`mvn` | present | **0** (only `Read`/`Glob` + `Skill`) |
+| Backward compat | — | `--legacy-flow` + `flowVersion` auto-detect |
 
-    PRE["Preconditions:<br/>1. mainShaBeforePhase captured<br/>2. git checkout main && git pull"] --> S1
+## 5. Error Code Catalogue
 
-    S1["Step 1: Compile<br/>{{COMPILE_COMMAND}}"] --> S1R{Pass?}
-    S1R -->|No| FAIL1(["FAIL — compilation error"])
-    S1R -->|Yes| S2
+| Exit | Code | Phase | Cause |
+|------|------|-------|-------|
+| 1 | `ARGS_INVALID` | 0 | Normalizer rejects argv |
+| 2 | `EPIC_DIR_MISSING` | 0 | `plans/epic-XXXX/` absent |
+| 3 | `STORY_FAILED` | 3 | One or more stories FAILED |
+| 4 | `INTEGRITY_GATE_FAILED` | 4 | Gate failed twice after recovery |
+| 5 | `FINAL_PR_CONFLICTS` | 5 | `x-git-merge` sync conflicted |
+| 6 | `BRANCH_ENSURE_FAILED` | 2 | `epic/<ID>` could not be ensured |
+| 7 | `PLAN_BUILD_FAILED` | 1 | Plan build failed (non-cyclic) |
+| 8 | `CYCLIC_DEPENDENCY` | 1 | DAG cycle detected |
 
-    S2["Step 2: Test<br/>{{TEST_COMMAND}} (full suite)"] --> S2R{Pass?}
-    S2R -->|No| REGRESS["Regression Diagnosis:<br/>correlate with phase commits"]
-    S2R -->|Yes| S3
+## 6. References
 
-    REGRESS --> REGSRC{Source found?}
-    REGSRC -->|Yes| REVERT["git revert commitSha<br/>Mark story FAILED<br/>Block dependents"]
-    REGSRC -->|No| PAUSE(["PAUSE — manual investigation"])
-
-    S3["Step 3: Coverage<br/>line >= 95%, branch >= 90%"] --> S3R{Pass?}
-    S3R -->|No| FAIL3(["FAIL — coverage below threshold"])
-    S3R -->|Yes| S5
-
-    S5["Step 5: Smoke Tests (MANDATORY)<br/>{{SMOKE_COMMAND}}"] --> S5R{Pass?}
-    S5R -->|No| SMOKEFAIL["Smoke Gate FAIL<br/>Correlate with phase stories"]
-    S5R -->|Yes| PASS(["PASS — advance to next phase"])
-
-    SMOKEFAIL --> OPERATOR(["Operator: --resume after fix<br/>(no bypass - EPIC-0042)"])
-
-    style PASS fill:#2d6a4f,color:#fff
-    style FAIL1 fill:#e94560,color:#fff
-    style FAIL3 fill:#e94560,color:#fff
-    style PAUSE fill:#e9c46a,color:#000
-```
-
-## 7. Auto-Rebase Flow (Section 1.4e)
-
-```mermaid
-flowchart TD
-    TRIGGER(["PR merged to main"]) --> CHECK{Other open PRs<br/>in this phase?}
-    CHECK -->|No| DONE(["No rebase needed"])
-    CHECK -->|Yes| SEQCHECK{--sequential?}
-    SEQCHECK -->|Yes| SKIP(["Skip — sequential mode"])
-    SEQCHECK -->|No| ORDER["Sort remaining PRs<br/>by critical path priority"]
-
-    ORDER --> LOOP
-
-    subgraph LOOP["For each remaining PR"]
-        FETCH["git fetch origin main"] --> REBASE
-        REBASE["git rebase origin/main"] --> CONFLICT{Conflicts?}
-        CONFLICT -->|No| PUSH["git push --force-with-lease"]
-        CONFLICT -->|Yes| RESOLVE["Dispatch Conflict Resolution<br/>Subagent (Section 1.4c)"]
-        RESOLVE --> RESOLVED{Resolved?}
-        RESOLVED -->|Yes| CONTINUE["git rebase --continue"] --> PUSH
-        RESOLVED -->|No| RETRY{attempts < 3?}
-        RETRY -->|Yes| ABORT1["git rebase --abort<br/>Retry on next merge"]
-        RETRY -->|No| ABORT2["git rebase --abort<br/>Mark FAILED<br/>Close PR"]
-    end
-
-    PUSH --> NEXT{More PRs?}
-    NEXT -->|Yes| LOOP
-    NEXT -->|No| DONE2(["Rebase complete"])
-
-    style DONE fill:#2d6a4f,color:#fff
-    style DONE2 fill:#2d6a4f,color:#fff
-    style SKIP fill:#533483,color:#fff
-    style ABORT2 fill:#e94560,color:#fff
-```
-
-## 8. Resume Workflow
-
-```mermaid
-flowchart TD
-    RESUME(["--resume flag"]) --> READ["Read execution-state.json"]
-
-    READ --> RECLASS["Step 1: Reclassify Statuses"]
-
-    subgraph RECLASS_RULES["Status Reclassification"]
-        direction LR
-        R1["IN_PROGRESS → PENDING"]
-        R2["SUCCESS → SUCCESS ✓"]
-        R3["PR_CREATED → verify gh pr view"]
-        R4["PR_MERGED → SUCCESS"]
-        R5["FAILED (retries < 2) → PENDING"]
-        R6["FAILED (retries >= 2) → FAILED"]
-        R7["PARTIAL → PENDING"]
-        R8["BLOCKED → reevaluate"]
-    end
-
-    RECLASS --> PRCHECK["Step 1b: Verify PR states<br/>gh pr view for each prNumber"]
-    PRCHECK --> BLOCKED["Step 2: Reevaluate BLOCKED<br/>Check if blockers now SUCCESS+MERGED"]
-    BLOCKED --> FAILCLOSE["Close PRs of FAILED stories<br/>gh pr close --comment"]
-    FAILCLOSE --> FEED["Step 3: Feed to getExecutableStories()"]
-    FEED --> CONTINUE(["Continue execution loop"])
-
-    style CONTINUE fill:#2d6a4f,color:#fff
-```
-
-## 9. Summary Table — Skills Chain
-
-| Layer | Skill | Invoked By | Purpose |
-|-------|-------|------------|---------|
-| **Orchestrator** | `/x-epic-implement` | User | Epic-level orchestration, phase management |
-| **Per-Story** | `/x-story-implement` | Epic orchestrator subagent | Full 9-phase development cycle per story |
-| **Planning** | `/x-arch-plan` | Lifecycle Phase 1A | Architecture plan with diagrams + ADRs |
-| **Planning** | `/x-test-plan` | Lifecycle Phase 1B | Double-Loop TDD test plan with TPP |
-| **Planning** | `/x-lib-task-decomposer` | Lifecycle Phase 1C | Task breakdown from test plan |
-| **Implementation** | `/x-task-implement` | Lifecycle Phase 2 | TDD Red-Green-Refactor per scenario |
-| **Documentation** | `/x-arch-update` | Lifecycle Phase 3 | Update architecture document |
-| **Review** | `/x-review` | Lifecycle Phase 4 | 8 specialist engineers in parallel |
-| **Review** | `/x-review-pr` | Lifecycle Phase 7 | Tech Lead 40-point holistic review |
-| **Testing** | `/x-test-e2e` | Lifecycle Phase 8 | Smoke tests / post-deploy verification |
-| **Infra** | Integrity Gate | Epic orchestrator | Compile + test + coverage + smoke between phases |
-| **Infra** | Conflict Resolution | Epic orchestrator (1.4c) | Resolve rebase conflicts automatically |
-| **Infra** | Jira API | Epic orchestrator (1.6b) | Transition stories/epic to Done |
-
-## 10. Per-Story PR Flow (Default Model)
-
-```
-Orchestrator (main)          Story Subagent (worktree)          GitHub
-─────────────────           ──────────────────────────         ────────
-                                                                
-  dispatch story ──────────►  /x-story-implement                  
-                              │                                 
-                              ├─ Phase 0: create branch         
-                              ├─ Phase 1: plan                  
-                              ├─ Phase 2: implement (TDD)       
-                              ├─ Phase 3: document              
-                              ├─ Phase 4: /x-review ───────────► specialist reviews
-                              ├─ Phase 5: fix findings          
-                              ├─ Phase 6: gh pr create ────────► PR #N (→ main)
-                              │           "Part of EPIC-{id}"   
-                              ├─ Phase 7: /x-review-pr ────────► tech lead 40/40
-                              ├─ Phase 8: finalize              
-                              │                                 
-  ◄─── SubagentResult ──────  return {prUrl, prNumber, ...}     
-  │                                                             
-  ├─ update checkpoint                                          
-  ├─ update story markdown                                      
-  ├─ update IMPLEMENTATION-MAP                                  
-  │                                                             
-  ├─ wait for PR merge ────────────────────────────────────────► PR merged ✓
-  │  (auto-merge or polling)                                    
-  │                                                             
-  ├─ auto-rebase other PRs                                      
-  │  (Section 1.4e)                                             
-  │                                                             
-  └─ integrity gate                                             
-     (compile + test + coverage + smoke on main)                
-```
+- Main skill body: [`SKILL.md`](SKILL.md)
+- Full protocol + retry/circuit-breaker/legacy semantics: [`references/full-protocol.md`](references/full-protocol.md)
+- Args schema consumed by `x-internal-args-normalize`: [`references/args-schema.json`](references/args-schema.json)
+- Parent story: `plans/epic-0049/story-0049-0018.md`
+- ADR-0006 (file-conflict-aware parallelism), ADR-0010 (interactive gates), ADR-0012 (thin-skill pattern)

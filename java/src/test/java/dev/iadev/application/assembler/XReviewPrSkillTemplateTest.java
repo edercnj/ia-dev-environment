@@ -70,13 +70,18 @@ class XReviewPrSkillTemplateTest {
         }
 
         @Test
-        @DisplayName("execution flow shows PRE-CHECK"
-                + " as first step")
-        void executionFlow_showsPreCheckAsFirstStep() {
+        @DisplayName("execution flow opens with Phase 0"
+                + " (Context & idempotency — EPIC-0055)")
+        void executionFlow_opensWithPhase0Context() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
+            // EPIC-0055 retrofit: legacy "0. PRE-CHECK" label was
+            // replaced by Rule 25 canonical phase headers. Phase 0
+            // still covers the same idempotency pre-check in Steps
+            // 0-3 below.
             assertThat(content)
-                    .contains("0. PRE-CHECK");
+                    .contains("Phase 0 — Context & idempotency")
+                    .contains("Step 0 — Idempotency Pre-Check");
         }
     }
 

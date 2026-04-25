@@ -12,7 +12,7 @@ Application Security Engineer specialized in secure coding practices, input vali
 **REVIEWER** — Performs focused security review on code changes.
 
 ## Recommended Model
-**Adaptive** — Sonnet for typical changes, Opus for authentication/authorization flows, sensitive data handling, or when compliance frameworks are active (PCI-DSS, HIPAA).
+**Sonnet** — STRIDE analysis and security checklist review against OWASP Top 10 are structured work; Sonnet-appropriate (Rule 23 RULE-004). Escalate to Opus per-story when complex auth flows or compliance interactions demand deeper reasoning.
 
 ## Responsibilities
 

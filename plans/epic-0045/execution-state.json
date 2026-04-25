@@ -9,12 +9,30 @@
   "skipReview": false,
   "epicStatus": "SUCCESS",
   "stories": [
-    {"id": "story-0045-0001", "phase": 0},
-    {"id": "story-0045-0002", "phase": 0},
-    {"id": "story-0045-0003", "phase": 1},
-    {"id": "story-0045-0004", "phase": 1},
-    {"id": "story-0045-0005", "phase": 1},
-    {"id": "story-0045-0006", "phase": 2}
+    {
+      "id": "story-0045-0001",
+      "phase": 0
+    },
+    {
+      "id": "story-0045-0002",
+      "phase": 0
+    },
+    {
+      "id": "story-0045-0003",
+      "phase": 1
+    },
+    {
+      "id": "story-0045-0004",
+      "phase": 1
+    },
+    {
+      "id": "story-0045-0005",
+      "phase": 1
+    },
+    {
+      "id": "story-0045-0006",
+      "phase": 2
+    }
   ],
   "storyEntries": {
     "story-0045-0001": {
@@ -30,8 +48,14 @@
       "prMergeStatus": "MERGED",
       "coverageLine": 98,
       "coverageBranch": 93,
-      "reviewsExecuted": { "specialist": true, "techLead": true },
-      "reviewScores": { "specialist": "70/82", "techLead": "42/45" },
+      "reviewsExecuted": {
+        "specialist": true,
+        "techLead": true
+      },
+      "reviewScores": {
+        "specialist": "70/82",
+        "techLead": "42/45"
+      },
       "tddCycles": 11,
       "planningStatus": "READY",
       "dorVerdict": "READY"
@@ -49,8 +73,14 @@
       "prMergeStatus": "MERGED",
       "coverageLine": 95,
       "coverageBranch": 90,
-      "reviewsExecuted": { "specialist": true, "techLead": true },
-      "reviewScores": { "specialist": "75/82", "techLead": "44/45" },
+      "reviewsExecuted": {
+        "specialist": true,
+        "techLead": true
+      },
+      "reviewScores": {
+        "specialist": "75/82",
+        "techLead": "44/45"
+      },
       "tddCycles": 3,
       "planningStatus": "READY",
       "dorVerdict": "READY"
@@ -66,8 +96,14 @@
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/508",
       "prNumber": 508,
       "prMergeStatus": "MERGED",
-      "reviewsExecuted": { "specialist": true, "techLead": true },
-      "reviewScores": { "specialist": "75/82", "techLead": "41/45" },
+      "reviewsExecuted": {
+        "specialist": true,
+        "techLead": true
+      },
+      "reviewScores": {
+        "specialist": "75/82",
+        "techLead": "41/45"
+      },
       "planningStatus": "READY",
       "dorVerdict": "READY"
     },
@@ -82,8 +118,14 @@
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/510",
       "prNumber": 510,
       "prMergeStatus": "MERGED",
-      "reviewsExecuted": { "specialist": true, "techLead": true },
-      "reviewScores": { "specialist": "80/82", "techLead": "43/45" },
+      "reviewsExecuted": {
+        "specialist": true,
+        "techLead": true
+      },
+      "reviewScores": {
+        "specialist": "80/82",
+        "techLead": "43/45"
+      },
       "planningStatus": "READY",
       "dorVerdict": "READY"
     },
@@ -98,8 +140,14 @@
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/509",
       "prNumber": 509,
       "prMergeStatus": "MERGED",
-      "reviewsExecuted": { "specialist": true, "techLead": true },
-      "reviewScores": { "specialist": "99/100", "techLead": "50/50" },
+      "reviewsExecuted": {
+        "specialist": true,
+        "techLead": true
+      },
+      "reviewScores": {
+        "specialist": "99/100",
+        "techLead": "50/50"
+      },
       "planningStatus": "READY",
       "dorVerdict": "READY"
     },
@@ -114,10 +162,19 @@
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/514",
       "prNumber": 514,
       "prMergeStatus": "MERGED",
-      "reviewsExecuted": { "specialist": true, "techLead": true },
-      "reviewScores": { "specialist": "85/90", "techLead": "47/50" },
+      "reviewsExecuted": {
+        "specialist": true,
+        "techLead": true
+      },
+      "reviewScores": {
+        "specialist": "85/90",
+        "techLead": "47/50"
+      },
       "planningStatus": "READY",
       "dorVerdict": "READY"
     }
+  },
+  "taskTracking": {
+    "enabled": false
   }
 }

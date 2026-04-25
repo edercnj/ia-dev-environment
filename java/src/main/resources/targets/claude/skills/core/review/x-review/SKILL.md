@@ -1,5 +1,6 @@
 ---
 name: x-review
+model: sonnet
 description: "Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Invokes individual review skills in parallel via Skill tool, then consolidates into a scored report. Use for pre-PR quality validation."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, TaskCreate, TaskUpdate
@@ -34,7 +35,12 @@ Perform parallel specialist code reviews across multiple engineering dimensions 
 4. STORY       -> If CRITICAL/MEDIUM findings: ask user, generate correction story (inline)
 ```
 
+<!-- phase-no-gate: read-only idempotency pre-check; no artifact produced -->
 ## Phase 0 -- Idempotency Pre-Check (Orchestrator -- Inline)
+
+Open a phase tracker (close with `TaskUpdate(id: phase0TaskId, status: "completed")` after Step 5):
+
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 0 - Idempotency", activeForm: "Checking review idempotency")
 
 Before executing a review, check if reports already exist and are still valid.
 
@@ -54,7 +60,12 @@ Before executing a review, check if reports already exist and are still valid.
    - If code changed after reports: proceed with full review
 5. If no reports exist, proceed normally
 
+<!-- phase-no-gate: read-only context detection; no artifact produced -->
 ## Phase 1 -- Detect Context (Orchestrator -- Inline)
+
+Open a phase tracker (close with `TaskUpdate(id: phase1TaskId, status: "completed")` after Step 4):
+
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 1 - Detect", activeForm: "Detecting review context")
 
 1. Extract story ID from argument or branch name
 2. Get diff against main:
@@ -114,42 +125,44 @@ Each specialist is invoked via `Skill(...)` (Rule 13 — INLINE-SKILL pattern, p
 - `x-review-api` — only if a REST interface is present.
 - `x-review-events` — only if event interfaces are present.
 
-**Progress Display (EPIC-0042):** Before dispatching specialist agents, create a progress tracker via TodoWrite:
+Progress is surfaced by the `TaskCreate`/`TaskUpdate` pairs emitted in
+Batches A/B below — the earlier duplicate `TodoWrite(...)` block was
+removed in EPIC-0055 (story-0055-0006) because it competed with the
+canonical task hierarchy defined by Rule 25. Only emit the (TaskCreate,
+Skill) pair for specialists whose activation condition is true (Phase 1).
 
-    TodoWrite(todos: [
-      { content: "QA Specialist Review", status: "in_progress", activeForm: "Running QA specialist review" },
-      { content: "Performance Review", status: "pending", activeForm: "Running performance review" },
-      { content: "Security Review", status: "pending", activeForm: "Running security review" },
-      { content: "Database Review", status: "pending", activeForm: "Running database review" },
-      { content: "Observability Review", status: "pending", activeForm: "Running observability review" },
-      { content: "DevOps Review", status: "pending", activeForm: "Running DevOps review" },
-      { content: "Data Modeling Review", status: "pending", activeForm: "Running data modeling review" },
-      { content: "API Review", status: "pending", activeForm: "Running API review" }
-    ])
+**PRE gate (Rule 25 Invariant 4).** Before Batch A, verify Phase 1
+detected a valid diff and the story context is consistent:
 
-As each specialist agent completes, update its status to "completed" via TodoWrite. Only include entries for specialists whose activation condition is true (Phase 1).
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-review --phase Phase-2-SpecialistReviews")
+
+On gate exit 12, abort with a clear error — a failed PRE gate indicates
+a stale execution-state.json or predecessor phase that must be resolved.
 
 **Batch A — First assistant message (all TaskCreate + all Skill calls as sibling tool calls):**
 
-    TaskCreate(description: "Review: QA — Story {STORY_ID}")
-    TaskCreate(description: "Review: Performance — Story {STORY_ID}")
-    TaskCreate(description: "Review: Database — Story {STORY_ID}")
-    TaskCreate(description: "Review: Observability — Story {STORY_ID}")
-    TaskCreate(description: "Review: DevOps — Story {STORY_ID}")
-    TaskCreate(description: "Review: Data Modeling — Story {STORY_ID}")
-    TaskCreate(description: "Review: Security — Story {STORY_ID}")
-    TaskCreate(description: "Review: API — Story {STORY_ID}")
-    TaskCreate(description: "Review: Events — Story {STORY_ID}")
+Each `subject` follows the Rule 25 §3 canonical regex with the `›`
+(U+203A) separator — `{STORY_ID} › Review › {Specialist}`:
 
-    Skill(skill: "x-review-qa",            args: "{STORY_ID}")
-    Skill(skill: "x-review-perf",          args: "{STORY_ID}")
-    Skill(skill: "x-review-db",            args: "{STORY_ID}")
-    Skill(skill: "x-review-obs",           args: "{STORY_ID}")
-    Skill(skill: "x-review-devops",        args: "{STORY_ID}")
-    Skill(skill: "x-review-data-modeling", args: "{STORY_ID}")
-    Skill(skill: "x-review-security",      args: "{STORY_ID}")
-    Skill(skill: "x-review-api",           args: "{STORY_ID}")
-    Skill(skill: "x-review-events",        args: "{STORY_ID}")
+    TaskCreate(subject: "{STORY_ID} › Review › QA",            activeForm: "Running QA review")
+    TaskCreate(subject: "{STORY_ID} › Review › Performance",   activeForm: "Running performance review")
+    TaskCreate(subject: "{STORY_ID} › Review › Database",      activeForm: "Running database review")
+    TaskCreate(subject: "{STORY_ID} › Review › Observability", activeForm: "Running observability review")
+    TaskCreate(subject: "{STORY_ID} › Review › DevOps",        activeForm: "Running DevOps review")
+    TaskCreate(subject: "{STORY_ID} › Review › Data Modeling", activeForm: "Running data-modeling review")
+    TaskCreate(subject: "{STORY_ID} › Review › Security",      activeForm: "Running security review")
+    TaskCreate(subject: "{STORY_ID} › Review › API",           activeForm: "Running API review")
+    TaskCreate(subject: "{STORY_ID} › Review › Events",        activeForm: "Running events review")
+
+    Skill(skill: "x-review-qa",            model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-perf",          model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-db",            model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-obs",           model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-devops",        model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-data-modeling", model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-security",      model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-api",           model: "sonnet", args: "{STORY_ID}")
+    Skill(skill: "x-review-events",        model: "sonnet", args: "{STORY_ID}")
 
 Record the returned TaskCreate integer IDs in an in-memory map `reviewTasks` indexed by specialist short name (e.g., `reviewTasks["qa"] = <id>`, `reviewTasks["perf"] = <id>`, ...). The mapping is used in Batch B below.
 
@@ -168,6 +181,12 @@ Record the returned TaskCreate integer IDs in an in-memory map `reviewTasks` ind
     TaskUpdate(id: reviewTasks["events"],        status: "completed")
 
 Only emit `TaskUpdate` for specialists that were active in Batch A. If a specialist review returned STATUS = Rejected (score 0 on critical items), the TaskUpdate still uses `status: "completed"` for UI visibility — the authoritative Pass/Fail verdict lives in the consolidated dashboard (Step 4), not in the Claude Code task list (CR-04 of EPIC-0033).
+
+**Batch C — Wave POST gate (Rule 25 REGRA-003).** After Batch B, invoke the phase-gate skill in `--mode wave` to verify every task in `--expected-tasks` completed AND every file in `--expected-artifacts` exists:
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode wave --skill x-review --phase Phase-2-SpecialistReviews --expected-tasks {comma-separated-reviewTasks-ids} --expected-artifacts {comma-separated-report-paths}")
+
+`--expected-tasks` = the `reviewTasks` IDs recorded in Batch A for the active specialists (same filter as Batch A/B — Rule 25 Invariant 3). `--expected-artifacts` = `plans/epic-XXXX/reviews/review-{specialist}-story-XXXX-YYYY.md` for each active specialist; reports are written in Step 3c. On gate exit 12, surface the failure and return — Phase 3 is skipped until the broken specialist is resolved.
 
 Each skill produces output in the standard review format:
 
@@ -189,7 +208,12 @@ PARTIAL:
 > **STATUS = Rejected** if ANY item scores 0.
 > **STATUS = Partial** if ANY item scores 1 but none scores 0.
 
+<!-- phase-no-gate: consolidation aggregates Phase 2 artifacts (already validated by the Phase 2 wave gate); no additional gate needed -->
 ## Phase 3 -- Consolidation (Orchestrator -- Inline)
+
+Open a phase tracker (close with `TaskUpdate(id: phase3TaskId, status: "completed")` after Step 3g):
+
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 3 - Consolidate", activeForm: "Consolidating review findings")
 
 ### 3a. Collect & Score
 
@@ -348,7 +372,12 @@ After ALL specialists complete and all artifacts (reports, dashboard, remediatio
 
 Only include rows for specialists that were active in Phase 2. Replace placeholders with actual scores and statuses from the consolidation data.
 
+<!-- phase-no-gate: conditional correction-story generation; runs only when findings exist and is intrinsically guarded by Phase 3 consolidation result -->
 ## Phase 4 -- Story Generation for Findings (Orchestrator -- Inline)
+
+Open a phase tracker only when this phase runs — see Step 4a (close with `TaskUpdate(id: phase4TaskId, status: "completed")` after Step 4c):
+
+    TaskCreate(subject: "{STORY_ID} › Review › Phase 4 - Correction story", activeForm: "Generating correction story")
 
 This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 

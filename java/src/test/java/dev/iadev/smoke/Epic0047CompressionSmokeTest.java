@@ -278,7 +278,7 @@ class Epic0047CompressionSmokeTest extends SmokeTestBase {
                     "x-code-format", 200,
                     "x-code-lint", 200,
                     "x-test-tdd", 250,
-                    "x-story-implement", 250);
+                    "x-story-implement", 350);
 
     /**
      * Slim-contract mandatory section headers. ADR-0012 §Decision

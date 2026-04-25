@@ -1,0 +1,79 @@
+{
+  "flowVersion": "2",
+  "epicId": "EPIC-0054",
+  "epicBranch": "epic/0054",
+  "mode": "sequential",
+  "autoMergeStrategy": "merge",
+  "storyStatuses": {
+    "story-0054-0001": {
+      "status": "COMPLETE",
+      "phase": 0,
+      "prNumber": null,
+      "prUrl": null,
+      "commitSha": "e3b21c2d1",
+      "tasksDone": 4,
+      "tasksCount": 4,
+      "techLeadScore": "42/45",
+      "techLeadDecision": "GO"
+    },
+    "story-0054-0002": {
+      "status": "COMPLETE",
+      "phase": 0,
+      "prNumber": null,
+      "prUrl": null,
+      "commitSha": "a390bcb8d",
+      "tasksDone": 5,
+      "tasksCount": 5,
+      "techLeadScore": "42/45",
+      "techLeadDecision": "GO"
+    },
+    "story-0054-0003": {
+      "status": "COMPLETE",
+      "phase": 0,
+      "prNumber": null,
+      "prUrl": null,
+      "commitSha": "486ef2025",
+      "tasksDone": 5,
+      "tasksCount": 5,
+      "techLeadScore": "42/45",
+      "techLeadDecision": "GO"
+    },
+    "story-0054-0004": {
+      "status": "COMPLETE",
+      "phase": 1,
+      "prNumber": 629,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/629",
+      "commitSha": "4ed7cc76d",
+      "tasksDone": 5,
+      "tasksCount": 5,
+      "techLeadScore": "42/45",
+      "techLeadDecision": "GO"
+    }
+  },
+  "phases": [
+    {
+      "index": 0,
+      "stories": [
+        "story-0054-0001",
+        "story-0054-0002",
+        "story-0054-0003"
+      ]
+    },
+    {
+      "index": 1,
+      "stories": [
+        "story-0054-0004"
+      ]
+    }
+  ],
+  "criticalPath": [
+    "story-0054-0003",
+    "story-0054-0004"
+  ],
+  "executionPlanPath": "plans/epic-0054/reports/epic-execution-plan-0054.md",
+  "createdAt": "2026-04-23T00:00:00Z",
+  "lastUpdatedAt": "2026-04-23T00:00:00Z",
+  "taskTracking": {
+    "enabled": false
+  }
+}

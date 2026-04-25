@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.testutil.SkillContentReader;
 import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.template.TemplateEngine;
@@ -564,11 +565,8 @@ class SecurityPipelineSkillTest {
     private String generateClaudeContent(Path tempDir)
             throws IOException {
         Path outputDir = generateOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-security-pipeline"
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
+        return SkillContentReader.readSkillWithReferences(
+                outputDir, "x-security-pipeline");
     }
 
 }

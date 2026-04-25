@@ -20,16 +20,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("MergeTrainSkill — Integration Notes and Examples")
 class MergeTrainSkillExamplesTest {
 
-    private static final String GOLDEN_RELATIVE_PATH =
+    private static final String GOLDEN_FULL_PROTOCOL_RELATIVE_PATH =
             "src/test/resources/golden/java-spring-hexagonal"
-                    + "/.claude/skills/x-pr-merge-train/SKILL.md";
+                    + "/.claude/skills/x-pr-merge-train/references/full-protocol.md";
 
     @Test
     @DisplayName("integration_notes_and_examples_present_in_golden_skillmd: "
             + "golden SKILL.md contains Integration Notes table and Examples with --resume")
     void integration_notes_and_examples_present_in_golden_skillmd() throws IOException {
         Path javaModuleDir = Path.of(System.getProperty("user.dir"));
-        Path goldenFile = javaModuleDir.resolve(GOLDEN_RELATIVE_PATH);
+        Path goldenFile = javaModuleDir.resolve(GOLDEN_FULL_PROTOCOL_RELATIVE_PATH);
 
         assertThat(goldenFile)
                 .as("Golden SKILL.md must exist at " + goldenFile)

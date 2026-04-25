@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.testutil.SkillContentReader;
 import dev.iadev.testutil.TestConfigBuilder;
 import dev.iadev.template.TemplateEngine;
 import org.junit.jupiter.api.DisplayName;
@@ -151,11 +152,8 @@ class FixEpicPrCommentsDevelopTest {
     private String generateClaudeContent(Path tempDir)
             throws IOException {
         Path outputDir = generateOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-pr-fix-epic"
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
+        return SkillContentReader.readSkillWithReferences(
+                outputDir, "x-pr-fix-epic");
     }
 
 }

@@ -21,9 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("MergeTrainSkill — state.json Schema, Atomic Write, and Resume Logic")
 class MergeTrainSkillSchemaTest {
 
-    private static final String GOLDEN_RELATIVE_PATH =
+    private static final String GOLDEN_FULL_PROTOCOL_RELATIVE_PATH =
             "src/test/resources/golden/java-spring-hexagonal"
-                    + "/.claude/skills/x-pr-merge-train/SKILL.md";
+                    + "/.claude/skills/x-pr-merge-train/references/full-protocol.md";
 
     @Test
     @DisplayName("state_schema_section_present_in_golden_skillmd: "
@@ -31,7 +31,7 @@ class MergeTrainSkillSchemaTest {
             + "and atomic-write pattern and STATE_CONFLICT resume logic")
     void state_schema_section_present_in_golden_skillmd() throws IOException {
         Path javaModuleDir = Path.of(System.getProperty("user.dir"));
-        Path goldenFile = javaModuleDir.resolve(GOLDEN_RELATIVE_PATH);
+        Path goldenFile = javaModuleDir.resolve(GOLDEN_FULL_PROTOCOL_RELATIVE_PATH);
 
         assertThat(goldenFile)
                 .as("Golden SKILL.md must exist at " + goldenFile)

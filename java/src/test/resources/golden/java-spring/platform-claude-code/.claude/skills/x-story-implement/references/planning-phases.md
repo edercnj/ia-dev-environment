@@ -65,8 +65,8 @@ Launch a single `general-purpose` subagent via the `Agent` tool (Rule 13 — SUB
 > **Step 1 -- Read context:**
 > - Read template at `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` for required output format (RULE-007). If not found, use inline format (RULE-012).
 > - Read story file: `{STORY_PATH}`
-> - Read `skills/architecture/references/architecture-principles.md` -- layer structure, dependency direction
-> - Read `skills/layer-templates/SKILL.md` -- code templates per architecture layer
+> - Read `knowledge/architecture.md` -- layer structure, dependency direction
+> - Read `knowledge/layer-templates.md` -- code templates per architecture layer
 > - Read any relevant ADRs in `adr/`
 > - If architecture plan exists, read it for architectural decisions and constraints
 >
@@ -171,7 +171,7 @@ Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-G
 >
 > Record the returned integer ID as `eventSchemaTaskId` for the LAST ACTION below.
 >
-> Read `skills/protocols/references/event-driven-conventions.md`.
+> Read `knowledge/protocols.md`.
 > Read implementation plan. Produce event schema design: event names, CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
 > Save to `plans/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
 >
@@ -222,7 +222,7 @@ Then launch the fallback `general-purpose` subagent via the `Agent` tool (Rule 1
 > Record the returned integer ID as `securityFallbackTaskId` for the LAST ACTION below.
 >
 > Read template `_TEMPLATE-SECURITY-ASSESSMENT.md` (RULE-007, fallback RULE-012).
-> Read `skills/security/SKILL.md` -> then read its references.
+> Read `knowledge/security/index.md` -> then read its references.
 > Read implementation plan. Produce security assessment: threat model, OWASP Top 10 mapping, auth review, input validation, data protection, secrets management.
 > Save to `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`.
 >
@@ -255,7 +255,7 @@ Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-G
 > Record the returned integer ID as `complianceTaskId` for the LAST ACTION below.
 >
 > Read template `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` (RULE-007, fallback RULE-012).
-> Read `skills/compliance/SKILL.md` -> then read its references.
+> Read `knowledge/compliance.md` -> then read its references.
 > Read implementation plan. Produce compliance impact assessment.
 > Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 >

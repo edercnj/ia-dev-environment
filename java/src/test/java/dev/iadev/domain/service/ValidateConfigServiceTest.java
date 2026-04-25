@@ -217,36 +217,57 @@ class ValidateConfigServiceTest {
             assertThat(result.errors()).isEmpty();
         }
 
-        private ProjectConfig buildConfigWithArchUnit(
-                boolean archUnit, String basePackage) {
-            return new ProjectConfig(
-                    new ProjectIdentity("test-project",
-                            "Test purpose"),
-                    new ArchitectureConfig("hexagonal",
-                            false, false,
-                            archUnit, basePackage,
-                            new ArchitectureConfig.CqrsConfig(
-                                    "eventstoredb", 100,
-                                    "", false, ""),
-                            false),
-                    List.of(new InterfaceConfig(
-                            "rest", "", "")),
-                    new LanguageConfig("java", "21"),
-                    new FrameworkConfig("quarkus", "3.17",
-                            "maven", false),
-                    DataConfig.fromMap(Map.of()),
-                    new InfraConfig("docker", "none",
-                            "kustomize", "none", "none",
-                            "none", "none", "none",
-                            ObservabilityConfig.fromMap(
-                                    Map.of())),
-                    SecurityConfig.fromMap(Map.of()),
-                    TestingConfig.fromMap(Map.of()),
-                    McpConfig.fromMap(Map.of()),
-                "none",
-                java.util.Set.of(),
-                null);
+        @Test
+        @DisplayName("validate_archUnitWithNullBasePackage"
+                + "_returnsErrorResult (branch: null path)")
+        void validate_archUnitNullBase_returnsError() {
+            // Covers the basePackage() == null branch of
+            // validateArchitectureCrossFields. The sibling
+            // test above covers the isBlank() branch with
+            // an empty string. EPIC-0050 coverage closure.
+            ProjectConfig config =
+                    buildConfigWithArchUnit(true, null);
+
+            ValidationResult result =
+                    service.validate(config);
+
+            assertThat(result.valid()).isFalse();
+            assertThat(result.errors())
+                    .isNotEmpty()
+                    .anyMatch(e -> e.contains(
+                            "architecture.base_package"));
         }
+    }
+
+    private ProjectConfig buildConfigWithArchUnit(
+            boolean archUnit, String basePackage) {
+        return new ProjectConfig(
+                new ProjectIdentity("test-project",
+                        "Test purpose"),
+                new ArchitectureConfig("hexagonal",
+                        false, false,
+                        archUnit, basePackage,
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
+                List.of(new InterfaceConfig(
+                        "rest", "", "")),
+                new LanguageConfig("java", "21"),
+                new FrameworkConfig("quarkus", "3.17",
+                        "maven", false),
+                DataConfig.fromMap(Map.of()),
+                new InfraConfig("docker", "none",
+                        "kustomize", "none", "none",
+                        "none", "none", "none",
+                        ObservabilityConfig.fromMap(
+                                Map.of())),
+                SecurityConfig.fromMap(Map.of()),
+                TestingConfig.fromMap(Map.of()),
+                McpConfig.fromMap(Map.of()),
+            "none",
+            java.util.Set.of(),
+            null);
     }
 
     @Nested

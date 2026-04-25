@@ -3,6 +3,7 @@ package dev.iadev.application.assembler;
 import dev.iadev.testutil.TestConfigBuilder;
 
 import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * reference file exists, contains all mandatory sections,
  * and the security KP SKILL.md references it.</p>
  */
+@Disabled("EPIC-0051 complete: SkillsAssembler no longer emits KP output under .claude/skills/{kp}/; replaced by KnowledgePackMigrationSmokeTest + KnowledgeAssemblerTest on the new .claude/knowledge/ layout. See ADR-0013.")
 @DisplayName("Security Skill Template + CI Integration")
 class SecuritySkillTemplateTest {
 
