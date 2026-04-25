@@ -156,6 +156,11 @@ Before generating, verify whether a valid plan already exists:
 
 ### Phase 1 -- Extract Contracts
 
+> **RA9 guidance (EPIC-0056 / planning-standards-kp):** Before reading contracts, read
+> `.claude/skills/planning-standards-kp/SKILL.md` to understand the RA9 9-section model.
+> When the task file uses the RA9 v2 format (sections 1-9), map its Section 2 (Packages)
+> and Section 8 (Decision Rationale — N/A accepted for tasks) to the plan output.
+
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-1-Context-Gathering`
 

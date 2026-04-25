@@ -555,6 +555,7 @@ class PlanTemplatesAssemblerTest {
                         "Implementation Plan",
                         List.of("Header",
                                 "Executive Summary",
+                                "Package Structure",
                                 "Affected Layers"
                                         + " and Components",
                                 "New Classes/Interfaces",
@@ -775,11 +776,16 @@ class PlanTemplatesAssemblerTest {
                 "_TEMPLATE-TASK.md",
                 buildContent(
                         "Task",
-                        List.of("1. Objetivo",
-                                "2. Contratos I/O",
-                                "3. Definition of Done",
-                                "4. Dependências",
-                                "5. Plano de Implementação"),
+                        List.of("1. Contexto & Escopo",
+                                "2. Packages (Hexagonal)",
+                                "3. Contratos & Endpoints",
+                                "4. Materialização SOLID",
+                                "5. Quality Gates",
+                                "6. Segurança",
+                                "7. Observabilidade",
+                                "8. Decision Rationale",
+                                "9. Dependências"
+                                        + " & File Footprint"),
                         false));
 
         writeTemplate(templateDir,
@@ -813,33 +819,32 @@ class PlanTemplatesAssemblerTest {
                 "_TEMPLATE-EPIC.md",
                 buildContent(
                         "Epic",
-                        List.of("1. Visão Geral",
-                                "2. Anexos e Referências",
-                                "3. Definições de Qualidade"
-                                        + " Globais",
-                                "4. Regras de Negócio"
-                                        + " Transversais"
-                                        + " (Source of Truth)",
-                                "5. Índice de Histórias"),
+                        List.of("1. Contexto & Escopo",
+                                "2. Packages (Hexagonal)",
+                                "3. Contratos & Endpoints",
+                                "4. Materialização SOLID",
+                                "5. Quality Gates",
+                                "6. Segurança",
+                                "7. Observabilidade",
+                                "8. Decision Rationale",
+                                "9. Dependências"
+                                        + " & File Footprint"),
                         false));
 
         writeTemplate(templateDir,
                 "_TEMPLATE-STORY.md",
                 buildContent(
                         "Story",
-                        List.of("1. Dependências",
-                                "2. Regras Transversais"
-                                        + " Aplicáveis",
-                                "3. Descrição",
-                                "3.5 Entrega de Valor",
-                                "4. Definições de Qualidade"
-                                        + " Locais",
-                                "5. Contratos de Dados"
-                                        + " (Data Contract)",
-                                "6. Diagramas",
-                                "7. Critérios de Aceite"
-                                        + " (Gherkin)",
-                                "8. Tasks"),
+                        List.of("1. Contexto & Escopo",
+                                "2. Packages (Hexagonal)",
+                                "3. Contratos & Endpoints",
+                                "4. Materialização SOLID",
+                                "5. Quality Gates",
+                                "6. Segurança",
+                                "7. Observabilidade",
+                                "8. Decision Rationale",
+                                "9. Dependências"
+                                        + " & File Footprint"),
                         false));
 
         writeTemplate(templateDir,
