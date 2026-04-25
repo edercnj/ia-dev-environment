@@ -76,7 +76,11 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-plan Phase-1-Context-Gathering`
 
-**Phase 1 (Context Gathering):** Read story, epic, implementation map, and existing plan artifacts inline. See staleness check and context-combination matrix in references.
+**Phase 1 (Context Gathering):** Read story, epic, implementation map, and existing plan artifacts inline. Also read `.claude/skills/planning-standards-kp/SKILL.md` (RA9 contract: 9 sections, Packages format, Decision Rationale micro-template). See staleness check and context-combination matrix in references.
+
+> **RA9 guidance (EPIC-0056 / planning-standards-kp):** When producing the consolidated plan, the Architect subagent MUST fill:
+> - **Section 2 (Packages Hexagonal):** Feature-level packages in each hexagonal layer from the story analysis.
+> - **Section 8 (Decision Rationale):** At least 1 feature-level decision using the 4-line micro-template.
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-plan Phase-1-Context-Gathering ok`
