@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **EPIC-0056 (RA9 Standardized Planning Templates):** Introduces the
+  Rule-Aligned 9-Section (RA9) model for all planning artifacts (Epic, Story,
+  Task). The 9 fixed sections are: Contexto & Escopo, Packages (Hexagonal),
+  Contratos & Endpoints, Materialização SOLID, Quality Gates, Segurança,
+  Observabilidade, Decision Rationale, Dependências & File Footprint.
+  - `planning-standards-kp` knowledge pack added as the single source of truth
+    for the RA9 contract (rule anchors, granularity table, 4-line Decision
+    Rationale micro-template, and rule-to-section mapping).
+  - `_TEMPLATE-EPIC.md`, `_TEMPLATE-STORY.md`, `_TEMPLATE-TASK.md` migrated
+    from v1 to RA9 v2 (direct replacement, no coexistence). `_TEMPLATE-TASK.md`
+    accepts `N/A — <reason>` for Decision Rationale when no design trade-off exists.
+  - `_TEMPLATE-IMPLEMENTATION-PLAN.md` gains a `## Package Structure` section
+    aligned with RA9 §2, serving as the detailed technical reference for story §2.
+  - Plan skills (`x-epic-create`, `x-epic-decompose`, `x-story-plan`, `x-task-plan`)
+    updated to reference `planning-standards-kp` and include RA9 guidance for
+    filling §2 (Packages) and §8 (Decision Rationale) during generation.
+  - CI gate extended: `LifecycleIntegrityAuditTest` adds 3 RA9 rules
+    (`RA9_SECTIONS_MISSING`, `RA9_RATIONALE_EMPTY`, `RA9_PACKAGES_MISSING`) via
+    new domain classes `Ra9SectionsChecker`, `Ra9RationaleChecker`, and
+    `Ra9PackagesChecker`. Grandfathers epics 0001–0058 via baseline.
+  - Golden files regenerated to reflect new templates and `planning-standards-kp`
+    inclusion. `PlanTemplateDefinitions` updated with RA9 section headers.
+  [story-0056-0001 through story-0056-0008]
+
 - **Rule 25 / Rule 19 — `taskTracking.enabled` default flipped to `true`.**
   When the `taskTracking` field is absent from `plans/epic-XXXX/execution-state.json`,
   orchestrators now resolve `enabled=true` (was `false`) — full hierarchical task

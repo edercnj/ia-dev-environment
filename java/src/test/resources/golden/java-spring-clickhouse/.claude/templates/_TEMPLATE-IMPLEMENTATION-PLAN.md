@@ -15,6 +15,40 @@
 
 {{EXECUTIVE_SUMMARY}}
 
+## Package Structure
+
+> Aligned with RA9 Section 2 (Packages Hexagonal — planning-standards-kp).
+> Lists specific classes per hexagonal layer. Serves as the detailed technical
+> reference pointed to by Section 2 of the parent Story.
+
+### Domain Layer
+
+- `domain/<package>/` — classes: `<Entity|VO|Engine|Port>`
+- Anti-patterns prohibited: no framework annotations, no I/O, no serialization
+
+### Application Layer
+
+- `application/<package>/` — UseCases: `<UseCase>`
+- Outbound ports: `<PortInterface>`
+
+### Adapter Inbound
+
+- `adapter/inbound/<type>/` — handlers: `<Controller|CLI|Handler>`
+- DTOs + mappers: `<RequestDTO>`, `<ResponseDTO>`, `<Mapper>`
+
+### Adapter Outbound
+
+- `adapter/outbound/<type>/` — implements: `<Port>`
+- Persistence entities + row mappers (if applicable)
+
+### Infrastructure
+
+- `infrastructure/<package>/` — config, observability wiring
+
+**Dependency direction:** `adapter.inbound/outbound → application → domain` (inward only — Rule 04).
+
+---
+
 ## Affected Layers and Components
 
 | Layer | Package | Component | Action |

@@ -1,0 +1,23 @@
+{
+  "flowVersion": "2",
+  "epicId": "EPIC-0056",
+  "epicBranch": "epic/0056",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-25T00:00:00Z",
+  "mode": "sequential",
+  "taskTracking": {
+    "enabled": true
+  },
+  "finalPrNumber": 651,
+  "finalPrUrl": "https://github.com/edercnj/ia-dev-environment/pull/651",
+  "storyStatuses": {
+    "story-0056-0001": { "status": "SUCCESS", "prNumber": 642 },
+    "story-0056-0002": { "status": "SUCCESS", "prNumber": 643 },
+    "story-0056-0003": { "status": "SUCCESS", "prNumber": 644 },
+    "story-0056-0004": { "status": "SUCCESS", "prNumber": 645 },
+    "story-0056-0005": { "status": "SUCCESS", "prNumber": 647 },
+    "story-0056-0006": { "status": "SUCCESS", "prNumber": 648 },
+    "story-0056-0007": { "status": "SUCCESS", "prNumber": 649 },
+    "story-0056-0008": { "status": "SUCCESS", "prNumber": 650 }
+  }
+}
