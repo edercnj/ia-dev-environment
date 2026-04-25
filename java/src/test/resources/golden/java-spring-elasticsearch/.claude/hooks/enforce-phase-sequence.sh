@@ -10,13 +10,13 @@
 #
 # Fail-open by design for ambiguous cases:
 #   - No state file → allow (legacy / fresh run).
-#   - taskTracking.enabled=false → allow (legacy mode).
+#   - taskTracking.enabled=false (explicit) → allow (legacy opt-out).
 #   - Missing phaseGateResults → allow (bootstrap).
 #   - Target skill not in canonical 8 → allow.
 #
 # Only fails closed (exit 2) when:
 #   - Target skill IS a canonical orchestrator, AND
-#   - taskTracking.enabled=true, AND
+#   - taskTracking.enabled=true (default when field is absent), AND
 #   - Most recent phase in phaseGateResults has passed=false.
 #
 # See: .claude/rules/25-task-hierarchy.md §Enforcement Layers — Layer 3
@@ -69,8 +69,8 @@ done < <(find "$PROJECT_DIR/plans" -maxdepth 3 -type f -name "execution-state.js
 
 [ -z "$STATE_FILE" ] && exit 0
 
-# Short-circuit on disabled taskTracking
-enabled=$(jq -r '.taskTracking.enabled // false' "$STATE_FILE" 2>/dev/null || echo "false")
+# Short-circuit on disabled taskTracking (default true when field absent)
+enabled=$(jq -r '.taskTracking.enabled // true' "$STATE_FILE" 2>/dev/null || echo "true")
 [ "$enabled" = "true" ] || exit 0
 
 # Find the most recent phase gate result

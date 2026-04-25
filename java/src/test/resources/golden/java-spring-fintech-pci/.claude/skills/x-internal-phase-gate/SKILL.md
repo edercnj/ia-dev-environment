@@ -145,7 +145,7 @@ When `--state-file` absent, search upward from `$PWD` for `plans/epic-*/executio
 
 ### Step 3 — Short-circuit on `taskTracking.enabled=false`
 
-Read `taskTracking.enabled` from the state file. If `false` or absent, emit:
+Read `taskTracking.enabled` from the state file. Default is `true` when the field is absent (Rule 19 fallback). Only when the value is **explicitly** `false`, emit:
 
 ```json
 {"passed":true,"mode":"<mode>","skill":"<skill>","phase":"<phase>","expectedTasks":[],"completedTasks":[],"missingTasks":[],"expectedArtifacts":[],"missingArtifacts":[],"wallclockMs":<N>,"timestamp":"<t>","note":"taskTracking disabled (legacy mode)"}

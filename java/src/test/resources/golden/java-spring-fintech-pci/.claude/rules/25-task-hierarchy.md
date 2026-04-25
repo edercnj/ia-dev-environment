@@ -117,7 +117,7 @@ Adds two optional sub-objects (backward-compatible per Rule 19 — absence means
 }
 ```
 
-`taskTracking.enabled` defaults to `false` when the key is absent. Rule 19's fallback matrix treats that as legacy behavior — orchestrators DO NOT emit tasks and phase-gate calls become no-ops.
+`taskTracking.enabled` defaults to `true` when the key is absent. Rule 19's fallback matrix treats absence as full tracking enabled — orchestrators emit `TaskCreate`/`TaskUpdate` and phase-gate calls are enforced. Explicit `enabled: false` is the opt-out path for legacy epics.
 
 ## Enforcement Layers
 
@@ -157,9 +157,9 @@ This promotes Rule 24 enforcement from "Stop-hook notices afterwards" to **synch
 
 ## Backward Compatibility
 
-- Epics created before EPIC-0055 merged have `taskTracking` absent from `execution-state.json`. Orchestrators treat absence as `taskTracking.enabled=false` — no task emission, gate calls become no-ops. Behavior identical to pre-Rule-25.
+- Epics created before EPIC-0055 merged have `taskTracking` absent from `execution-state.json`. Under the new default, orchestrators treat absence as `taskTracking.enabled=true` — task emission and phase-gate enforcement become active automatically. To preserve pre-Rule-25 behavior on a specific legacy epic, add `{"taskTracking": {"enabled": false}}` explicitly to its state file.
 - `--legacy-flow` on `x-epic-implement` forces `taskTracking.enabled=false` even on new epics.
-- Deprecation window: 2 releases after EPIC-0055 merges into `main`. After the window, missing `taskTracking` field on a `flowVersion="2"` state file fails fast with `TASK_TRACKING_MISSING`.
+- Default flip: `taskTracking` absence now resolves to `enabled=true` (was `false`). Explicit `enabled=false` remains the documented opt-out.
 
 ## Forbidden
 

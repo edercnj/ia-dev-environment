@@ -26,7 +26,7 @@ Supplementary reference for the SKILL.md contract. Covers state-file schema, pol
 
 Invariants:
 
-- `taskTracking.enabled` default `false` when absent (legacy fallback).
+- `taskTracking.enabled` default `true` when absent (Rule 19 fallback). Explicit `false` is the legacy opt-out.
 - `phaseGateResults[]` is append-only within a session; a phase may have multiple `pre` / `post` entries if a retry occurred. The latest entry (by `timestamp`) is authoritative for the Stop-hook.
 - `taskIndex[]` is the canonical mirror of `TaskList` state; entries are added at `TaskCreate` time and updated at `TaskUpdate(completed)` time by the calling orchestrator (not by this skill).
 
@@ -169,12 +169,13 @@ Stderr is ALWAYS one line. Stdout ALWAYS carries the JSON envelope (even on `pas
 
 | Epic flowVersion | `taskTracking.enabled` | Gate behavior |
 | :--- | :--- | :--- |
-| `"1"` (legacy) | absent | Short-circuit: `passed=true`, exit 0, envelope annotated with `note: "taskTracking disabled (legacy mode)"` |
-| `"2"` + pre-EPIC-0055 | absent (or `false`) | Same short-circuit |
-| `"2"` + post-EPIC-0055 | `true` | Full gate enforcement |
+| `"1"` (legacy) | absent | Full gate enforcement (default `true` per Rule 19); set `enabled=false` explicitly to opt out |
+| `"2"` + pre-EPIC-0055 | absent | Full gate enforcement (default `true`) |
+| `"2"` + post-EPIC-0055 | `true` (explicit) | Full gate enforcement |
+| Any | `false` (explicit) | Short-circuit: `passed=true`, exit 0, envelope annotated with `note: "taskTracking disabled (legacy mode)"` |
 | `"2"` + `--legacy-flow` forced | `false` | Short-circuit |
 
-The deprecation window for missing `taskTracking` on `flowVersion="2"` is 2 releases after EPIC-0055 merges. After the window, missing field fails fast with `TASK_TRACKING_MISSING`. See Rule 19 fallback matrix.
+To preserve pre-EPIC-0055 silence on a specific epic, set `{"taskTracking": {"enabled": false}}` in its state file. See Rule 19 fallback matrix.
 
 ## 10. Performance envelope
 

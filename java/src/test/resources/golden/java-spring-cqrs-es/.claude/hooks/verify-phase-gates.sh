@@ -6,9 +6,10 @@
 # the active epic and emits a WARNING on stderr when a gate failed, giving
 # the operator immediate feedback that a phase transition is incomplete.
 #
-# Fail-open by design: any parsing error / missing state file / disabled
-# taskTracking yields exit 0 silently. Only explicit gate failures emit
-# exit 2 + WARNING.
+# Fail-open by design: any parsing error / missing state file / explicit
+# taskTracking.enabled=false yields exit 0 silently. Only explicit gate
+# failures emit exit 2 + WARNING. Default is enabled=true when the field
+# is absent.
 #
 # Invariants:
 #   - Looks only at phaseGateResults entries with passed=false.
@@ -47,8 +48,8 @@ done < <(find "$PROJECT_DIR/plans" -maxdepth 3 -type f -name "execution-state.js
 # jq is required; fail-open if absent
 command -v jq >/dev/null 2>&1 || exit 0
 
-# Short-circuit on disabled taskTracking
-local_enabled=$(jq -r '.taskTracking.enabled // false' "$STATE_FILE" 2>/dev/null || echo "false")
+# Short-circuit on disabled taskTracking (default true when field absent)
+local_enabled=$(jq -r '.taskTracking.enabled // true' "$STATE_FILE" 2>/dev/null || echo "true")
 [ "$local_enabled" = "true" ] || exit 0
 
 # Extract failed gate entries
