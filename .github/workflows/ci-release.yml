@@ -70,6 +70,15 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: scripts/audit-execution-integrity.sh
 
+      # EPIC-0057 story-0057-0005: audit bypass flags (--no-*/--skip-*)
+      # outside ## Recovery / ## Error Handling sections. Per Rule 24
+      # §30 + Rule 45 §--no-ci-watch Constraints. Hard violations fail
+      # the build (exit 1); soft warnings (--no-jira) are surfaced but
+      # do not block (exit 3).
+      - name: Audit Bypass Flags (Rule 24 §30 + Rule 45)
+        working-directory: ${{ github.workspace }}
+        run: scripts/audit-bypass-flags.sh || [[ $? -eq 3 ]]
+
       - name: mvn -B verify
         run: mvn -B verify
 
