@@ -39,13 +39,20 @@ Read a system specification document and generate an Epic file — the top-level
 Read the following files before starting:
 
 **Template (output structure):**
-- `.claude/templates/_TEMPLATE-EPIC.md` — The exact structure to follow
+- `.claude/templates/_TEMPLATE-EPIC.md` — The exact structure to follow (RA9 v2: 9 sections)
+
+**RA9 planning contract (source of truth for 9-section model):**
+- `.claude/skills/planning-standards-kp/SKILL.md` — Defines all 9 RA9 sections, rule anchors, Packages granularity, and Decision Rationale micro-template. Read before generating Sections 2 and 8.
 
 **Decomposition philosophy (how to identify stories and rules):**
 - `.claude/skills/x-epic-decompose/references/decomposition-guide.md`
 
 If any template file is missing, stop and tell the user. The templates define the output structure
 and must be read fresh from disk every time (never hardcode the structure).
+
+> **RA9 guidance (EPIC-0056):** When generating the epic, explicitly fill:
+> - **Section 2 (Packages Hexagonal):** Identify all packages touched across the 5 hexagonal layers from the spec. Mark untouched layers with `—`. Declare dependency direction.
+> - **Section 8 (Decision Rationale):** Extract at least 1 architectural decision from the spec using the 4-line micro-template (`**Decisão:** / **Motivo:** / **Alternativa descartada:** / **Consequência:**`).
 
 ## Workflow
 
