@@ -4,7 +4,7 @@
   "branch": "feature/epic-0046-plan-lifecycle-integrity",
   "baseBranch": "develop",
   "startedAt": "2026-04-16T13:30:00Z",
-  "currentPhase": 0,
+  "currentPhase": null,
   "mode": {
     "parallel": false,
     "skipReview": false,
