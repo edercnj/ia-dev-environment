@@ -191,7 +191,7 @@ On `passed=false`: remediation agent (or `--revert-on-failure` revert) + one ret
 
     Skill(skill: "x-internal-report-write", args: "...")
 
-Optional post-gate PR-comment remediation (unless `--skip-pr-comments`):
+Post-gate PR-comment remediation (unless `--skip-pr-comments`). **MANDATORY TOOL CALL — NON-NEGOTIABLE (Rule 24):** Invoke the `x-pr-fix-epic` skill via the Skill tool whenever the gate would otherwise leave actionable Copilot comments unaddressed:
 
     Skill(skill: "x-pr-fix-epic", model: "sonnet", args: "<EPIC-ID>")
 

@@ -226,7 +226,7 @@ Read tasks from `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (Section 8 fall
 
 1. Check deps against `execution-state.json`; unresolved → `BLOCKED` via `x-internal-status-update`, skip.
 2. **Dispatch TDD:** `Skill(skill: "x-task-implement", model: "sonnet", args: "<TASK-ID> --orchestrated --target-branch <targetBranch> [--auto-merge <strategy>] [--epic-id <EPIC-ID>] [--auto-approve-pr] [--non-interactive]")` → RED/GREEN/REFACTOR + atomic commit + push `feat/task-XXXX-YYYY-NNN-desc`. Returns `{status, taskId, commitSha, branchName, coverageLine, coverageBranch}`.
-3. **CI-watch (Rule 21):** unless `--no-ci-watch`: `Skill(skill: "x-pr-watch-ci", args: "--branch <branchName>")` — 8 exit codes.
+3. **CI-watch (Rule 21 + Rule 45):** unless `--no-ci-watch`. **MANDATORY TOOL CALL — NON-NEGOTIABLE (Rule 24):** `Skill(skill: "x-pr-watch-ci", args: "--branch <branchName>")` — 8 exit codes. Persists `.claude/state/pr-watch-{PR}.json`; absence on a merged PR fails Camada 3 audit.
 4. **PR creation (RULE-009 OO propagation):** `Skill(skill: "x-pr-create", model: "haiku", args: "<TASK-ID> --target-branch <targetBranch> --auto-merge <strategy> --epic-id <EPIC-ID> [--auto-approve-pr]")`. With `--auto-approve-pr`, task-PR target becomes parent story branch. Consume `{prUrl, prNumber, prMergeStatus}`.
 5. **Status:** `Skill(skill: "x-internal-status-update", args: "--file plans/epic-XXXX/execution-state.json --type task --id <TASK-ID> --field status --value <STATUS>")`.
 

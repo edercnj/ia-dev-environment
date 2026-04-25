@@ -175,7 +175,9 @@ Open a phase tracker only when `--ci-watch` is set (close with `TaskUpdate` afte
 
     TaskCreate(subject: "RELEASE › Phase 7.5 - CI Watch", activeForm: "Polling CI on release PR")
 
-Invoke `x-pr-watch-ci` on `prNumber`. On `CI_FAILED` (exit 20) or `TIMEOUT` (exit 30): abort release with corresponding error. On success (exit 0): advance to Phase 8. See `references/full-protocol.md §Phase 7.5`.
+**MANDATORY TOOL CALL — NON-NEGOTIABLE (Rule 24 + Rule 45):** Invoke the `x-pr-watch-ci` skill via the Skill tool on `prNumber`. On `CI_FAILED` (exit 20) or `TIMEOUT` (exit 30): abort release with corresponding error. On success (exit 0): advance to Phase 8. See `references/full-protocol.md §Phase 7.5`.
+
+    Skill(skill: "x-pr-watch-ci", args: "--pr-number {prNumber}")
 
     TaskUpdate(id: phase75TaskId, status: "completed")
 

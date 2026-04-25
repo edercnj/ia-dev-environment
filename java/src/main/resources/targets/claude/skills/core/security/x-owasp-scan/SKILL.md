@@ -267,7 +267,7 @@ For each category (except A06), execute verification checks at the requested ASV
 
 ### Step 5 — Delegate A06 to x-dependency-audit
 
-Per RULE-011 (Skill Composability), A06 (Vulnerable and Outdated Components) is delegated to `x-dependency-audit` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+Per RULE-011 (Skill Composability), A06 (Vulnerable and Outdated Components) is delegated to `x-dependency-audit` via the Skill tool (Rule 13 — INLINE-SKILL pattern). **MANDATORY TOOL CALL — NON-NEGOTIABLE (Rule 24):** silent omission leaves the A06 row blank and fails Camada 3 audit when the dependency-audit evidence file is absent for the story:
 
     Skill(skill: "x-dependency-audit", args: "--scope vulnerabilities")
 

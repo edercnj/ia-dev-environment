@@ -191,6 +191,8 @@ CI Watch (Step 4.5, conditional — v2 + `--worktree` standalone only; see decis
 
     TaskCreate(subject: "{TASK_ID} › Step 4.5 - CI Watch", activeForm: "Polling CI checks after PR creation")
 
+**MANDATORY TOOL CALL — NON-NEGOTIABLE (Rule 24 + Rule 45):** Invoke the `x-pr-watch-ci` skill via the Skill tool — silent omission fails Camada 3 audit (`EIE_EVIDENCE_MISSING`):
+
     Skill(skill: "x-pr-watch-ci", args: "--pr-number {N} --poll-interval-seconds 60 --timeout-minutes 30 --require-copilot-review=false")
 
     TaskUpdate(id: step45TaskId, status: "completed")
