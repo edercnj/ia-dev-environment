@@ -106,6 +106,50 @@ if [[ ! -f "${REPORTS_DIR}/story-completion-report-${STORY_ID}.md" ]]; then
     MISSING+=("x-internal-story-report → ${REPORTS_DIR}/story-completion-report-${STORY_ID}.md")
 fi
 
+# EPIC-0057 story-0057-0006 — extended artefact checks (Rule 24 §32-42).
+# Hard artefacts: x-pr-watch-ci state file (only when PR exists for current
+# branch) and x-dependency-audit report. Soft artefacts: test-run + threat
+# model — logged as NOTICE but do not trigger exit 2.
+SOFT_NOTES=()
+
+# x-pr-watch-ci — derive PR number from current branch via gh; skip if gh
+# absent or PR not found (legitimate when story has not pushed yet).
+if command -v gh >/dev/null 2>&1; then
+    PR_NUMBER="$(gh pr view --json number -q .number 2>/dev/null || true)"
+    if [[ -n "${PR_NUMBER}" ]]; then
+        if [[ ! -f ".claude/state/pr-watch-${PR_NUMBER}.json" ]]; then
+            MISSING+=("x-pr-watch-ci → .claude/state/pr-watch-${PR_NUMBER}.json")
+        fi
+    fi
+fi
+
+# x-dependency-audit — hard artefact; absence is a violation.
+if [[ ! -f "${REPORTS_DIR}/dependency-audit-${STORY_ID}.md" ]]; then
+    MISSING+=("x-dependency-audit → ${REPORTS_DIR}/dependency-audit-${STORY_ID}.md")
+fi
+
+# x-test-tdd / x-test-run — soft artefact.
+if [[ ! -f "${REPORTS_DIR}/test-run-${STORY_ID}.txt" ]]; then
+    SOFT_NOTES+=("x-test-tdd/x-test-run → ${REPORTS_DIR}/test-run-${STORY_ID}.txt (soft)")
+fi
+
+# x-threat-model — soft artefact.
+if [[ ! -f "${PLANS_DIR}/threat-model-story-${STORY_ID}.md" ]]; then
+    SOFT_NOTES+=("x-threat-model → ${PLANS_DIR}/threat-model-story-${STORY_ID}.md (soft)")
+fi
+
+# Emit soft notices (non-blocking)
+if [[ ${#SOFT_NOTES[@]} -gt 0 ]]; then
+    {
+        echo ""
+        echo "ℹ NOTICE [verify-story-completion] Soft artifacts missing for ${STORY_ID}:"
+        for n in "${SOFT_NOTES[@]}"; do
+            printf "  ⚠ %s\n" "${n}"
+        done
+        echo "[Rule 24 — Camada 2 soft]"
+    } >&2
+fi
+
 if [[ ${#MISSING[@]} -gt 0 ]]; then
     cat >&2 <<EOF
 
