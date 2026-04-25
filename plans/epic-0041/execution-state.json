@@ -13,17 +13,105 @@
   },
   "startedAt": "2026-04-17T00:00:00Z",
   "stories": {
-    "story-0041-0001": { "id": "story-0041-0001", "phase": 0, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "KP parallelism-heuristics + golden test", "commitSha": "ceaea9938c7764d774330fad7a6a1df3238639b7", "prNumber": 430, "prMergeStatus": "MERGED" },
-    "story-0041-0002": { "id": "story-0041-0002", "phase": 1, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "x-task-plan File Footprint + parser + fixtures", "commitSha": "82a713188", "prNumber": 431, "prMergeStatus": "MERGED" },
-    "story-0041-0003": { "id": "story-0041-0003", "phase": 2, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "x-story-plan Phase 6 aggregate footprint + StoryFootprintAggregator", "commitSha": "30f077472", "prNumber": 432, "prMergeStatus": "MERGED" },
-    "story-0041-0004": { "id": "story-0041-0004", "phase": 3, "status": "SUCCESS", "retries": 0, "findingsCount": 2, "summary": "/x-parallel-eval skill: Java domain+app+CLI + SKILL.md + 23 tests. Fixed pre-existing GoldenFileCoverageTest. 2 unused-var warnings flagged.", "commitSha": "367619331", "prNumber": 433, "prMergeStatus": "MERGED" },
-    "story-0041-0005": { "id": "story-0041-0005", "phase": 4, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "x-epic-map Step 8.5 + template section 8.5 + EpicMapStep85IT; 6463/6463 tests green", "commitSha": "8e56341b81626f0fdae97c515cdbf79df77fdaca", "prNumber": 434, "prMergeStatus": "MERGED" },
-    "story-0041-0006": { "id": "story-0041-0006", "phase": 5, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "Parallelism gate (RULE-005) in x-epic-implement Phase 0.5.0 + x-story-implement Phase 1.5; 6472/6472 green", "commitSha": "772c6cf02", "prNumber": 435, "prMergeStatus": "MERGED" },
-    "story-0041-0007": { "id": "story-0041-0007", "phase": 5, "status": "SUCCESS", "retries": 0, "findingsCount": 1, "summary": "Retroactive /x-parallel-eval reports + diffs for epics 0036-0040. EPIC-0040 flagged HIGH (hard conflict on telemetry-phase.sh).", "commitSha": "6d815a6c5", "prNumber": 436, "prMergeStatus": "MERGED" },
-    "story-0041-0008": { "id": "story-0041-0008", "phase": 6, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "ADR-0006 (slot 0005 taken by telemetry) + CLAUDE.md EPIC-0041 note + CHANGELOG [Unreleased] Added block. Release deferred to operator." }
+    "story-0041-0001": {
+      "id": "story-0041-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "KP parallelism-heuristics + golden test",
+      "commitSha": "ceaea9938c7764d774330fad7a6a1df3238639b7",
+      "prNumber": 430,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0002": {
+      "id": "story-0041-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "x-task-plan File Footprint + parser + fixtures",
+      "commitSha": "82a713188",
+      "prNumber": 431,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0003": {
+      "id": "story-0041-0003",
+      "phase": 2,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "x-story-plan Phase 6 aggregate footprint + StoryFootprintAggregator",
+      "commitSha": "30f077472",
+      "prNumber": 432,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0004": {
+      "id": "story-0041-0004",
+      "phase": 3,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 2,
+      "summary": "/x-parallel-eval skill: Java domain+app+CLI + SKILL.md + 23 tests. Fixed pre-existing GoldenFileCoverageTest. 2 unused-var warnings flagged.",
+      "commitSha": "367619331",
+      "prNumber": 433,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0005": {
+      "id": "story-0041-0005",
+      "phase": 4,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "x-epic-map Step 8.5 + template section 8.5 + EpicMapStep85IT; 6463/6463 tests green",
+      "commitSha": "8e56341b81626f0fdae97c515cdbf79df77fdaca",
+      "prNumber": 434,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0006": {
+      "id": "story-0041-0006",
+      "phase": 5,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "Parallelism gate (RULE-005) in x-epic-implement Phase 0.5.0 + x-story-implement Phase 1.5; 6472/6472 green",
+      "commitSha": "772c6cf02",
+      "prNumber": 435,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0007": {
+      "id": "story-0041-0007",
+      "phase": 5,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 1,
+      "summary": "Retroactive /x-parallel-eval reports + diffs for epics 0036-0040. EPIC-0040 flagged HIGH (hard conflict on telemetry-phase.sh).",
+      "commitSha": "6d815a6c5",
+      "prNumber": 436,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0041-0008": {
+      "id": "story-0041-0008",
+      "phase": 6,
+      "status": "SUCCESS",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "ADR-0006 (slot 0005 taken by telemetry) + CLAUDE.md EPIC-0041 note + CHANGELOG [Unreleased] Added block. Release deferred to operator."
+    }
   },
-  "circuitBreaker": { "consecutiveFailures": 0, "totalFailuresInPhase": 0, "state": "CLOSED" },
-  "metrics": { "storiesCompleted": 8, "storiesFailed": 0, "storiesBlocked": 0 },
+  "circuitBreaker": {
+    "consecutiveFailures": 0,
+    "totalFailuresInPhase": 0,
+    "state": "CLOSED"
+  },
+  "metrics": {
+    "storiesCompleted": 8,
+    "storiesFailed": 0,
+    "storiesBlocked": 0
+  },
   "finishedAt": "2026-04-17T18:30:00Z",
-  "finalStatus": "COMPLETE"
+  "finalStatus": "COMPLETE",
+  "taskTracking": {
+    "enabled": false
+  }
 }

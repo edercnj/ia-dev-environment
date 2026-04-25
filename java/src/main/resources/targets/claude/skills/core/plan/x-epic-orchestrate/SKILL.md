@@ -3,7 +3,7 @@ name: x-epic-orchestrate
 model: sonnet
 description: "Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support."
 user-invocable: true
-allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion, Skill"
+allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion, Skill, TaskCreate, TaskUpdate"
 argument-hint: "[EPIC-ID] [--resume] [--story story-XXXX-YYYY] [--dry-run]"
 ---
 
@@ -105,7 +105,12 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-o
 
 ---
 
+<!-- phase-no-gate: read-only prerequisite validation; no artifact produced until Phase 1 -->
 ## Phase 0 -- Prerequisites (Orchestrator -- Inline)
+
+Open a phase tracker (close with `TaskUpdate(id: phase0TaskId, status: "completed")` after 0.7):
+
+    TaskCreate(subject: "{epicId} › Phase 0 - Prerequisites", activeForm: "Validating epic prerequisites")
 
 ### 0.1 Parse Epic ID
 
@@ -181,11 +186,16 @@ mkdir -p {epicDir}/plans
 
 Log: `"Created plans/ directory for EPIC-{epicId}"` if created. Skip silently if already exists.
 
+    TaskUpdate(id: phase0TaskId, status: "completed")
+
 >>> Phase 0/3 completed. Proceeding to Phase 1...
 
 ---
 
 ## Phase 1 -- Dependency Order (Orchestrator -- Inline)
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-epic-orchestrate --phase Phase-1-Discovery")
+    TaskCreate(subject: "{epicId} › Phase 1 - Discovery", activeForm: "Resolving story dependency order")
 
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-1-Discovery`
@@ -301,11 +311,17 @@ Execution order:
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-1-Discovery ok`
 
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-epic-orchestrate --phase Phase-1-Discovery --expected-artifacts plans/epic-{epicId}/execution-state.json")
+    TaskUpdate(id: phase1TaskId, status: "completed")
+
 >>> Phase 1/3 completed. Proceeding to Phase 2...
 
 ---
 
 ## Phase 2 -- Plan Loop (Orchestrator -- Dispatches Subagents)
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-epic-orchestrate --phase Phase-2-PlanLoop")
+    TaskCreate(subject: "{epicId} › Phase 2 - Plan Loop", activeForm: "Orchestrating story planning loop")
 
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-2-Story-Orchestration`
@@ -474,11 +490,17 @@ Stories in subsequent phases that depend on a `NOT_READY` story are still planne
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-2-Story-Orchestration ok`
 
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-epic-orchestrate --phase Phase-2-PlanLoop --expected-artifacts plans/epic-{epicId}/execution-state.json")
+    TaskUpdate(id: phase2TaskId, status: "completed")
+
 >>> Phase 2/3 completed. Proceeding to Phase 3...
 
 ---
 
 ## Phase 3 -- Report (Orchestrator -- Inline)
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-epic-orchestrate --phase Phase-3-Report")
+    TaskCreate(subject: "{epicId} › Phase 3 - Report", activeForm: "Generating epic planning report")
 
 <!-- TELEMETRY: phase.start -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-3-Consolidation`
@@ -596,6 +618,9 @@ EPIC-{epicId}: {overall_status}
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-3-Consolidation ok`
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode final --skill x-epic-orchestrate --phase Phase-3-Report --expected-artifacts plans/epic-{epicId}/reports/epic-planning-report-{epicId}.md,plans/epic-{epicId}/execution-state.json")
+    TaskUpdate(id: phase3TaskId, status: "completed")
 
 ## Step P5 — Push Epic Branch to Origin (optional, EPIC-0049)
 

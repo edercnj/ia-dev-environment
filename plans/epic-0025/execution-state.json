@@ -31,7 +31,9 @@
       "summary": "Implemented PlatformFilter with filtering logic preserving order (RULE-002), always including SHARED (RULE-003), backward-compatible PipelineOptions with Set<Platform> platforms. 5254 tests pass, 96.2% line / 90.9% branch.",
       "retries": 0,
       "duration": 452,
-      "blockedBy": ["story-0025-0001"],
+      "blockedBy": [
+        "story-0025-0001"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/161",
       "prNumber": 161,
       "prMergeStatus": "MERGED"
@@ -45,7 +47,9 @@
       "summary": "Added PlatformConverter and --platform/-p CLI flag to GenerateCommand with comma-split, all-keyword handling, clear error messages. 31 new tests, 5285 total pass.",
       "retries": 0,
       "duration": 470,
-      "blockedBy": ["story-0025-0002"],
+      "blockedBy": [
+        "story-0025-0002"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/162",
       "prNumber": 162,
       "prMergeStatus": "MERGED"
@@ -59,7 +63,9 @@
       "summary": "Added platform YAML config support with CLI precedence. PlatformParser, PlatformPrecedenceResolver, StackValidator validation, 26 profile templates updated. 27 new tests, 5292 total pass.",
       "retries": 0,
       "duration": 1155,
-      "blockedBy": ["story-0025-0002"],
+      "blockedBy": [
+        "story-0025-0002"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/164",
       "prNumber": 164,
       "prMergeStatus": "MERGED"
@@ -73,7 +79,9 @@
       "summary": "Implemented platform-filtered dynamic artifact counts. PlatformContextBuilder, SummaryRowFilter, platform-aware overloads in builders and assemblers. 32 new tests. 95.9% line / 91.0% branch.",
       "retries": 0,
       "duration": 1343,
-      "blockedBy": ["story-0025-0002"],
+      "blockedBy": [
+        "story-0025-0002"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/165",
       "prNumber": 165,
       "prMergeStatus": "MERGED"
@@ -87,7 +95,9 @@
       "summary": "Implemented platform-aware verbose and dry-run output. PlatformVerboseFormatter with filter header, INCLUDED/SKIPPED per-assembler, dry-run warnings. 23 new tests, 5277 total pass.",
       "retries": 0,
       "duration": 767,
-      "blockedBy": ["story-0025-0002"],
+      "blockedBy": [
+        "story-0025-0002"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/163",
       "prNumber": 163,
       "prMergeStatus": "MERGED"
@@ -101,7 +111,12 @@
       "summary": "Added 96 new tests: PlatformPipelineIntegrationTest (31), PlatformDirectorySmokeTest (42), ProfilePlatformIntegritySmokeTest (21), PlatformGoldenFileTest (2). Golden files for java-spring and go-gin with --platform claude-code.",
       "retries": 0,
       "duration": 3387,
-      "blockedBy": ["story-0025-0003", "story-0025-0004", "story-0025-0005", "story-0025-0006"],
+      "blockedBy": [
+        "story-0025-0003",
+        "story-0025-0004",
+        "story-0025-0005",
+        "story-0025-0006"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/167",
       "prNumber": 167,
       "prMergeStatus": "MERGED"
@@ -115,7 +130,9 @@
       "summary": "Added Platform Selection docs to README.md, CLAUDE.md, CHANGELOG.md. 8 new tests. 17 golden files regenerated. 5383 tests pass, 95.93% line / 91.01% branch.",
       "retries": 0,
       "duration": 1807,
-      "blockedBy": ["story-0025-0005"],
+      "blockedBy": [
+        "story-0025-0005"
+      ],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/166",
       "prNumber": 166,
       "prMergeStatus": "MERGED"
@@ -185,5 +202,7 @@
   },
   "reportPath": "plans/epic-0025/epic-execution-report.md",
   "finalStatus": "COMPLETE",
-  "finishedAt": "2026-04-07T00:35:00Z"
+  "taskTracking": {
+    "enabled": false
+  }
 }

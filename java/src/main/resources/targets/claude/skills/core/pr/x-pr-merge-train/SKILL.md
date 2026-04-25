@@ -2,7 +2,7 @@
 name: x-pr-merge-train
 description: "Merge-train automation: discovers, validates, and merges a sequence of PRs into develop in deterministic order. Supports --prs, --epic, and --pattern discovery modes with pre-merge validation and dry-run auditing."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
 argument-hint: "[--prs N,M,...] [--epic ID] [--pattern regex] [--max-parallel N] [--dry-run] [--resume]"
 ---
 
@@ -65,6 +65,147 @@ Train state transitions: `PREPARATION → DISCOVERY → VALIDATION → SORTING �
 | `GOLDENS_REGEN_FAILED` | 5 | `GoldenFileRegenerator` non-zero | Diagnose build failure; see worker log. |
 | `SMOKE_TEST_FAILED` | 6 | `mvn test` fails after all merges | Diagnose; worktree preserved for diagnosis. |
 | `STATE_CONFLICT` | resume | No `state.json` or ambiguous train ID | Start fresh or provide `--train-id`. |
+
+## Phase Overview (Rule 25 — Task Hierarchy)
+
+Eight phases (Rule 25 REGRA-001, EPIC-0055). Each opens with a PRE gate + `TaskCreate`, closes with a POST/FINAL gate + `TaskUpdate(completed)`. Phase 0 is exempted from gates (read-only setup). Full per-phase implementation in `references/full-protocol.md`.
+
+```
+0. PREPARATION  → detect state file, parse args, validate mode flag (inline)
+1. DISCOVERY    → enumerate PRs for the chosen mode (inline + gh CLI)
+2. VALIDATION   → VETO check per PR — open, non-draft, approved, CI pass (inline)
+3. SORTING      → topological sort + overlap pre-check (inline)
+4. BASE-MERGE   → merge base wave into develop (x-pr-merge per PR)
+5. REBASE-WAVE  → parallel rebase workers per wave (subagents)
+6. SMOKE-VERIFY → mvn test after all merges (inline)
+7. REPORT       → write report.md + cleanup (inline)
+```
+
+State machine: `PREPARATION → DISCOVERY → VALIDATION → SORTING → MERGING_BASE → WAVE_N_DISPATCHED → WAVE_N_RETURNED → VERIFYING → REPORTING → COMPLETED` (or `FAILED`).
+
+<!-- phase-no-gate: read-only arg parsing and state-file detection; no artifact produced -->
+## Phase 0 - Preparation
+
+Open a phase tracker (close with `TaskUpdate(id: phase0TaskId, status: "completed")` at end of setup):
+
+    TaskCreate(subject: "PR-MERGE › Phase 0 - Preparation", activeForm: "Preparing merge-train setup")
+
+Resolve `--resume` (load existing `state.json`) vs fresh run. Validate exactly one of `--prs`, `--epic`, `--pattern`. Produce `trainId` (derived from mode + epoch). Errors: `MODE_AMBIGUOUS`, `EPIC_STATE_MISSING`, `STATE_CONFLICT`.
+
+See `references/full-protocol.md §Phase 0` for full implementation.
+
+    TaskUpdate(id: phase0TaskId, status: "completed")
+
+## Phase 1 - Discovery
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-1-Discovery")
+    TaskCreate(subject: "PR-MERGE › Phase 1 - Discovery", activeForm: "Discovering PRs for merge train")
+
+Enumerate PRs per chosen mode:
+- `--prs`: parse CSV, preserve order.
+- `--epic`: read `plans/epic-{ID}/execution-state.json`, collect merged story PR URLs.
+- `--pattern`: `gh pr list --search {pattern} --state open --json number,createdAt | sort by createdAt`.
+
+Write initial `state.json` at `plans/merge-train/{trainId}/state.json` with `phase: DISCOVERY` and the discovered PR list. Advance state to `VALIDATION`.
+
+See `references/full-protocol.md §Phase 1` for full implementation.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-pr-merge-train --phase Phase-1-Discovery --expected-artifacts plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase1TaskId, status: "completed")
+
+## Phase 2 - Validation
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-2-Validation")
+    TaskCreate(subject: "PR-MERGE › Phase 2 - Validation", activeForm: "Validating PR merge eligibility")
+
+For each discovered PR, query `gh pr view {N} --json state,isDraft,baseRefName,reviewDecision,mergeable,statusCheckRollup` and apply VETO rules:
+- `PR_CLOSED`: `state != OPEN`
+- `PR_DRAFT`: `isDraft == true`
+- `PR_BASE_MISMATCH`: `baseRefName != develop`
+- `PR_NOT_APPROVED`: `reviewDecision != APPROVED`
+- `PR_CI_FAILING`: any check with `FAILURE` or `ERROR`
+- `PR_MERGE_CONFLICT`: `mergeable == CONFLICTING`
+
+If `--dry-run`: print VETO report and exit after Phase 2. Non-vetoed PRs advance to Phase 3.
+
+See `references/full-protocol.md §Phase 2` for full implementation.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-pr-merge-train --phase Phase-2-Validation --expected-artifacts plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase2TaskId, status: "completed")
+
+## Phase 3 - Sorting
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-3-Sorting")
+    TaskCreate(subject: "PR-MERGE › Phase 3 - Sorting", activeForm: "Sorting and overlap-checking PRs")
+
+Topological sort validated PRs by `createdAt` (or explicit `--prs` order). Run file-overlap pre-check against each pair: if code-file overlap detected, emit `NEUTERED_PARALLEL` advisory and force `MAX_PARALLEL=1` (serial). Update `state.json` with sorted order and parallelism decision.
+
+See `references/full-protocol.md §Phase 3` for full implementation.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-pr-merge-train --phase Phase-3-Sorting --expected-artifacts plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase3TaskId, status: "completed")
+
+## Phase 4 - Base Merge
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-4-BaseMerge")
+    TaskCreate(subject: "PR-MERGE › Phase 4 - Base Merge", activeForm: "Merging base PRs into develop")
+
+For each PR in sorted order, invoke `x-pr-merge`:
+
+    Skill(skill: "x-pr-merge", args: "--pr {N} --strategy squash --target develop")
+
+On `MERGE_REJECTED_BY_PROTECTION` or `MERGE_POLL_TIMEOUT`: abort train with state `FAILED`. Record failed PR in `state.json`. See `references/full-protocol.md §Phase 4`.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-pr-merge-train --phase Phase-4-BaseMerge --expected-artifacts plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase4TaskId, status: "completed")
+
+## Phase 5 - Rebase Wave
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-5-RebaseWave")
+    TaskCreate(subject: "PR-MERGE › Phase 5 - Rebase Wave", activeForm: "Rebasing PR wave onto develop")
+
+Dispatch rebase workers in parallel (up to `--max-parallel` sibling agents per wave). Each worker:
+1. Creates worktree via `x-git-worktree`.
+2. Rebases branch onto develop HEAD.
+3. On `GOLDENS_REGEN_FAILED`: runs `GoldenFileRegenerator` and re-pushes.
+4. On `CODE_CONFLICT_NEEDS_HUMAN`: preserves worktree, marks PR `FAILED`, continues.
+5. Writes result to `plans/merge-train/{trainId}/worker-{pr}.log`.
+
+Collect results; any non-fatal failure marks that PR skipped but continues the train.
+
+See `references/full-protocol.md §Phase 5` for full implementation.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-pr-merge-train --phase Phase-5-RebaseWave --expected-artifacts plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase5TaskId, status: "completed")
+
+## Phase 6 - Smoke Verify
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-6-SmokeVerify")
+    TaskCreate(subject: "PR-MERGE › Phase 6 - Smoke Verify", activeForm: "Running smoke verification after merges")
+
+After all wave merges, run:
+```bash
+mvn test
+```
+On failure: set state `FAILED`, emit `SMOKE_TEST_FAILED`, preserve worktree for diagnosis.
+On success: advance to Phase 7.
+
+See `references/full-protocol.md §Phase 6` for full implementation.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode post --skill x-pr-merge-train --phase Phase-6-SmokeVerify --expected-artifacts plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase6TaskId, status: "completed")
+
+## Phase 7 - Report
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode pre --skill x-pr-merge-train --phase Phase-7-Report")
+    TaskCreate(subject: "PR-MERGE › Phase 7 - Report", activeForm: "Writing merge-train completion report")
+
+Write `plans/merge-train/{trainId}/report.md` with: PRs merged, waves executed, errors encountered, total duration. Update `state.json` to `phase: COMPLETED`. Cleanup worktrees of successfully merged PRs via `x-git-worktree cleanup`.
+
+See `references/full-protocol.md §Phase 7` for full implementation.
+
+    Skill(skill: "x-internal-phase-gate", model: "haiku", args: "--mode final --skill x-pr-merge-train --phase Phase-7-Report --expected-artifacts plans/merge-train/{trainId}/report.md,plans/merge-train/{trainId}/state.json")
+    TaskUpdate(id: phase7TaskId, status: "completed")
 
 ## Full Protocol
 

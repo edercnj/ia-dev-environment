@@ -48,5 +48,8 @@
     "totalStories": 6,
     "completedStories": 0,
     "failedStories": 0
+  },
+  "taskTracking": {
+    "enabled": false
   }
 }

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **EPIC-0055 (Task Hierarchy & Phase Gate Enforcement):** Introduces Rule 25
+  (4-level hierarchical task tracking: Epic › Story › Phase › Wave/Cycle), skill
+  `x-internal-phase-gate` (internal, haiku, 4 modes: pre/post/wave/final), and
+  4-layer enforcement (normative, Stop hook `verify-phase-gates.sh`, PreToolUse hook
+  `enforce-phase-sequence.sh`, CI audit `audit-task-hierarchy.sh` + `audit-phase-gates.sh`).
+  Operators can now see `"EPIC-0065 › Phase 3 › story-0065-0001 (in_progress)"` during
+  execution. Phase gates block phase transitions until child tasks are completed and
+  expected artifacts exist on disk. Backward compatible with legacy epics via Rule 19:
+  field `taskTracking.enabled` (default false). ADR-0014 formalizes the design. All 8
+  canonical orchestrators retrofitted: `x-task-implement`, `x-story-implement`,
+  `x-epic-implement`, `x-release`, `x-epic-orchestrate`, `x-review`, `x-review-pr`,
+  `x-pr-merge-train`. Integration smoke test (`Epic0055FoundationSmokeTest`) validates
+  end-to-end: Rule 25 presence, phase-gate skill visibility, hook wiring, audit
+  scripts, and baseline-subset invariant. 28 legacy epic execution-state.json files
+  migrated with `taskTracking: { enabled: false }` for backward compatibility.
+  [story-0055-0001 through story-0055-0012]
+
 ### Changed
 
 - **EPIC-0054 story-0054-0004 (ADR-0012 rollout — XL orchestrators):** slim

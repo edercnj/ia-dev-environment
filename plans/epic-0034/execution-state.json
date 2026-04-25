@@ -5,11 +5,26 @@
   "startedAt": "2026-04-10T21:30:00Z",
   "totalPhases": 5,
   "stories": [
-    {"id": "story-0034-0001", "phase": 0},
-    {"id": "story-0034-0002", "phase": 1},
-    {"id": "story-0034-0003", "phase": 2},
-    {"id": "story-0034-0004", "phase": 3},
-    {"id": "story-0034-0005", "phase": 4}
+    {
+      "id": "story-0034-0001",
+      "phase": 0
+    },
+    {
+      "id": "story-0034-0002",
+      "phase": 1
+    },
+    {
+      "id": "story-0034-0003",
+      "phase": 2
+    },
+    {
+      "id": "story-0034-0004",
+      "phase": 3
+    },
+    {
+      "id": "story-0034-0005",
+      "phase": 4
+    }
   ],
   "storyEntries": {
     "story-0034-0001": {
@@ -201,14 +216,18 @@
       "prMergedAt": "2026-04-11T20:28:37Z",
       "prMergeCommit": "99ff582960870df9dd5dc2b57c644b16679788ae",
       "coverageLine": 95.22,
-      "coverageBranch": 90.00,
-      "coverageLineDelta": 0.00,
+      "coverageBranch": 90.0,
+      "coverageLineDelta": 0.0,
       "coverageBranchDelta": -0.04,
       "testFailures": 0,
       "findingsCount": 0,
       "helperExtracted": true,
-      "newClasses": ["PlanTemplateDefinitions (211 LOC)"],
-      "deletedClasses": ["SummaryRowFilter (was passthrough after story 2)"],
+      "newClasses": [
+        "PlanTemplateDefinitions (211 LOC)"
+      ],
+      "deletedClasses": [
+        "SummaryRowFilter (was passthrough after story 2)"
+      ],
       "scopeAdjustments": [
         "SKIPPED: ReadmeGithubCounter deletion — already done by story-0034-0003",
         "SKIPPED: PlanTemplatesAssembler.copyToTargets rename — already done by story-0034-0001 PR #274 review",
@@ -264,9 +283,9 @@
       "prNumber": 280,
       "prMergeStatus": "OPEN",
       "coverageLine": 95.21,
-      "coverageBranch": 90.00,
+      "coverageBranch": 90.0,
       "coverageLineDelta": -0.01,
-      "coverageBranchDelta": 0.00,
+      "coverageBranchDelta": 0.0,
       "testsSurefire": 5359,
       "testsFailsafe": 746,
       "testsTotal": 6105,
@@ -296,5 +315,8 @@
       ],
       "summary": "Closer story complete. CLAUDE.md trimmed 289->135. CHANGELOG with BREAKING/Removed/Changed/Migration sections. Version 2.3.0->3.0.0-SNAPSHOT. 6105 tests green. 6 grep sanity checks clean. CLI smoke rejects legacy platforms with exit 2. Coverage 95.21/90.00 (branch at exact floor). Evidence matrix archived. PR #280 OPEN CLEAN MERGEABLE."
     }
+  },
+  "taskTracking": {
+    "enabled": false
   }
 }
