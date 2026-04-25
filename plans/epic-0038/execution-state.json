@@ -267,7 +267,7 @@
       "status": "PENDING"
     }
   },
-  "currentPhase": 0,
+  "currentPhase": null,
   "mainShaBeforePhase": {
     "0": "d2ea863690ee36ee43d86eba5689a815d8ac07e5"
   },

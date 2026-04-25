@@ -3,7 +3,7 @@
   "epicId": "EPIC-0051",
   "branch": "feat/epic-0051-knowledge-packs-dir",
   "startedAt": "2026-04-20T00:00:00Z",
-  "currentPhase": 0,
+  "currentPhase": null,
   "mode": "FULL",
   "stories": {
     "story-0051-0001": {

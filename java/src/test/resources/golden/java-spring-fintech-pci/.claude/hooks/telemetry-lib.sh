@@ -117,8 +117,17 @@ resolve_context() {
     fi
 
     # (3) execution-state.json scan — pick the file with the most recent
-    # mtime whose currentPhase is non-null (RULE-005). Cross-platform mtime
+    # mtime whose epic is genuinely active (RULE-005). Cross-platform mtime
     # via BSD `stat -f %m` or GNU `stat -c %Y`.
+    #
+    # An epic is considered active only when ALL of the following hold:
+    #   - currentPhase is a non-empty string AND not "0" / 0 (numeric)
+    #   - currentPhase does not end in -complete / -done (case-insensitive)
+    #   - epicStatus is not in {success, complete, completed, done}
+    #   - completedAt and finishedAt are null
+    # Otherwise the epic is treated as concluded or never started, and the
+    # state file is skipped — preventing telemetry from continuing to write
+    # into the directory of a closed epic when the user is on develop.
     if command -v jq >/dev/null 2>&1 && [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
         local state_file newest_file="" mtime newest_mtime=0
         # shellcheck disable=SC2044
@@ -126,8 +135,23 @@ resolve_context() {
                 "${CLAUDE_PROJECT_DIR}"/plans/epic-*/execution-state.json; do
             [[ -f "${state_file}" ]] || continue
             local cp
-            cp="$(jq -r '.currentPhase // empty' "${state_file}" \
-                2>/dev/null)"
+            cp="$(jq -r '
+                if (.currentPhase == null
+                        or .currentPhase == ""
+                        or .currentPhase == 0
+                        or .currentPhase == "0") then empty
+                elif ((.currentPhase | type) == "string"
+                        and (.currentPhase
+                            | ascii_downcase
+                            | test("(^|-)(complete|completed|done)$"))) then empty
+                elif ((.epicStatus // "")
+                        | tostring
+                        | ascii_downcase
+                        | test("^(success|complete|completed|done)$")) then empty
+                elif (.completedAt != null or .finishedAt != null) then empty
+                else (.currentPhase | tostring)
+                end
+            ' "${state_file}" 2>/dev/null)"
             [[ -z "${cp}" ]] && continue
             mtime="$(stat -f %m "${state_file}" 2>/dev/null \
                 || stat -c %Y "${state_file}" 2>/dev/null \
