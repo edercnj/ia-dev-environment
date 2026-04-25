@@ -1,0 +1,21 @@
+{
+  "flowVersion": "2",
+  "epicId": "EPIC-0056",
+  "epicBranch": "epic/0056",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-25T00:00:00Z",
+  "mode": "sequential",
+  "taskTracking": {
+    "enabled": true
+  },
+  "storyStatuses": {
+    "story-0056-0001": { "status": "PENDING" },
+    "story-0056-0002": { "status": "PENDING" },
+    "story-0056-0003": { "status": "PENDING" },
+    "story-0056-0004": { "status": "PENDING" },
+    "story-0056-0005": { "status": "PENDING" },
+    "story-0056-0006": { "status": "PENDING" },
+    "story-0056-0007": { "status": "PENDING" },
+    "story-0056-0008": { "status": "PENDING" }
+  }
+}
