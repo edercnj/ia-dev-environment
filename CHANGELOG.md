@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
   Golden files regenerated for all 9 profiles.
 
+- **EPIC-0058 story-0058-0004 — `scripts/audit-epic-branches.sh` (Rule 21).**
+  Closes Rule 21 ghost-script gap. CI script audits `epic/*` branch governance:
+  checks flowVersion="2" on open PRs, branch force-push detection, and cleanup
+  exclusion. Supports `--self-check` and `--help`. Includes
+  `Epic0058EpicBranchesAuditSmokeTest` (5 tests).
+
 - **EPIC-0058 story-0058-0003 — `scripts/audit-flow-version.sh` (Rule 19).**
   Closes the ghost-script gap in Rule 19. CI script validates `flowVersion` field
   in all `plans/epic-*/execution-state.json` files. Supports `--strict` (absent field
