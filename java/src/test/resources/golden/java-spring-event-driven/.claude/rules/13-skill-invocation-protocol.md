@@ -246,3 +246,8 @@ The linter runs as part of the CI build via the per-skill acceptance tests under
 - Emitting a marker from a non-implementation skill (e.g., review, lint, format) — passive hooks already capture their activity.
 - Hand-rolling the JSON payload instead of calling `telemetry-phase.sh` — bypasses the scrubber and fail-open contract.
 - Using dotted case (`phase.1.plan`) instead of kebab case (`Phase-1-Plan`) in `$3` — consumers join on the exact string.
+
+---
+
+> **Catalogado em:** [`docs/audit-gates-catalog.md`](../../docs/audit-gates-catalog.md)
+

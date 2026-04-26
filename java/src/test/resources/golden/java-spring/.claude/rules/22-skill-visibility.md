@@ -97,3 +97,8 @@ Typical candidates for internal extraction: shared subroutines used by ≥ 2 pub
 ## Rationale
 
 Before EPIC-0049, `x-epic-implement` (~1100 lines) and `x-story-implement` (~900 lines) carried inline Bash for branch creation, status updates, plan construction, integrity gates, and report rendering. Every user-initiated `/x-story-implement` re-injected the full body into the LLM context, inflating token cost. Rule 22 codifies the extraction pattern so future size-reduction work has a stable convention to follow.
+
+---
+
+> **Catalogado em:** [`docs/audit-gates-catalog.md`](../../docs/audit-gates-catalog.md)
+

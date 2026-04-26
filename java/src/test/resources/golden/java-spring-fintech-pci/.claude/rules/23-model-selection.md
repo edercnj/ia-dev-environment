@@ -125,3 +125,8 @@ Model selection is **additive**:
 - **Legacy skills (pre-EPIC-0050)** not in the enforcement matrix are ignored until they enter a future scope-expansion epic.
 - **Internal skills (`x-internal-*`, Rule 22)** follow the same matrix as their public caller but MAY omit `model:` when their parent orchestrator's frontmatter guarantees the tier — declare `model:` only if the internal skill legitimately needs a different tier.
 - **One-off experimental skills under `.claude/skills/experimental/`** are out of scope for this rule.
+
+---
+
+> **Catalogado em:** [`docs/audit-gates-catalog.md`](../../docs/audit-gates-catalog.md)
+

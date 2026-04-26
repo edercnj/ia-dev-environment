@@ -109,3 +109,8 @@ story-0051-0001  # pre-Rule-24, merged 2026-04-23 (PR #602), inline execution wa
 ## Audit
 
 The audit is self-auditing: `scripts/audit-execution-integrity.sh --self-check` verifies that this rule file exists, the Stop hook is registered in `settings.json`, and the baseline file is present. Any missing piece fails the CI build with `EIE_ENFORCEMENT_BROKEN`.
+
+---
+
+> **Catalogado em:** [`docs/audit-gates-catalog.md`](../../docs/audit-gates-catalog.md)
+

@@ -12,7 +12,7 @@
   },
   "parallelismDowngrades": [],
   "storyStatuses": {
-    "story-0058-0001": {"status": "PENDING", "phase": 0},
+    "story-0058-0001": {"status": "COMPLETE", "phase": 0, "prNumber": 658, "prMergeStatus": "MERGED"},
     "story-0058-0002": {"status": "PENDING", "phase": 1},
     "story-0058-0003": {"status": "PENDING", "phase": 1},
     "story-0058-0004": {"status": "PENDING", "phase": 1},
