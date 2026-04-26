@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
   Golden files regenerated for all 9 profiles.
 
+- **EPIC-0058 story-0058-0003 — `scripts/audit-flow-version.sh` (Rule 19).**
+  Closes the ghost-script gap in Rule 19. CI script validates `flowVersion` field
+  in all `plans/epic-*/execution-state.json` files. Supports `--strict` (absent field
+  = violation), `--self-check` (structural integrity), and `-h/--help`. Includes 4
+  fixture JSONs (`valid-v1`, `valid-v2`, `missing`, `invalid`), bats integration tests
+  (9 scenarios), and `Epic0058FlowVersionAuditSmokeTest` Java smoke test (7 tests).
+
 ### Changed
 
 - **EPIC-0056 (RA9 Standardized Planning Templates):** Introduces the
