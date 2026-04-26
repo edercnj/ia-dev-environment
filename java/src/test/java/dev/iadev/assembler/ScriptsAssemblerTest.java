@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for {@link ScriptsAssembler}.
  *
  * <p>Validates that the assembler copies all 5 audit scripts
- * to the output .claude/scripts/ directory, sets executable
+ * to the output scripts/ directory, sets executable
  * permissions, and returns the correct list of generated paths.</p>
  */
 @DisplayName("ScriptsAssemblerTest")
@@ -51,14 +51,14 @@ class ScriptsAssemblerTest {
     }
 
     @Test
-    @DisplayName("assemble creates .claude/scripts/ directory")
+    @DisplayName("assemble creates scripts/ directory")
     void assemble_createsScriptsDirectory() {
         assembler.assemble(config, engine, tempDir);
 
         Path scriptsDir =
-                tempDir.resolve(".claude/scripts");
+                tempDir.resolve("scripts");
         assertThat(scriptsDir)
-                .as(".claude/scripts must be created")
+                .as("scripts must be created")
                 .exists()
                 .isDirectory();
     }
@@ -69,7 +69,7 @@ class ScriptsAssemblerTest {
         assembler.assemble(config, engine, tempDir);
 
         Path scriptsDir =
-                tempDir.resolve(".claude/scripts");
+                tempDir.resolve("scripts");
         for (String scriptName :
                 ScriptsAssembler.AUDIT_SCRIPTS) {
             assertThat(scriptsDir.resolve(scriptName))
@@ -87,7 +87,7 @@ class ScriptsAssemblerTest {
         assembler.assemble(config, engine, tempDir);
 
         Path scriptsDir =
-                tempDir.resolve(".claude/scripts");
+                tempDir.resolve("scripts");
         String firstName =
                 ScriptsAssembler.AUDIT_SCRIPTS.get(0);
         Path script = scriptsDir.resolve(firstName);

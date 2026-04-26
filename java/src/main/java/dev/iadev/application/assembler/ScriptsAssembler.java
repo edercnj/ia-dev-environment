@@ -42,7 +42,7 @@ public final class ScriptsAssembler implements Assembler {
     private static final Logger LOG =
             Logger.getLogger(ScriptsAssembler.class.getName());
 
-    static final String SCRIPTS_OUTPUT_DIR = ".claude/scripts";
+    static final String SCRIPTS_OUTPUT_DIR = "scripts";
     static final String SCRIPTS_CLASSPATH_PREFIX =
             "targets/claude/scripts/";
 

@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
   Golden files regenerated for all 9 profiles.
 
+- **EPIC-0058 story-0058-0007 — Golden files regenerated for ScriptsAssembler.**
+  Regenerated all 9 golden profiles to include `.claude/scripts/` with 5 audit
+  scripts. Fixed path regression (`scripts/` not `.claude/scripts/` in
+  `ScriptsAssembler.SCRIPTS_OUTPUT_DIR`). `GoldenFileTest` passes clean.
+
 - **EPIC-0058 story-0058-0006 — `ScriptsAssembler` + source-of-truth.**
   Introduces `ScriptsAssembler` (23rd assembler in RULE-005 pipeline) that copies
   5 audit scripts from classpath `targets/claude/scripts/` to `.claude/scripts/`
