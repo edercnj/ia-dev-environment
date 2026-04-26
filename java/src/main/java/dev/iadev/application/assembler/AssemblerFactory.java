@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Factory that instantiates the 22 assemblers in the
+ * Factory that instantiates the 23 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -35,7 +35,7 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 22 assemblers per RULE-005.
+     * Builds the ordered list of 23 assemblers per RULE-005.
      *
      * <p>Delegates to group builders by category:
      * constitution, core, docs, cicd,
@@ -55,14 +55,14 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds ALL 22 assemblers without platform filtering.
+     * Builds ALL 23 assemblers without platform filtering.
      *
      * <p>Use this when you need the complete list for
      * verbose/dry-run comparison against filtered list.</p>
      *
      * @param options pipeline options controlling assembler
      *                behavior (platforms field is ignored)
-     * @return immutable ordered list of all 22 assembler
+     * @return immutable ordered list of all 23 assembler
      *         descriptors
      */
     public static List<AssemblerDescriptor>
@@ -133,6 +133,10 @@ public final class AssemblerFactory {
                         AssemblerTarget.CLAUDE,
                         claude,
                         new HooksAssembler()),
+                desc("ScriptsAssembler",
+                        AssemblerTarget.CLAUDE,
+                        claude,
+                        new ScriptsAssembler()),
                 desc("SettingsAssembler",
                         AssemblerTarget.CLAUDE,
                         claude,
