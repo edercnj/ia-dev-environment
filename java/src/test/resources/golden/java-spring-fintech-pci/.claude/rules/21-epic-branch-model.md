@@ -75,3 +75,8 @@ CI script `scripts/audit-epic-branches.sh` (or equivalent) scans `gh pr list --b
 - `x-git-cleanup-branches` configuration excludes `epic/*` from protected-branch bypass.
 
 Any violation fails the CI build with `EPIC_BRANCH_VIOLATION`.
+
+---
+
+> **Catalogado em:** [`docs/audit-gates-catalog.md`](../../docs/audit-gates-catalog.md)
+

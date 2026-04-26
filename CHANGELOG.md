@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     all 8 mandatory sections.
   - Golden files regenerated for all 9 profiles to include Rule 26.
 
+- **EPIC-0058 story-0058-0002 — Audit Gates Catalog `docs/audit-gates-catalog.md`.**
+  Publishes the canonical catalog of all 12 governance gates across 4 layers
+  (7 CI scripts, 3 Hook runtimes, 2 Java tests). Adds per-gate detail sections
+  (purpose, exit codes, layer, invoker). Adds catalog cross-ref line to Rules 13,
+  19, 21, 22, 23, 24, 25. Adds References section to readme-template. Enforces
+  RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
+  Golden files regenerated for all 9 profiles.
+
 ### Changed
 
 - **EPIC-0056 (RA9 Standardized Planning Templates):** Introduces the

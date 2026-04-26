@@ -120,3 +120,8 @@ CI script `scripts/audit-flow-version.sh` (or equivalent) checks every `executio
 - If the enclosing epic uses Rule 21 (`epic/XXXX` branch exists on the remote), `flowVersion` MUST be `"2"` unless `--legacy-flow` was recorded in the epic's metadata.
 
 Violations fail the CI build with `FLOW_VERSION_VIOLATION`.
+
+---
+
+> **Catalogado em:** [`docs/audit-gates-catalog.md`](../../docs/audit-gates-catalog.md)
+
