@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
   Golden files regenerated for all 9 profiles.
 
+- **EPIC-0058 story-0058-0005 — `scripts/audit-skill-visibility.sh` (Rule 22).**
+  Closes Rule 22 ghost-script gap. Validates x-internal-* skill visibility
+  convention (prefix/frontmatter consistency, body marker, orphan script
+  references via RULE-004). Found and fixed one real gap: `audit-bypass-flags.sh`
+  was referenced in Rule 45 but absent from the catalog — added to catalog.
+  Includes `Epic0058SkillVisibilityAuditSmokeTest` (6 tests, including
+  end-to-end scan of current repo passes exit 0).
+
 - **EPIC-0058 story-0058-0004 — `scripts/audit-epic-branches.sh` (Rule 21).**
   Closes Rule 21 ghost-script gap. CI script audits `epic/*` branch governance:
   checks flowVersion="2" on open PRs, branch force-push detection, and cleanup

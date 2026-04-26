@@ -30,6 +30,7 @@ script without a catalog entry fails `scripts/audit-skill-visibility.sh`.
 
 | Nome | Camada | Rule | Localização | Exit Codes | Self-check | Invocado por |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `audit-bypass-flags.sh` | ci-script | Rule 45 | `scripts/audit-bypass-flags.sh` | 0,1,2,3 | Sim | `.github/workflows/audit.yml` |
 | `audit-flow-version.sh` | ci-script | Rule 19 | `scripts/audit-flow-version.sh` | 0,1,2,3 | Sim | `.github/workflows/audit.yml` |
 | `audit-epic-branches.sh` | ci-script | Rule 21 | `scripts/audit-epic-branches.sh` | 0,1,2,3 | Sim | `.github/workflows/audit.yml` |
 | `audit-skill-visibility.sh` | ci-script | Rule 22 | `scripts/audit-skill-visibility.sh` | 0,1,2,22,3 | Sim | `.github/workflows/audit.yml` |
