@@ -184,6 +184,12 @@ EPIC-0040 shipped this stack — see the [CHANGELOG](../CHANGELOG.md) for the re
 
 ---
 
+## References
+
+- **Audit Gates Catalog:** [`docs/audit-gates-catalog.md`](../docs/audit-gates-catalog.md) — canonical index of all governance gates (Hook runtime / CI script / Java test / Workflow) with exit codes, layer, and cross-refs. Maintained per RULE-004 (Catalog-before-Add, Rule 26).
+
+---
+
 ## Generation Summary
 
 {{GENERATION_SUMMARY}}
