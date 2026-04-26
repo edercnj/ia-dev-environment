@@ -33,15 +33,19 @@ cd "${REPO_ROOT}"
 BASELINE_FILE="audits/execution-integrity-baseline.txt"
 RULE_FILE=".claude/rules/24-execution-integrity.md"
 HOOK_FILE=".claude/hooks/verify-story-completion.sh"
+# Source-of-truth fallback paths used when the runtime .claude/ tree is
+# absent (CI checkouts — .claude/ is gitignored as a generated output).
+RULE_SOT="java/src/main/resources/targets/claude/rules/24-execution-integrity.md"
+HOOK_SOT="java/src/main/resources/targets/claude/hooks/verify-story-completion.sh"
 
 self_check() {
     local broken=0
-    if [[ ! -f "${RULE_FILE}" ]]; then
-        echo "SELF_CHECK_FAIL: ${RULE_FILE} missing" >&2
+    if [[ ! -f "${RULE_FILE}" && ! -f "${RULE_SOT}" ]]; then
+        echo "SELF_CHECK_FAIL: ${RULE_FILE} (and SOT ${RULE_SOT}) missing" >&2
         broken=1
     fi
-    if [[ ! -f "${HOOK_FILE}" ]]; then
-        echo "SELF_CHECK_FAIL: ${HOOK_FILE} missing" >&2
+    if [[ ! -f "${HOOK_FILE}" && ! -f "${HOOK_SOT}" ]]; then
+        echo "SELF_CHECK_FAIL: ${HOOK_FILE} (and SOT ${HOOK_SOT}) missing" >&2
         broken=1
     fi
     if [[ ! -f "${BASELINE_FILE}" ]]; then
