@@ -11,6 +11,7 @@
 | ADR-0005 | [Telemetry Architecture for Skill Execution Visibility (EPIC-0040)](ADR-0005-telemetry-architecture.md) | Accepted | 2026-04-17 |
 | ADR-0048-A | [Java-Only Scope for the ia-dev-env Generator (EPIC-0048)](ADR-0048-java-only-scope.md) | Accepted | 2026-04-22 |
 | ADR-0048-B | [CLAUDE.md Contract (Root File via Dedicated Assembler) (EPIC-0048)](ADR-0048-B-claude-md-contract.md) | Accepted | 2026-04-22 |
+| ADR-0015 | [Audit Gate Lifecycle Convention (EPIC-0058)](ADR-0015-audit-gate-lifecycle.md) | Accepted | 2026-04-26 |
 
 ## Creating a New ADR
 
