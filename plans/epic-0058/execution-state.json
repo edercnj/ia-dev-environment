@@ -1,0 +1,24 @@
+{
+  "flowVersion": "2",
+  "epicId": "EPIC-0058",
+  "epicBranch": "epic/0058",
+  "mode": "sequential",
+  "autoMergeStrategy": "merge",
+  "createdAt": "2026-04-26T00:00:00Z",
+  "updatedAt": "2026-04-26T00:00:00Z",
+  "taskTracking": {
+    "enabled": true,
+    "phaseGateResults": []
+  },
+  "parallelismDowngrades": [],
+  "storyStatuses": {
+    "story-0058-0001": {"status": "PENDING", "phase": 0},
+    "story-0058-0002": {"status": "PENDING", "phase": 1},
+    "story-0058-0003": {"status": "PENDING", "phase": 1},
+    "story-0058-0004": {"status": "PENDING", "phase": 1},
+    "story-0058-0005": {"status": "PENDING", "phase": 1},
+    "story-0058-0006": {"status": "PENDING", "phase": 2},
+    "story-0058-0007": {"status": "PENDING", "phase": 3},
+    "story-0058-0008": {"status": "PENDING", "phase": 4}
+  }
+}

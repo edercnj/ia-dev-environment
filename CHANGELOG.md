@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **EPIC-0058 story-0058-0001 — Rule 26 "Audit Gate Lifecycle" + ADR-0015.**
+  Formalizes the taxonomy for governance gates with four canonical layers
+  (Hook runtime / CI script / Java test / CI workflow), naming conventions
+  (`verify-*.sh` / `audit-*.sh` / `*AuditTest.java`), exit codes 0–3, the
+  mandatory `--self-check` flag contract for CI scripts, and the
+  Catalog-before-Add rule (RULE-004). Closes the normative gap where decisions
+  about gate layer were made ad hoc epic-by-epic.
+  - `java/src/main/resources/targets/claude/rules/26-audit-gate-lifecycle.md`
+    (source-of-truth; copied to `.claude/rules/` in all 9 golden profiles).
+  - `adr/ADR-0015-audit-gate-lifecycle.md` (Status: Accepted).
+  - `Epic0058Rule26SmokeTest` — 7 test methods validating file presence and
+    all 8 mandatory sections.
+  - Golden files regenerated for all 9 profiles to include Rule 26.
+
 ### Changed
 
 - **EPIC-0056 (RA9 Standardized Planning Templates):** Introduces the
