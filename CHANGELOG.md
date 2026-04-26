@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
   Golden files regenerated for all 9 profiles.
 
+- **EPIC-0058 story-0058-0006 — `ScriptsAssembler` + source-of-truth.**
+  Introduces `ScriptsAssembler` (23rd assembler in RULE-005 pipeline) that copies
+  5 audit scripts from classpath `targets/claude/scripts/` to `.claude/scripts/`
+  in each generated project. Achieves generation parity (RULE-003): projects from
+  `ia-dev-env` now inherit CI governance gates automatically. All 5 scripts added
+  to `java/src/main/resources/targets/claude/scripts/`. `AssemblerFactory` updated
+  (22 → 23 assemblers). `ScriptsAssemblerTest` (6 unit tests) covers assembly,
+  idempotency, and POSIX execute permission.
+
 - **EPIC-0058 story-0058-0005 — `scripts/audit-skill-visibility.sh` (Rule 22).**
   Closes Rule 22 ghost-script gap. Validates x-internal-* skill visibility
   convention (prefix/frontmatter consistency, body marker, orphan script
