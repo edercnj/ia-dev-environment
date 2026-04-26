@@ -99,8 +99,8 @@ class AuditExecutionIntegrityTest {
                 .contains("HARD_VERIFY_ENVELOPE")
                 .contains("verify-envelope-{STORY}.json");
         assertThat(body)
-                .as(".conf must declare SOFT_DEPENDENCY_AUDIT pattern")
-                .contains("SOFT_DEPENDENCY_AUDIT")
+                .as(".conf must declare HARD_DEPENDENCY_AUDIT pattern (Rule 24 §32-42 marks x-dependency-audit as Camada 3 hard)")
+                .contains("HARD_DEPENDENCY_AUDIT")
                 .contains("dependency-audit-{STORY}.md");
     }
 

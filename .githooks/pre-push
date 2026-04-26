@@ -14,6 +14,7 @@
 #     branch only carries planning artifacts under plans/**.
 
 set -u
+set -o pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "${REPO_ROOT}"
@@ -24,13 +25,30 @@ if [[ "${CLAUDE_SMOKE_DISABLED:-0}" == "1" ]]; then
 fi
 
 # Skip when the local push only carries planning / docs / hooks files —
-# they cannot regress runtime behaviour.
-CHANGED_NON_PLAN=$(git diff --name-only origin/HEAD...HEAD 2>/dev/null \
-    | grep -vE '^(plans/|docs/|adr/|\.githooks/|README\.md$|CHANGELOG\.md$)' \
-    | head -1)
-if [[ -z "${CHANGED_NON_PLAN}" ]]; then
-    echo "pre-push: only planning/docs files changed — skipping smoke run."
-    exit 0
+# they cannot regress runtime behaviour. Resolve the diff base via an
+# explicit merge-base against a known integration branch (origin/develop
+# preferred, then origin/main). Falls back to "no skip" when none of those
+# refs exist locally — safer to run the smoke suite than to silently bypass
+# it. `origin/HEAD` is intentionally NOT used: it isn't set on fresh
+# clones, forks, or repos lacking that symbolic ref, which would create a
+# bypass loophole.
+DIFF_BASE=""
+for ref in origin/develop origin/main; do
+    if git rev-parse --verify --quiet "${ref}" >/dev/null; then
+        DIFF_BASE=$(git merge-base HEAD "${ref}" 2>/dev/null || true)
+        [[ -n "${DIFF_BASE}" ]] && break
+    fi
+done
+if [[ -n "${DIFF_BASE}" ]]; then
+    CHANGED_NON_PLAN=$(git diff --name-only "${DIFF_BASE}..HEAD" 2>/dev/null \
+        | grep -vE '^(plans/|docs/|adr/|\.githooks/|README\.md$|CHANGELOG\.md$)' \
+        | head -1)
+    if [[ -z "${CHANGED_NON_PLAN}" ]]; then
+        echo "pre-push: only planning/docs files changed — skipping smoke run."
+        exit 0
+    fi
+else
+    echo "pre-push: no integration ref to compute diff against — running full smoke."
 fi
 
 # Critical smoke tests promoted from `mvn verify` to local `mvn test`

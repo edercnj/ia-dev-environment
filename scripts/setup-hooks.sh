@@ -11,7 +11,11 @@
 
 set -u
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "${REPO_ROOT}" ]]; then
+    echo "error: not inside a git worktree — run from a cloned repository" >&2
+    exit 1
+fi
 cd "${REPO_ROOT}"
 
 usage() {

@@ -148,6 +148,42 @@ check_evidence() {
         missing+=("story-completion-report")
     fi
 
+    # EPIC-0057 — hard artefact for x-dependency-audit (Camada 3, Rule 24
+    # §32-42 expanded). Mirrors the .conf HARD_DEPENDENCY_AUDIT pattern.
+    if [[ ! -f "${reports_dir}/dependency-audit-${story_id}.md" ]]; then
+        missing+=("dependency-audit (x-dependency-audit)")
+    fi
+
+    # EPIC-0057 — hard artefact for x-pr-watch-ci (Rule 45). State file
+    # is keyed by PR number; we resolve it from execution-state.json
+    # storyStatuses.<id>.prNumber when present and fall back to a
+    # directory-presence check otherwise. The .claude/state/ directory
+    # itself is a precondition — its absence indicates the runtime tree
+    # has never been generated, in which case the check short-circuits
+    # (CI checkouts that don't generate .claude/ are not penalised).
+    local pr_state_dir=".claude/state"
+    local pr_number=""
+    local epic_num
+    epic_num=$(echo "${story_id}" | grep -oE '^story-[0-9]{4}' | sed 's/story-//')
+    local exec_state="plans/epic-${epic_num}/execution-state.json"
+    if [[ -f "${exec_state}" ]] && command -v jq >/dev/null 2>&1; then
+        pr_number=$(jq -r --arg sid "${story_id}" \
+            '.storyStatuses[$sid].prNumber // empty' \
+            "${exec_state}" 2>/dev/null || true)
+    fi
+    if [[ -d "${pr_state_dir}" ]]; then
+        if [[ -n "${pr_number}" ]]; then
+            if [[ ! -f "${pr_state_dir}/pr-watch-${pr_number}.json" ]]; then
+                missing+=("pr-watch (x-pr-watch-ci) → ${pr_state_dir}/pr-watch-${pr_number}.json")
+            fi
+        else
+            # PR number unknown — fall back to directory-level presence.
+            if ! compgen -G "${pr_state_dir}/pr-watch-[0-9]*.json" >/dev/null 2>&1; then
+                missing+=("pr-watch (x-pr-watch-ci) — no pr-watch-*.json under ${pr_state_dir}")
+            fi
+        fi
+    fi
+
     if [[ ${#missing[@]} -gt 0 ]]; then
         printf "  ❌ %s — missing: %s\n" "${story_id}" "$(IFS=,; echo "${missing[*]}")" >&2
         return 1
@@ -270,6 +306,15 @@ main() {
             [[ "${json_mode}" != "true" ]] && \
                 printf "  ❌ %s — malformed audit-exempt marker\n" "${story}" >&2
             invalid_exemptions=$((invalid_exemptions + 1))
+            # Append to failures envelope so JSON consumers see WHICH
+            # story has the malformed marker (Copilot review feedback —
+            # PR #653 review comment 3).
+            if [[ "${failures_first}" == "true" ]]; then
+                failures_first="false"
+            else
+                failures_json+=","
+            fi
+            failures_json+="{\"storyId\":\"${story}\",\"status\":\"EIE_INVALID_EXEMPTION\"}"
             continue
         fi
         if check_evidence "${story}"; then
