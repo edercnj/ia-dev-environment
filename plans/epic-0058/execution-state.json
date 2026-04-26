@@ -18,7 +18,7 @@
     "story-0058-0004": {"status": "COMPLETE", "phase": 1, "prNumber": 665, "prMergeStatus": "MERGED"},
     "story-0058-0005": {"status": "COMPLETE", "phase": 1, "prNumber": 666, "prMergeStatus": "MERGED"},
     "story-0058-0006": {"status": "COMPLETE", "phase": 2, "prNumber": 667, "prMergeStatus": "MERGED"},
-    "story-0058-0007": {"status": "PENDING", "phase": 3},
+    "story-0058-0007": {"status": "COMPLETE", "phase": 3, "prNumber": 668, "prMergeStatus": "MERGED"},
     "story-0058-0008": {"status": "PENDING", "phase": 4}
   }
 }
