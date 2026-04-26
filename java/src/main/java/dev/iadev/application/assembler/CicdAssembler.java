@@ -76,6 +76,7 @@ public final class CicdAssembler implements Assembler {
     private final DockerComposeStep dockerCompose;
     private final K8sManifestStep k8sManifest;
     private final SmokeTestStep smokeTest;
+    private final AuditWorkflowStep auditWorkflow;
 
     /**
      * Creates a CicdAssembler using classpath resources.
@@ -98,6 +99,7 @@ public final class CicdAssembler implements Assembler {
         this.dockerCompose = new DockerComposeStep();
         this.k8sManifest = new K8sManifestStep();
         this.smokeTest = new SmokeTestStep();
+        this.auditWorkflow = new AuditWorkflowStep();
     }
 
     /**
@@ -128,7 +130,8 @@ public final class CicdAssembler implements Assembler {
                 dockerfile.assemble(cicdCtx),
                 dockerCompose.assemble(cicdCtx),
                 k8sManifest.assemble(cicdCtx),
-                smokeTest.assemble(cicdCtx)));
+                smokeTest.assemble(cicdCtx),
+                auditWorkflow.assemble(cicdCtx)));
 
         return result.files();
     }

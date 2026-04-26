@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RULE-004 (Catalog-before-Add) via `Epic0058CatalogConsistencySmokeTest` (5 tests).
   Golden files regenerated for all 9 profiles.
 
+- **EPIC-0058 story-0058-0008 — `audit.yml` CI workflow + `AuditWorkflowStep`.**
+  Closes EPIC-0058. Adds `.github/workflows/audit.yml` to the main repo and as a
+  generated artifact via `CicdAssembler` + `AuditWorkflowStep` (7th sub-assembler).
+  Workflow triggers on every PR to `develop` / `epic/**`. Runs `audit-self-check`
+  job first (RULE-006 fail-fast), then `audit-matrix` with 5 scripts in parallel.
+  Template at `shared/cicd-templates/audit-workflow/audit.yml.njk`. Goldens
+  regenerated for 9 profiles. `Epic0058AuditWorkflowSmokeTest` (6 tests).
+
 - **EPIC-0058 story-0058-0007 — Golden files regenerated for ScriptsAssembler.**
   Regenerated all 9 golden profiles to include `.claude/scripts/` with 5 audit
   scripts. Fixed path regression (`scripts/` not `.claude/scripts/` in

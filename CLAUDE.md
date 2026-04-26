@@ -38,7 +38,7 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > - Decision record: [`adr/ADR-0010-interactive-gates-convention.md`](adr/ADR-0010-interactive-gates-convention.md)
 > - Story index: [`plans/epic-0043/`](plans/epic-0043/)
 
-> **In progress — EPIC-0058 (Audit Scripts Lifecycle & Generation).**
+> **Concluded — EPIC-0058 (Audit Scripts Lifecycle & Generation).**
 > Formalizes the lifecycle of governance audit gates: creates Rule 26 "Audit Gate Lifecycle" + ADR-0015 (4-layer taxonomy: Hook/CI script/Java test/Workflow); creates 3 missing CI scripts referenced in Rules 19/21/22 (`audit-flow-version.sh`, `audit-epic-branches.sh`, `audit-skill-visibility.sh`); introduces `ScriptsAssembler` so generated projects inherit governance gates; regenerates golden files for 9 profiles; adds `audit.yml` CI workflow.
 > - Rule: [`.claude/rules/26-audit-gate-lifecycle.md`](.claude/rules/26-audit-gate-lifecycle.md)
 > - Decision record: [`adr/ADR-0015-audit-gate-lifecycle.md`](adr/ADR-0015-audit-gate-lifecycle.md)
