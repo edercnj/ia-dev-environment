@@ -155,6 +155,8 @@ Each `subject` follows the Rule 25 §3 canonical regex with the `›`
     TaskCreate(subject: "{STORY_ID} › Review › API",           activeForm: "Running API review")
     TaskCreate(subject: "{STORY_ID} › Review › Events",        activeForm: "Running events review")
 
+**MANDATORY TOOL CALL — NON-NEGOTIABLE (Rule 24):** Each `Skill(skill: "x-review-*")` below is a tool call, not prose. Silent omission of any active specialist is a `PROTOCOL_VIOLATION` and the resulting `review-story-{STORY-ID}.md` will fail Camada 3 audit (`EIE_EVIDENCE_MISSING`):
+
     Skill(skill: "x-review-qa",            model: "sonnet", args: "{STORY_ID}")
     Skill(skill: "x-review-perf",          model: "sonnet", args: "{STORY_ID}")
     Skill(skill: "x-review-db",            model: "sonnet", args: "{STORY_ID}")

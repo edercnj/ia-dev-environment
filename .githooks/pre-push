@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# .githooks/pre-push — story-0057-0007 (EPIC-0057).
+#
+# Runs the critical smoke tests locally BEFORE every git push so that
+# protocol regressions of the EPIC-0053 class are caught in < 30s on
+# the developer workstation, instead of ~60 min on remote CI.
+#
+# Activated by: `git config core.hooksPath .githooks` (one-time setup
+# per clone — see scripts/setup-hooks.sh).
+#
+# Skip behavior:
+#   - Set CLAUDE_SMOKE_DISABLED=1 to bypass for a single push.
+#   - The hook always exits 0 when no tests changed locally and the
+#     branch only carries planning artifacts under plans/**.
+
+set -u
+set -o pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "${REPO_ROOT}"
+
+if [[ "${CLAUDE_SMOKE_DISABLED:-0}" == "1" ]]; then
+    echo "pre-push: CLAUDE_SMOKE_DISABLED=1 — skipping smoke promotion."
+    exit 0
+fi
+
+# Skip when the local push only carries planning / docs / hooks files —
+# they cannot regress runtime behaviour. Resolve the diff base via an
+# explicit merge-base against a known integration branch (origin/develop
+# preferred, then origin/main). Falls back to "no skip" when none of those
+# refs exist locally — safer to run the smoke suite than to silently bypass
+# it. `origin/HEAD` is intentionally NOT used: it isn't set on fresh
+# clones, forks, or repos lacking that symbolic ref, which would create a
+# bypass loophole.
+DIFF_BASE=""
+for ref in origin/develop origin/main; do
+    if git rev-parse --verify --quiet "${ref}" >/dev/null; then
+        DIFF_BASE=$(git merge-base HEAD "${ref}" 2>/dev/null || true)
+        [[ -n "${DIFF_BASE}" ]] && break
+    fi
+done
+if [[ -n "${DIFF_BASE}" ]]; then
+    CHANGED_NON_PLAN=$(git diff --name-only "${DIFF_BASE}..HEAD" 2>/dev/null \
+        | grep -vE '^(plans/|docs/|adr/|\.githooks/|README\.md$|CHANGELOG\.md$)' \
+        | head -1)
+    if [[ -z "${CHANGED_NON_PLAN}" ]]; then
+        echo "pre-push: only planning/docs files changed — skipping smoke run."
+        exit 0
+    fi
+else
+    echo "pre-push: no integration ref to compute diff against — running full smoke."
+fi
+
+# Critical smoke tests promoted from `mvn verify` to local `mvn test`
+# (story-0057-0007 §3.1). These are the protocol-regression smoke tests
+# whose absence allowed EPIC-0053 to ship 6 broken task-PRs.
+SMOKE_TESTS=(
+    "Epic0047CompressionSmokeTest"
+    "Epic0049StoryReportSmokeTest"
+    "Epic0054CompressionSmokeTest"
+    "Epic0055FoundationSmokeTest"
+    "Rule24EvidenceTableExpansionTest"
+    "Rule45CiWatchIntegrityTest"
+    "AuditExecutionIntegrityTest"
+    "AuditBypassFlagsTest"
+    "MandatoryMarkersSmokeTest"
+    "StopHookExtendedTest"
+)
+
+# Comma-separated for -Dtest pattern
+JOIN_TESTS=$(IFS=, ; echo "${SMOKE_TESTS[*]}")
+
+echo "pre-push: running critical smoke suite (${#SMOKE_TESTS[@]} tests)..."
+START=$(date +%s)
+if ! (cd java && mvn -q test -Dtest="${JOIN_TESTS}" 2>&1 | tail -10); then
+    cat >&2 <<EOF
+
+❌ pre-push: critical smoke suite FAILED.
+
+This is the EPIC-0057 story-0057-0007 guard that catches protocol
+regressions BEFORE they reach remote CI. The push has been blocked.
+
+Inspect the failure above, fix the regression, and try again. To skip
+this hook for a single push (NOT recommended — the same suite runs
+in CI and will block the PR there):
+
+  CLAUDE_SMOKE_DISABLED=1 git push
+
+EOF
+    exit 1
+fi
+END=$(date +%s)
+echo "pre-push: smoke suite OK ($((END - START))s)."
+exit 0
